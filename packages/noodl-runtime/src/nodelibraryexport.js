@@ -466,6 +466,12 @@ function generateNodeLibrary(nodeRegister) {
           ]
         },
         {
+          name: 'Neue Utils',
+          items: [
+            'Compare', 'Range'
+          ]
+        },
+        {
           name: 'Logic',
           items: [
             'Boolean To String', 'Switch', 'And', 'Or', 'Condition', 'Inverter']
@@ -610,7 +616,7 @@ function generateNodeLibrary(nodeRegister) {
         {
           name: 'Sensors',
           items: [
-            'Humidity Sensor', 'Temperature Sensor', 'Accelerometer', 'Hardware Clock'
+            'Humidity Sensor', 'Temperature Sensor', 'Accelerometer', 'Hardware Clock', 'RGB LED', 'I/O',
           ]
         },
         {

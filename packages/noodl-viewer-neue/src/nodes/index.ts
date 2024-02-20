@@ -8,7 +8,12 @@ export function registerNodes(runtime: NoodlRuntime) {
     require('./shNodes/humiditysensor'),
     require('./shNodes/savetelemetry'),
     require('./shNodes/tempsensor'),
-    require('./shNodes/sendevent')
+    require('./shNodes/sendevent'),
+    require('./shNodes/rgbLed'),
+    require('./shNodes/iO'),
+    require('./logic/range'),
+    require('./logic/compare'),
+
   ].forEach(function (nodeDefinition) {
     runtime.registerNode(nodeDefinition);
   });

@@ -30,7 +30,6 @@ import OptionsOld from './nodes-deprecated/controls/options.jsx';
 import RadioButtonOld from './nodes-deprecated/controls/radiobutton.jsx';
 import RangeOld from './nodes-deprecated/controls/range.jsx';
 import TextInputOld from './nodes-deprecated/controls/text-input.jsx';
-import shNode from './nodes/std-library/shNodes/shNode';
 
 export default function registerNodes(noodlRuntime) {
   [
