@@ -56,6 +56,7 @@ export default function NeueExportModal(props: ModalProps) {
 
                     <PrimaryButton label="Push to device" onClick={async () => {
                         await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration });
+                        props.onClose()
                         //TODO: send config to device
                     }} />
                 </div>
