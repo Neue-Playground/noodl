@@ -70,6 +70,7 @@ export function iENBLPanel() {
     NeueService.instance.logout();
     setSignedIn(false);
     setLoading(false);
+    setDevices([]);
   }
 
   function fetchDevices() {
