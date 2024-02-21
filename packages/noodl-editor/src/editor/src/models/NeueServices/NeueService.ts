@@ -91,13 +91,46 @@ export class NeueService extends Model {
         }
       }).then((response) => {
         response.json().then((data) => {
-          const results = [];
-          data.forEach((item) => {
-            results.push(item.Data[0].ScalarValue);
-          });
-          resolve(results);
+          resolve(data);
         });
       });
+    });
+  }
+
+  public saveFlow(id: string, flow: any) {
+    return fetch(api.invokeUrl + '/flow', {
+      method: 'POST',
+      headers: {
+        Authorization: this.session?.token || ''
+      },
+      body: JSON.stringify({
+        id,
+        flow
+      })
+    });
+  }
+
+  public fetchFlows() {
+    return new Promise<Array<any>>((resolve) => {
+      fetch(api.invokeUrl + '/flow', {
+        method: 'GET',
+        headers: {
+          Authorization: this.session?.token || ''
+        }
+      }).then((response) => response.json().then((data) => resolve(data)));
+    });
+  }
+
+  public deployFlow(flowid: string, deviceid: string) {
+    return fetch(api.invokeUrl + '/devices', {
+      method: 'GET',
+      headers: {
+        Authorization: this.session?.token || ''
+      },
+      body: JSON.stringify({
+        flowid,
+        deviceid
+      })
     });
   }
 }
