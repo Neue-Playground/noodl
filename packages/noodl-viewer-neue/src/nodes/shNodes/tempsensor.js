@@ -12,29 +12,29 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    active: {
-      type: 'boolean',
-      displayName: 'On/Off',
-      get() {
-        return this._internal.active;
-      }
-    },
-    readrate: {
-      type: 'number',
-      displayName: 'Read Rate',
-      get() {
-        return this._internal.readrate;
-      }
-    }
   },
   outputs: {
     value: {
-      type: 'number',
-      displayName: 'Read value',
-      get() {
-        return this._internal.result;
+      type: 'array',
+      displayName: 'Temp/humidity',
+      getter: function () {
+        return [this._internal.temperature, this._internal.humidity];
       }
-    }
+    },
+    temperature: {
+      type: 'number',
+      displayName: 'Temperature',
+      getter: function () {
+        return this._internal.temperature;
+      }
+    },
+    humidity: {
+      type: 'number',
+      displayName: 'Humidity',
+      getter: function () {
+        return this._internal.humidity;
+      }
+    },
   }
 };
 
