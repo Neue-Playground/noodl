@@ -82,6 +82,19 @@ export class NeueService extends Model {
     });
   }
 
+  private performRequest(url: string, method: string, body: any) {
+    return fetch(api.invokeUrl + url, {
+      method,
+      headers: {
+        Authorization: this.session?.token || ''
+      },
+      body: JSON.stringify(body)
+    }).catch((err) => {
+      console.log(err);
+      this.logout();
+    });
+  }
+
   public fetchDevices() {
     return new Promise<Array<string>>((resolve) => {
       fetch(api.invokeUrl + '/devices', {
@@ -89,16 +102,21 @@ export class NeueService extends Model {
         headers: {
           Authorization: this.session?.token || ''
         }
-      }).then((response) => {
-        response.json().then((data) => {
-          resolve(data);
+      })
+        .then((response) => {
+          response.json().then((data) => {
+            resolve(data);
+          });
+        })
+        .catch((err) => {
+          console.log(err);
+          this.logout();
         });
-      });
     });
   }
 
   public saveFlow(id: string, flow: any) {
-    return fetch(api.invokeUrl + '/flow', {
+    return fetch(api.invokeUrl + '/flows', {
       method: 'POST',
       headers: {
         Authorization: this.session?.token || ''
@@ -112,7 +130,7 @@ export class NeueService extends Model {
 
   public fetchFlows() {
     return new Promise<Array<any>>((resolve) => {
-      fetch(api.invokeUrl + '/flow', {
+      fetch(api.invokeUrl + '/flows', {
         method: 'GET',
         headers: {
           Authorization: this.session?.token || ''
@@ -121,14 +139,14 @@ export class NeueService extends Model {
     });
   }
 
-  public deployFlow(flowid: string, deviceid: string) {
-    return fetch(api.invokeUrl + '/devices', {
-      method: 'GET',
+  public deployFlow(deviceid: string, flow: string) {
+    return fetch(api.invokeUrl + '/devices/deploy', {
+      method: 'POST',
       headers: {
         Authorization: this.session?.token || ''
       },
       body: JSON.stringify({
-        flowid,
+        flow,
         deviceid
       })
     });

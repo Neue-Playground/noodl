@@ -129,7 +129,7 @@ export function iENBLPanel() {
         <Container direction={ContainerDirection.Vertical} isFill>
           <Box hasXSpacing hasYSpacing>
             <VStack>
-              <PrimaryButton label="Push Configuration to Device" onClick={getJsonConfiguration} />
+              <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} />
             </VStack>
           </Box>
           <Section

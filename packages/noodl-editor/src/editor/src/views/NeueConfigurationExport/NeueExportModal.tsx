@@ -1,6 +1,7 @@
 import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton'
 import { Select } from '@noodl-core-ui/components/inputs/Select'
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog'
+import { NeueService } from '@noodl-models/NeueServices/NeueService'
 import { filesystem } from '@noodl/platform'
 import React, { useState } from 'react'
 
@@ -39,7 +40,7 @@ export default function NeueExportModal(props: ModalProps) {
                             onChange={(value: string) => setSetSelectedConfiguration(value)}
                             placeholder="Select device configuration"
                             value={selectedConfiguration}
-                            label="Device configurations"
+                            label="Device flow"
                             hasBottomSpacing
                         />
                     )}
@@ -55,7 +56,10 @@ export default function NeueExportModal(props: ModalProps) {
                     )}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
+                        console.log('selectedConfiguration', selectedConfiguration)
+                        NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
                         await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration });
+
                         props.onClose()
                         //TODO: send config to device
                     }} />
