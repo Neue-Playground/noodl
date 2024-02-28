@@ -85,18 +85,42 @@
   --base-color-node-blue-900: #002a47;
   --base-color-node-blue-1000: #00142f;
 
-    /*Neue*/
-    /*Node-Orange */
-    --base-color-node-orange-100: #f5f6f8;
-    --base-color-node-orange-200: #ded6cf;
-    --base-color-node-orange-300: #c6b7ad;
-    --base-color-node-orange-400: #ae968b;
-    --base-color-node-orange-500: #987d6b;
-    --base-color-node-orange-600: #ac7754;
-    --base-color-node-orange-700: #a8713c;
-    --base-color-node-orange-800: #c27823;
-    --base-color-node-orange-900: #c4681d;
-    --base-color-node-orange-1000: #c56205;
+  /*Neue*/
+  /*Neue junglegreen */
+  --base-color-node-junglegreen-100: #effefa;
+  --base-color-node-junglegreen-200: #c7ffef;
+  --base-color-node-junglegreen-300: #51f7cf;
+  --base-color-node-junglegreen-400: #1de4ba;
+  --base-color-node-junglegreen-500: #04c8a2;
+  --base-color-node-junglegreen-600: #00b495;
+  --base-color-node-junglegreen-700: #05806c;
+  --base-color-node-junglegreen-800: #0a6557;
+  --base-color-node-junglegreen-900: #0d5449;
+  --base-color-node-junglegreen-1000: #00332e;
+
+  /*Neue ceruleanblue */
+  --base-color-node-ceruleanblue-100: #e1f3fd;
+  --base-color-node-ceruleanblue-200: #bbe9fc;
+  --base-color-node-ceruleanblue-300: #80d8f9;
+  --base-color-node-ceruleanblue-400: #3cc4f4;
+  --base-color-node-ceruleanblue-500: #12a8dd;
+  --base-color-node-ceruleanblue-600: #068cc3;
+  --base-color-node-ceruleanblue-700: #06709e;
+  --base-color-node-ceruleanblue-800: #0a5e82;
+  --base-color-node-ceruleanblue-900: #0e4e6c;
+  --base-color-node-ceruleanblue-1000: #093248;
+
+  /*Neue lightningyellow */
+  --base-color-node-lightningyellow-100: #ffffea;
+  --base-color-node-lightningyellow-200: #fffcc5;
+  --base-color-node-lightningyellow-300: #fff046;
+  --base-color-node-lightningyellow-400: #ffe21b;
+  --base-color-node-lightningyellow-500: #ffc300;
+  --base-color-node-lightningyellow-600: #e29700;
+  --base-color-node-lightningyellow-700: #bb6b02;
+  --base-color-node-lightningyellow-800: #985308;
+  --base-color-node-lightningyellow-900: #7c430b;
+  --base-color-node-lightningyellow-1000: #482300;
 
   /* Secondary */
   --base-color-teal-100: #f0f7f9;
@@ -182,13 +206,13 @@
   --theme-color-node-visual-dim: var(--base-color-node-blue-1000);
 
   /*Neue*/
-  --theme-color-node-neue-1: var(--base-color-node-orange-800);
-  --theme-color-node-neue-2: var(--base-color-node-orange-700);
-  --theme-color-node-neue-2-highlight: var(--base-color-node-orange-600);
-  --theme-color-node-neue-highlight: var(--base-color-node-orange-100);
-  --theme-color-node-neue-default: var(--base-color-node-orange-200);
-  --theme-color-node-neue-shy: var(--base-color-node-orange-300);
-  --theme-color-node-neue-dim: var(--base-color-node-orange-1000);
+  --theme-color-node-neue-1: var(--base-color-node-junglegreen-800);
+  --theme-color-node-neue-2: var(--base-color-node-junglegreen-700);
+  --theme-color-node-neue-2-highlight: var(--base-color-node-junglegreen-600);
+  --theme-color-node-neue-highlight: var(--base-color-node-junglegreen-100);
+  --theme-color-node-neue-default: var(--base-color-node-junglegreen-200);
+  --theme-color-node-neue-shy: var(--base-color-node-junglegreen-300);
+  --theme-color-node-neue-dim: var(--base-color-node-junglegreen-1000);
 
   --theme-color-node-custom-1: var(--base-color-node-pink-800);
   --theme-color-node-custom-2: var(--base-color-node-pink-700);

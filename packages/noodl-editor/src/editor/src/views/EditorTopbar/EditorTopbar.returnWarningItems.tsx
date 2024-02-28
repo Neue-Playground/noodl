@@ -60,7 +60,7 @@ function getStyleFromNodeType(nodeType) {
       colorName = 'purple';
       break;
     case NodeType.Neue:
-        colorName = 'orange';
+      colorName = 'junglegreen';
       break;
     case NodeType.Custom:
       colorName = 'pink';

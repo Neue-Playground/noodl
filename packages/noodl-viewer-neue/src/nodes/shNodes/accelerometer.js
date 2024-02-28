@@ -8,31 +8,195 @@ const DeviceNode = {
   initialize: function () {
     this._internal.inputs = [];
   },
-  getInspectInfo() {
-    return and(this._internal.inputs);
-  },
+
   inputs: {
-    active: {
+    gyroscopeActive: {
+      group: 'Gyroscope',
       type: 'boolean',
-      displayName: 'On/Off',
+      displayName: 'Gyroscope Active',
+      default: true,
       get() {
-        return this._internal.active;
+        return this._internal.gyroscopeActive;
       }
     },
-    readrate: {
-      type: 'number',
-      displayName: 'Read Rate',
+    accelerometerActive: {
+      group: 'Accelerometer',
+      type: 'boolean',
+      displayName: 'Accelerometer Active',
+      default: true,
       get() {
-        return this._internal.readrate;
+        return this._internal.accelerometerActive;
+      }
+    },
+    sensorUpdateRate: {
+      group: 'General',
+      type: {
+        name: 'enum',
+        enums: [
+          {
+            label: '13 Hz',
+            value: '13'
+          },
+          {
+            label: '26  Hz',
+            value: '26'
+          },
+          {
+            label: '52  Hz',
+            value: '52'
+          }
+        ]
+      },
+      default: '13',
+      displayName: 'Sensor Update Rate',
+      get() {
+        return this._internal.sensorUpdateRate;
+      }
+    },
+    accelerometerScale: {
+      group: 'Accelerometer',
+      type: {
+        name: 'enum',
+        enums: [
+          {
+            label: '2G',
+            value: '2'
+          },
+          {
+            label: '4G',
+            value: '4'
+          },
+          {
+            label: '8G',
+            value: '8'
+          },
+          {
+            label: '16G',
+            value: '16'
+          }
+        ]
+      },
+      default: '2',
+      displayName: 'Accelerometer Scale',
+      get() {
+        return this._internal.accelerometerScale;
+      }
+    },
+    gyroMaxDegrees: {
+      group: 'Gyroscope',
+      type: {
+        name: 'enum',
+        enums: [
+          {
+            label: '250 DPS',
+            value: '250'
+          },
+          {
+            label: '500 DPS',
+            value: '500'
+          },
+          {
+            label: '1000 DPS',
+            value: '1000'
+          },
+          {
+            label: '2000 DPS',
+            value: '2000'
+          }
+        ]
+      },
+      default: '250',
+      displayName: 'Gyro Max degrees / second',
+      get() {
+        return this._internal.gyroMaxDegrees;
+      }
+    },
+    performanceMode: {
+      group: 'General',
+      type: {
+        name: 'enum',
+        enums: [
+          {
+            label: 'Low Power',
+            value: 'low'
+          },
+          {
+            label: 'High Performance',
+            value: 'high'
+          }
+        ]
+      },
+      default: 'low',
+      displayName: 'Performance Mode',
+      get() {
+        return this._internal.performanceMode;
+      }
+    },
+    eventType: {
+      group: 'General',
+      type: {
+        name: 'enum',
+        enums: [
+          {
+            label: 'None',
+            value: 'none'
+          },
+          {
+            label: 'Single Tap',
+            value: 'single'
+          },
+          {
+            label: 'FA2 Single Tap',
+            value: 'fa2'
+          },
+          {
+            label: 'Double Tap',
+            value: 'double'
+          },
+          {
+            label: 'Free Fall',
+            value: 'free-fall'
+          },
+          {
+            label: '6D Orientation Detection',
+            value: '6d'
+          },
+          {
+            label: 'Activity/Inactivity Recoqnition',
+            value: 'activity'
+          }
+        ]
+      },
+      default: 'none',
+      displayName: 'Event Type',
+      get() {
+        return this._internal.eventType;
       }
     }
   },
   outputs: {
-    value: {
+    accelerometerValue: {
+      group: 'Sensor Data',
       type: 'number',
-      displayName: 'Read value',
+      displayName: 'Accelerometer',
       get() {
-        return this._internal.result;
+        return this._internal.accelerometerValue;
+      }
+    },
+    gyroscopeValue: {
+      group: 'Sensor Data',
+      type: 'number',
+      displayName: 'Gyroscope',
+      get() {
+        return this._internal.gyroscopeValue;
+      }
+    },
+    accelerometerVector: {
+      group: 'Sensor Data',
+      type: 'number',
+      displayName: 'Accelerometer Vector',
+      get() {
+        return this._internal.accelerometerVector;
       }
     }
   }
@@ -41,8 +205,3 @@ const DeviceNode = {
 module.exports = {
   node: DeviceNode
 };
-
-function and(values) {
-  //if none are false, then return true
-  return values.length > 0 && values.some((v) => !v) === false;
-}

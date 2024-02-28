@@ -109,7 +109,7 @@ function aiNodeTypeToPopupItemType(type) {
       return PopupItemType.Data;
     case 'blue':
       return PopupItemType.Visual;
-    case 'orange':
+    case 'junglegreen':
       return PopupItemType.Neue;
     default:
       return PopupItemType.Custom;

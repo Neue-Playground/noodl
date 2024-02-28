@@ -197,13 +197,13 @@ function generateNodeLibrary(nodeRegister) {
           text: '#e4cfd9'
         },
         neue: {
-          base: '#de8954',
-          baseHighlighted: '#de8954',
-          header: '#dc8045',
-          headerHighlighted: '#dc8045',
-          outline: '#dc8045',
-          outlineHighlighted: '#d57bab',
-          text: '#e4cfd9'
+          base: '#05806c',
+          baseHighlighted: '#00b495',
+          header: '#0a6557',
+          headerHighlighted: '#05806c',
+          outline: '#0a6557',
+          outlineHighlighted: '#b58900',
+          text: '#c7ffef'
         },
         default: {
           base: '#4C4F59',
@@ -467,14 +467,11 @@ function generateNodeLibrary(nodeRegister) {
         },
         {
           name: 'Neue Utils',
-          items: [
-            'Compare', 'Range'
-          ]
+          items: ['Compare', 'Range']
         },
         {
           name: 'Logic',
-          items: [
-            'Boolean To String', 'Switch', 'And', 'Or', 'Condition', 'Inverter']
+          items: ['Boolean To String', 'Switch', 'And', 'Or', 'Condition', 'Inverter']
         },
         {
           name: 'Events',
@@ -615,18 +612,14 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: 'Sensors',
-          items: [
-            'Humidity Sensor', 'Temperature Sensor', 'Accelerometer', 'Hardware Clock', 'RGB LED', 'I/O',
-          ]
+          items: ['Humidity Sensor', 'Temperature Sensor', 'Accelerometer', 'Hardware Clock', 'RGB LED', 'I/O']
         },
         {
           name: 'Communications',
-          items: [
-            'Save Telemetry', 'Commands Input', 'Register event'
-          ]
-        },
+          items: ['Save Telemetry', 'Commands Input', 'Register event']
+        }
       ]
-    },
+    }
   ];
 
   obj.nodeIndex = {
