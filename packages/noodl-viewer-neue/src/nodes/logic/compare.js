@@ -1,40 +1,58 @@
 'use strict';
 
-const CompareNode = {
+const DeviceNode = {
   name: 'Compare',
   docs: 'https://docs.noodl.net/nodes/utilities/logic/condition',
   category: 'Logic',
   color: 'visual',
-  initialize: function () { },
-  getInspectInfo() {
-    // const condition = this.getInputValue('condition');
-    // let value;
-
-    // value = condition;
-    // return [
-    //   {
-    //     type: 'value',
-    //     value
-    //   }
-    // ];
+  initialize: function () {
+    this._internal.inputs = [];
   },
+
   inputs: {
     value: {
       type: 'number',
-      displayName: 'Value',
-      set(value) {
-        // if (!this.isInputConnected('eval')) {
-        //   // Evaluate right away
-        //   // this.scheduleEvaluate();
-        // }
-      }
+      displayName: 'Value'
     },
-    threshold: {
+    threshold1: {
       type: 'number',
-      displayName: 'Threshold',
-      valueChangedToTrue() {
-        // this.scheduleEvaluate();
-      }
+      displayName: 'Threshold 1',
+      group: 'Threshold'
+    },
+    threshold2: {
+      type: 'number',
+      displayName: 'Threshold 2',
+      group: 'Threshold'
+    },
+    threshold3: {
+      type: 'number',
+      displayName: 'Threshold 3',
+      group: 'Threshold'
+    },
+    threshold4: {
+      type: 'number',
+      displayName: 'Threshold 4',
+      group: 'Threshold'
+    },
+    threshold5: {
+      type: 'number',
+      displayName: 'Threshold 5',
+      group: 'Threshold'
+    },
+    threshold6: {
+      type: 'number',
+      displayName: 'Threshold 6',
+      group: 'Threshold'
+    },
+    threshold7: {
+      type: 'number',
+      displayName: 'Threshold 7',
+      group: 'Threshold'
+    },
+    threshold8: {
+      type: 'number',
+      displayName: 'Threshold 8',
+      group: 'Threshold'
     }
   },
   outputs: {
@@ -71,21 +89,10 @@ const CompareNode = {
     errorOut: {
       type: 'number',
       displayName: 'Error out'
-    },
-  },
-  methods: {
-    scheduleEvaluate() {
-      // this.scheduleAfterInputsHaveUpdated(() => {
-      //   this.flagOutputDirty('result');
-      //   this.flagOutputDirty('isfalse');
-
-      //   const condition = this.getInputValue('condition');
-      //   this.sendSignalOnOutput(condition ? 'ontrue' : 'onfalse');
-      // });
     }
   }
 };
 
 module.exports = {
-  node: CompareNode
+  node: DeviceNode
 };

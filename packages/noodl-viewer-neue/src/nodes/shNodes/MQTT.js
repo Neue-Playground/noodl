@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'Temperature Sensor',
+  name: 'MQTT',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
   color: 'neue',
@@ -12,23 +12,9 @@ const DeviceNode = {
   outputs: {
     value: {
       type: 'array',
-      displayName: 'Temp/humidity',
+      displayName: 'Input',
       getter: function () {
         return [this._internal.temperature, this._internal.humidity];
-      }
-    },
-    temperature: {
-      type: 'number',
-      displayName: 'Temperature',
-      getter: function () {
-        return this._internal.temperature;
-      }
-    },
-    humidity: {
-      type: 'number',
-      displayName: 'Humidity',
-      getter: function () {
-        return this._internal.humidity;
       }
     }
   }

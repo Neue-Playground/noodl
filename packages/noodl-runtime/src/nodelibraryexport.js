@@ -203,7 +203,7 @@ function generateNodeLibrary(nodeRegister) {
           headerHighlighted: '#05806c',
           outline: '#0a6557',
           outlineHighlighted: '#b58900',
-          text: '#c7ffef'
+          text: '#effefa'
         },
         default: {
           base: '#4C4F59',
@@ -612,11 +612,11 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: 'Sensors',
-          items: ['Humidity Sensor', 'Temperature Sensor', 'Accelerometer', 'Hardware Clock', 'RGB LED', 'I/O']
+          items: ['Temperature Sensor', 'Accelerometer', 'Hardware Clock', 'RGB LED', 'I/O']
         },
         {
           name: 'Communications',
-          items: ['Save Telemetry', 'Commands Input', 'Register event']
+          items: ['MQTT', 'Save Telemetry', 'Commands Input', 'Register event']
         }
       ]
     }

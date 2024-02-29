@@ -215,7 +215,7 @@ class NeueComponentTemplate extends ComponentTemplate {
       roots: [
         {
           id: 'A',
-          type: 'Temperature Sensor',
+          type: 'Sensor',
           x: 0,
           y: 0,
           parameters: {},

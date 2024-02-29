@@ -13,8 +13,8 @@ const DeviceNode = {
     gyroscopeActive: {
       group: 'Gyroscope',
       type: 'boolean',
-      displayName: 'Gyroscope Active',
-      default: true,
+      displayName: 'Gyroscope  off',
+      default: false,
       get() {
         return this._internal.gyroscopeActive;
       }
@@ -22,8 +22,8 @@ const DeviceNode = {
     accelerometerActive: {
       group: 'Accelerometer',
       type: 'boolean',
-      displayName: 'Accelerometer Active',
-      default: true,
+      displayName: 'Accelerometer off',
+      default: false,
       get() {
         return this._internal.accelerometerActive;
       }
@@ -48,7 +48,7 @@ const DeviceNode = {
         ]
       },
       default: '13',
-      displayName: 'Sensor Update Rate',
+      displayName: 'Sensor update rate',
       get() {
         return this._internal.sensorUpdateRate;
       }
@@ -77,7 +77,7 @@ const DeviceNode = {
         ]
       },
       default: '2',
-      displayName: 'Accelerometer Scale',
+      displayName: 'Accelerometer scale',
       get() {
         return this._internal.accelerometerScale;
       }
@@ -106,7 +106,7 @@ const DeviceNode = {
         ]
       },
       default: '250',
-      displayName: 'Gyro Max degrees / second',
+      displayName: 'Gyro max degrees per second',
       get() {
         return this._internal.gyroMaxDegrees;
       }
@@ -117,17 +117,17 @@ const DeviceNode = {
         name: 'enum',
         enums: [
           {
-            label: 'Low Power',
+            label: 'Low power',
             value: 'low'
           },
           {
-            label: 'High Performance',
+            label: 'High performance',
             value: 'high'
           }
         ]
       },
       default: 'low',
-      displayName: 'Performance Mode',
+      displayName: 'Performance mode',
       get() {
         return this._internal.performanceMode;
       }
@@ -142,33 +142,33 @@ const DeviceNode = {
             value: 'none'
           },
           {
-            label: 'Single Tap',
+            label: 'Single tap',
             value: 'single'
           },
           {
-            label: 'FA2 Single Tap',
+            label: 'FA2 single tap',
             value: 'fa2'
           },
           {
-            label: 'Double Tap',
+            label: 'Double tap',
             value: 'double'
           },
           {
-            label: 'Free Fall',
+            label: 'Free fall',
             value: 'free-fall'
           },
           {
-            label: '6D Orientation Detection',
+            label: '6D orientation detection',
             value: '6d'
           },
           {
-            label: 'Activity/Inactivity Recoqnition',
+            label: 'Activity/inactivity recoqnition',
             value: 'activity'
           }
         ]
       },
       default: 'none',
-      displayName: 'Event Type',
+      displayName: 'Event type',
       get() {
         return this._internal.eventType;
       }
@@ -191,10 +191,26 @@ const DeviceNode = {
         return this._internal.gyroscopeValue;
       }
     },
+    accGyroValue: {
+      group: 'Sensor Data',
+      type: 'number',
+      displayName: 'Acc/Gyro',
+      get() {
+        return this._internal.accGyroValue;
+      }
+    },
+    accEvent: {
+      group: 'Sensor Data',
+      type: 'number',
+      displayName: 'Acc event',
+      get() {
+        return this._internal.accEvent;
+      }
+    },
     accelerometerVector: {
       group: 'Sensor Data',
       type: 'number',
-      displayName: 'Accelerometer Vector',
+      displayName: 'Acc vector length',
       get() {
         return this._internal.accelerometerVector;
       }
