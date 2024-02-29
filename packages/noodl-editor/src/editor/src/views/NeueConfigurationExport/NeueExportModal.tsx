@@ -3,7 +3,7 @@ import { Select } from '@noodl-core-ui/components/inputs/Select'
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog'
 import { NeueService } from '@noodl-models/NeueServices/NeueService'
 import { filesystem } from '@noodl/platform'
-import React, { useState } from 'react'
+import React, { useEffect, useState } from 'react'
 
 type ModalProps = {
     isVisible: boolean,
@@ -15,6 +15,15 @@ type ModalProps = {
 export default function NeueExportModal(props: ModalProps) {
     const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
     const [selectedDevice, setSetSelectedDevice] = useState(null);
+    const [error, setError] = useState(null);
+
+    useEffect(() => {
+        if (props.isVisible) {
+            setSetSelectedConfiguration(null)
+            setSetSelectedDevice(null)
+            setError(null)
+        }
+    }, [props.isVisible])
 
     return (
         <BaseDialog
@@ -55,13 +64,16 @@ export default function NeueExportModal(props: ModalProps) {
                         />
                     )}
 
-                    <PrimaryButton label="Push to device" onClick={async () => {
-                        console.log('selectedConfiguration', selectedConfiguration)
-                        NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
-                        await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration });
+                    {error && <div style={{ color: 'red' }}>{error}</div>}
 
-                        props.onClose()
-                        //TODO: send config to device
+                    <PrimaryButton label="Push to device" onClick={async () => {
+                        const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
+                        if (response.status === 200) {
+                            props.onClose()
+                        } else {
+                            const body = await response.json()
+                            setError('Failed to push to device: ' + body)
+                        }
                     }} />
                 </div>
             </div>

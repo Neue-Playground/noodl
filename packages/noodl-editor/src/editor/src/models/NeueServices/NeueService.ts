@@ -8,6 +8,7 @@ import { NeueSession } from './type';
 
 export class NeueService extends Model {
   public static instance: NeueService = new NeueService();
+
   private session?: NeueSession;
 
   constructor() {
@@ -82,27 +83,24 @@ export class NeueService extends Model {
     });
   }
 
-  private performRequest(url: string, method: string, body: any) {
-    return fetch(api.invokeUrl + url, {
+  private performRequest(url: string, method: string, body: any = {}): Promise<Response> {
+    const promise = fetch(api.invokeUrl + url, {
       method,
       headers: {
         Authorization: this.session?.token || ''
       },
-      body: JSON.stringify(body)
-    }).catch((err) => {
-      console.log(err);
-      this.logout();
+      body: method === 'GET' ? undefined : JSON.stringify(body)
+    }).then((response) => {
+      console.log(response);
+      if (response.status === 401) this.logout();
+      return response;
     });
+    return promise;
   }
 
   public fetchDevices() {
     return new Promise<Array<string>>((resolve) => {
-      fetch(api.invokeUrl + '/devices', {
-        method: 'GET',
-        headers: {
-          Authorization: this.session?.token || ''
-        }
-      })
+      this.performRequest('/devices', 'GET')
         .then((response) => {
           response.json().then((data) => {
             resolve(data);
@@ -116,39 +114,16 @@ export class NeueService extends Model {
   }
 
   public saveFlow(id: string, flow: any) {
-    return fetch(api.invokeUrl + '/flows', {
-      method: 'POST',
-      headers: {
-        Authorization: this.session?.token || ''
-      },
-      body: JSON.stringify({
-        id,
-        flow
-      })
-    });
+    return this.performRequest('/flows', 'POST', { id, flow });
   }
 
   public fetchFlows() {
     return new Promise<Array<any>>((resolve) => {
-      fetch(api.invokeUrl + '/flows', {
-        method: 'GET',
-        headers: {
-          Authorization: this.session?.token || ''
-        }
-      }).then((response) => response.json().then((data) => resolve(data)));
+      this.performRequest('/flows', 'GET').then((response) => response.json().then((data) => resolve(data)));
     });
   }
 
   public deployFlow(deviceid: string, flow: string) {
-    return fetch(api.invokeUrl + '/devices/deploy', {
-      method: 'POST',
-      headers: {
-        Authorization: this.session?.token || ''
-      },
-      body: JSON.stringify({
-        flow,
-        deviceid
-      })
-    });
+    return this.performRequest('/devices/deploy', 'POST', { deviceid, flow });
   }
 }
