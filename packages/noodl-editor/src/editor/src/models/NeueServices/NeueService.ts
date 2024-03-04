@@ -77,6 +77,8 @@ export class NeueService extends Model {
         if (keys && data.tokenUpdatedAt - Date.now() < cognito.tokenLifetime) {
           this.session = data;
           this.notifyListeners('session', this.session);
+        } else {
+          this.logout();
         }
         resolve(keys.length > 0);
       });

@@ -612,7 +612,7 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: 'Sensors',
-          items: ['Temperature Sensor', 'Accelerometer', 'Hardware Clock', 'RGB LED', 'I/O']
+          items: ['Temperature Sensor', 'Accelerometer/Gyroscope', 'Hardware Clock', 'RGB LED', 'I/O']
         },
         {
           name: 'Communications',

@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'Accelerometer',
+  name: 'Accelerometer/Gyroscope',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
   color: 'neue',
@@ -19,13 +19,13 @@ const DeviceNode = {
         return this._internal.gyroscopeActive;
       }
     },
-    accelerometerActive: {
+    "Accelerometer off": {
       group: 'Accelerometer',
       type: 'boolean',
       displayName: 'Accelerometer off',
       default: false,
       get() {
-        return this._internal.accelerometerActive;
+        return this._internal["Accelerometer off"];
       }
     },
     sensorUpdateRate: {
@@ -175,12 +175,12 @@ const DeviceNode = {
     }
   },
   outputs: {
-    accelerometerValue: {
+    "Accelerometer": {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Accelerometer',
       get() {
-        return this._internal.accelerometerValue;
+        return this._internal["Accelerometer"];
       }
     },
     gyroscopeValue: {
