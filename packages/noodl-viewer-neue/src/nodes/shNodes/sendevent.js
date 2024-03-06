@@ -12,7 +12,7 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    active: {
+    "Event type": {
       type: {
         name: 'enum',
         enums: ['Acceleration event', 'Temperature event', 'Hardware clock event', 'Command event'],
@@ -20,19 +20,19 @@ const DeviceNode = {
       },
       displayName: 'Event type',
       get() {
-        return this._internal.active;
+        return this._internal["Event type"];
       }
     },
-    readrate: {
+    "Send data": {
       type: 'signal',
       displayName: 'Send data',
       get() {
-        return this._internal.readrate;
+        return this._internal["Send data"];
       }
     }
   },
   outputs: {
-    value: {
+    "Response": {
       type: 'string',
       displayName: 'Response',
       get() {

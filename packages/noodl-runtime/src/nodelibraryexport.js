@@ -467,7 +467,7 @@ function generateNodeLibrary(nodeRegister) {
         },
         {
           name: 'Neue Utils',
-          items: ['Compare', 'Range']
+          items: ['Compare', 'Range', 'Value generator', 'Toggle', 'Timer']
         },
         {
           name: 'Logic',
@@ -612,7 +612,7 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: 'Sensors',
-          items: ['Temperature Sensor', 'Accelerometer/Gyroscope', 'Hardware Clock', 'RGB LED', 'I/O']
+          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'Hardware Clock', 'A2.1 RGB LED', 'I/O']
         },
         {
           name: 'Communications',

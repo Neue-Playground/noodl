@@ -10,83 +10,107 @@ const DeviceNode = {
   },
 
   inputs: {
-    value: {
+    "Value in": {
       type: 'number',
-      displayName: 'Value'
+      displayName: 'Value in'
     },
-    threshold1: {
-      type: 'number',
+    "Threshold 1": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 1',
       group: 'Threshold'
     },
-    threshold2: {
-      type: 'number',
+    "Threshold 2": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 2',
       group: 'Threshold'
     },
-    threshold3: {
-      type: 'number',
+    "Threshold 3": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 3',
       group: 'Threshold'
     },
-    threshold4: {
-      type: 'number',
+    "Threshold 4": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 4',
       group: 'Threshold'
     },
-    threshold5: {
-      type: 'number',
+    "Threshold 5": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 5',
       group: 'Threshold'
     },
-    threshold6: {
-      type: 'number',
+    "Threshold 6": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 6',
       group: 'Threshold'
     },
-    threshold7: {
-      type: 'number',
+    "Threshold 7": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 7',
       group: 'Threshold'
     },
-    threshold8: {
-      type: 'number',
+    "Threshold 8": {
+      type: {
+        name: 'number',
+        allowEditOnly: true
+      },
       displayName: 'Threshold 8',
       group: 'Threshold'
     }
   },
   outputs: {
-    equalOut: {
+    "Equal out": {
       type: 'boolean',
       displayName: 'Equal out',
       group: 'Equal'
     },
-    equalValueOut: {
+    "Equal value out": {
       type: 'number',
       displayName: 'Equal value out',
       group: 'Equal'
     },
-    greaterThan: {
+    "Greater than": {
       type: 'boolean',
       displayName: 'Greater than',
       group: 'Greater'
     },
-    greaterThanValueOut: {
+    "Greater than value out": {
       type: 'number',
       displayName: 'Greater than value out',
       group: 'Greater'
     },
-    smallerThan: {
+    "Smaller than": {
       type: 'boolean',
       displayName: 'Smaller than',
       group: 'Smaller'
     },
-    smallerThanValueOut: {
+    "Smaller than value out": {
       type: 'number',
       displayName: 'Smaller than value out',
       group: 'Smaller'
     },
-    errorOut: {
+    "Error out": {
       type: 'number',
       displayName: 'Error out'
     }

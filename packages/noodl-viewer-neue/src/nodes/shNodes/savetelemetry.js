@@ -12,23 +12,23 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    active: {
+    "Telemetry Data": {
       type: 'collection',
       displayName: 'Telemetry Data',
       get() {
-        return this._internal.active;
+        return this._internal["Telemetry Data"];
       }
     },
-    readrate: {
+    "Send data": {
       type: 'signal',
       displayName: 'Send data',
       get() {
-        return this._internal.readrate;
+        return this._internal["Send data"];
       }
     }
   },
   outputs: {
-    value: {
+    "Response": {
       type: 'string',
       displayName: 'Response',
       get() {

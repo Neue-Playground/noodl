@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-    name: 'RGB LED',
+    name: 'A2.1 RGB LED',
     docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
     category: 'Neue',
     color: 'neue',
@@ -12,31 +12,31 @@ const DeviceNode = {
         return and(this._internal.inputs);
     },
     inputs: {
-        red: {
+        "Red in": {
             type: 'color',
             default: '#FF0000',
             displayName: 'Red',
             allowVisualStates: true,
             get() {
-                return this._internal.red;
+                return this._internal["Red in"];
             }
         },
-        green: {
+        "Green in": {
             type: 'color',
             default: '#00FF00',
             displayName: 'Green',
             allowVisualStates: true,
             get() {
-                return this._internal.green;
+                return this._internal["Green in"];
             }
         },
-        blue: {
+        "Blue in": {
             type: 'color',
             default: '#0000FF',
             displayName: 'Blue',
             allowVisualStates: true,
             get() {
-                return this._internal.blue;
+                return this._internal["Blue in"];
             }
         }
     },

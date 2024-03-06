@@ -12,7 +12,7 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   outputs: {
-    value: {
+    "Command": {
       type: 'string',
       displayName: 'Command',
       get() {

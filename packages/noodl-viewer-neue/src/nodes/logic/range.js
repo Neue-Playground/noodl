@@ -10,48 +10,48 @@ const DeviceNode = {
   },
 
   inputs: {
-    valueIn: {
+    "Value in": {
       type: 'number',
       displayName: 'Value in',
       get() {
-        return this._internal.valueIn;
+        return this._internal["Value in"];
       }
     },
-    inputMin: {
+    "Input range min": {
       type: 'number',
       displayName: 'Input range min',
       get() {
-        return this._internal.inputMin;
+        return this._internal["Input range min"];
       }
     },
-    inputMax: {
+    "Input range max": {
       type: 'number',
       displayName: 'Input range max',
       get() {
-        return this._internal.inputMax;
+        return this._internal["Input range max"];
       }
     },
-    outputMin: {
+    "Output range min": {
       type: 'number',
       displayName: 'Output range min',
       get() {
-        return this._internal.outputMin;
+        return this._internal["Output range min"];
       }
     },
-    outputMax: {
+    "Output range max": {
       type: 'number',
       displayName: 'Output range max',
       get() {
-        return this._internal.outputMax;
+        return this._internal["Output range max"];
       }
     }
   },
   outputs: {
-    valueOut: {
+    "Value out": {
       type: 'number',
       displayName: 'Value out',
       get() {
-        return this._internal.valueOut;
+        return this._internal["Value out"];
       }
     }
   }

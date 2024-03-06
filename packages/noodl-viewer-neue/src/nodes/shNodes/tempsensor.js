@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'Temperature Sensor',
+  name: 'Temperature/Humidity',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
   color: 'neue',
@@ -10,21 +10,21 @@ const DeviceNode = {
   },
   inputs: {},
   outputs: {
-    value: {
+    "Temp/Humidity": {
       type: 'array',
-      displayName: 'Temp/humidity',
+      displayName: 'Temp/Humidity',
       getter: function () {
-        return [this._internal.temperature, this._internal.humidity];
+        return [this._internal["Temperature"], this._internal["Humidity"]];
       }
     },
-    temperature: {
+    "Temperature": {
       type: 'number',
       displayName: 'Temperature',
       getter: function () {
         return this._internal.temperature;
       }
     },
-    humidity: {
+    "Humidity": {
       type: 'number',
       displayName: 'Humidity',
       getter: function () {

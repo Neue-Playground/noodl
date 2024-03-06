@@ -12,23 +12,23 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    active: {
+    "On/Off": {
       type: 'boolean',
       displayName: 'On/Off',
       get() {
-        return this._internal.active;
+        return this._internal["On/Off"];
       }
     },
-    readrate: {
+    "Read Rate": {
       type: 'number',
       displayName: 'Read Rate',
       get() {
-        return this._internal.readrate;
+        return this._internal["Read Rate"];
       }
     }
   },
   outputs: {
-    value: {
+    "Read value": {
       type: 'number',
       displayName: 'Read value',
       get() {

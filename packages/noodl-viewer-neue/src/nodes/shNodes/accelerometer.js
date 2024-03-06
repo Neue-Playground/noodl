@@ -10,13 +10,13 @@ const DeviceNode = {
   },
 
   inputs: {
-    gyroscopeActive: {
+    "Gyroscope  off": {
       group: 'Gyroscope',
       type: 'boolean',
       displayName: 'Gyroscope  off',
       default: false,
       get() {
-        return this._internal.gyroscopeActive;
+        return this._internal["Gyroscope  off"];
       }
     },
     "Accelerometer off": {
@@ -28,7 +28,7 @@ const DeviceNode = {
         return this._internal["Accelerometer off"];
       }
     },
-    sensorUpdateRate: {
+    "Sensor update rate": {
       group: 'General',
       type: {
         name: 'enum',
@@ -50,127 +50,127 @@ const DeviceNode = {
       default: '13',
       displayName: 'Sensor update rate',
       get() {
-        return this._internal.sensorUpdateRate;
+        return this._internal["Sensor update rate"];
       }
     },
-    accelerometerScale: {
+    "Accelerometer scale": {
       group: 'Accelerometer',
       type: {
         name: 'enum',
         enums: [
           {
             label: '2G',
-            value: '2'
+            value: '2G'
           },
           {
             label: '4G',
-            value: '4'
+            value: '4G'
           },
           {
             label: '8G',
-            value: '8'
+            value: '8G'
           },
           {
             label: '16G',
-            value: '16'
+            value: '16G'
           }
         ]
       },
       default: '2',
       displayName: 'Accelerometer scale',
       get() {
-        return this._internal.accelerometerScale;
+        return this._internal["Accelerometer scale"];
       }
     },
-    gyroMaxDegrees: {
+    "Gyro max degrees per second": {
       group: 'Gyroscope',
       type: {
         name: 'enum',
         enums: [
           {
             label: '250 DPS',
-            value: '250'
+            value: '250 DPS'
           },
           {
             label: '500 DPS',
-            value: '500'
+            value: '500 DPS'
           },
           {
             label: '1000 DPS',
-            value: '1000'
+            value: '1000 DPS'
           },
           {
             label: '2000 DPS',
-            value: '2000'
+            value: '2000 DPS'
           }
         ]
       },
       default: '250',
       displayName: 'Gyro max degrees per second',
       get() {
-        return this._internal.gyroMaxDegrees;
+        return this._internal["Gyro max degrees per second"];
       }
     },
-    performanceMode: {
+    "Performance mode": {
       group: 'General',
       type: {
         name: 'enum',
         enums: [
           {
             label: 'Low power',
-            value: 'low'
+            value: 'Low power'
           },
           {
             label: 'High performance',
-            value: 'high'
+            value: 'Low power'
           }
         ]
       },
       default: 'low',
       displayName: 'Performance mode',
       get() {
-        return this._internal.performanceMode;
+        return this._internal["Performance mode"];
       }
     },
-    eventType: {
+    "Event type": {
       group: 'General',
       type: {
         name: 'enum',
         enums: [
           {
             label: 'None',
-            value: 'none'
+            value: 'None'
           },
           {
             label: 'Single tap',
-            value: 'single'
+            value: 'Single tap'
           },
           {
             label: 'FA2 single tap',
-            value: 'fa2'
+            value: 'FA2 single tap'
           },
           {
             label: 'Double tap',
-            value: 'double'
+            value: 'Double tap'
           },
           {
             label: 'Free fall',
-            value: 'free-fall'
+            value: 'Free fall'
           },
           {
             label: '6D orientation detection',
-            value: '6d'
+            value: '6D orientation detection'
           },
           {
             label: 'Activity/inactivity recoqnition',
-            value: 'activity'
+            value: 'Activity/inactivity recoqnition'
           }
         ]
       },
       default: 'none',
       displayName: 'Event type',
       get() {
-        return this._internal.eventType;
+        return this._internal["Event type"];
       }
     }
   },
@@ -183,36 +183,36 @@ const DeviceNode = {
         return this._internal["Accelerometer"];
       }
     },
-    gyroscopeValue: {
+    "Gyroscope": {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Gyroscope',
       get() {
-        return this._internal.gyroscopeValue;
+        return this._internal["Gyroscope"];
       }
     },
-    accGyroValue: {
+    "Acc/Gyro": {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Acc/Gyro',
       get() {
-        return this._internal.accGyroValue;
+        return this._internal["Acc/Gyro"];
       }
     },
-    accEvent: {
+    "Acc event": {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Acc event',
       get() {
-        return this._internal.accEvent;
+        return this._internal["Acc event"];
       }
     },
-    accelerometerVector: {
+    "Acc vector length": {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Acc vector length',
       get() {
-        return this._internal.accelerometerVector;
+        return this._internal["Acc vector length"];
       }
     }
   }

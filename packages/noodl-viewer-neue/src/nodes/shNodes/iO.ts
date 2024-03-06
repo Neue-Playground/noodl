@@ -1,12 +1,5 @@
 'use strict';
 
-enum pinMode{
-    digitalIn='Digital in',
-    digitalOut='Digital out',
-    analogIn='Analog in',
-    analogOut='Analog out',
-}
-
 const DeviceNode = {
     name: 'I/O',
     docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
@@ -19,63 +12,63 @@ const DeviceNode = {
         return and(this._internal.inputs);
     },
     inputs: {
-        pin0: {
+        "Pin 0": {
             type: 'number',
             displayName: 'Pin 0',
             get() {
-                return this._internal.pin0;
+                return this._internal["Pin 0"];
             }
         },
-        pin1: {
+        "Pin 1": {
             type: 'number',
             displayName: 'Pin 1',
             get() {
-                return this._internal.pin1;
+                return this._internal["Pin 1"];
             }
         },
-        pin2: {
+        "Pin 2": {
             type: 'number',
             displayName: 'Pin 2',
             get() {
-                return this._internal.pin2;
+                return this._internal["Pin 2"];
             }
         },
-        pin3: {
+        "Pin 3": {
             type: 'number',
             displayName: 'Pin 3',
             get() {
-                return this._internal.pin3;
+                return this._internal["Pin 3"];
             }
         },
-        pin4: {
+        "Pin 4": {
             type: 'number',
             displayName: 'Pin 4',
             get() {
-                return this._internal.pin4;
+                return this._internal["Pin 4"];
             }
         },
-        pin5: {
+        "Pin 5": {
             type: 'number',
             displayName: 'Pin 5',
             get() {
-                return this._internal.pin5;
+                return this._internal["Pin 5"];
             }
         },
-        pin6: {
+        "Pin 6": {
             type: 'number',
             displayName: 'Pin 6',
             get() {
-                return this._internal.pin6;
+                return this._internal["Pin 6"];
             }
         },
-        pin7: {
+        "Pin 7": {
             type: 'number',
             displayName: 'Pin 7',
             get() {
-                return this._internal.pin7;
+                return this._internal["Pin 7"];
             }
         },
-        pin0Mode: {
+        "Pin 0 mode": {
             type: {
                 name: 'enum',
                 enums: [
@@ -100,10 +93,10 @@ const DeviceNode = {
             default:'digitalIn',
             displayName: 'Pin 0 mode',
             get() {
-                return this._internal.pin0Mode;
+                return this._internal["Pin 0 mode"];
             }
         },
-        pin1Mode: {
+        "Pin 1 mode": {
             type: {
                 name: 'enum',
                 enums: [
@@ -128,10 +121,10 @@ const DeviceNode = {
             default:'digitalIn',
             displayName: 'Pin 1 mode',
             get() {
-                return this._internal.pin1Mode;
+                return this._internal["Pin 1 mode"];
             }
         },
-        pin2Mode: {
+        "Pin 2 mode": {
             type: {
                 name: 'enum',
                 enums: [
@@ -156,10 +149,10 @@ const DeviceNode = {
             default:'digitalIn',
             displayName: 'Pin 2 mode',
             get() {
-                return this._internal.pin2Mode;
+                return this._internal["Pin 2 mode"];
             }
         },
-        pin3Mode: {
+        "Pin 3 mode": {
             type: {
                 name: 'enum',
                 enums: [
@@ -184,10 +177,10 @@ const DeviceNode = {
             default:'digitalIn',
             displayName: 'Pin 3 mode',
             get() {
-                return this._internal.pin3Mode;
+                return this._internal["Pin 3 mode"];
             }
         },
-        pin4Mode: {
+        "Pin 4 mode": {
             type: {
                 name: 'enum',
                 enums: [
@@ -212,10 +205,10 @@ const DeviceNode = {
             default:'digitalIn',
             displayName: 'Pin 4 mode',
             get() {
-                return this._internal.pin4Mode;
+                return this._internal["Pin 4 mode"];
             }
         },
-        pin5Mode: {
+        "Pin 5 mode": {
             type: {
                 name: 'enum',
                 enums: [
@@ -240,65 +233,65 @@ const DeviceNode = {
             default:'digitalIn',
             displayName: 'Pin 5 mode',
             get() {
-                return this._internal.pin5Mode;
+                return this._internal["Pin 5 mode"];
             }
         },
     },
     outputs: {
-        pin0: {
+        "Pin 0": {
             type: 'number',
             displayName: 'Pin 0',
             get() {
-                return this._internal.pin0;
+                return this._internal["Pin 0"];
             }
         },
-        pin1: {
+        "Pin 1": {
             type: 'number',
             displayName: 'Pin 1',
             get() {
-                return this._internal.pin1;
+                return this._internal["Pin 1"];
             }
         },
-        pin2: {
+        "Pin 2": {
             type: 'number',
             displayName: 'Pin 2',
             get() {
-                return this._internal.pin2;
+                return this._internal["Pin 2"];
             }
         },
-        pin3: {
+        "Pin 3": {
             type: 'number',
             displayName: 'Pin 3',
             get() {
-                return this._internal.pin3;
+                return this._internal["Pin 3"];
             }
         },
-        pin4: {
+        "Pin 4": {
             type: 'number',
             displayName: 'Pin 4',
             get() {
-                return this._internal.pin4;
+                return this._internal["Pin 4"];
             }
         },
-        pin5: {
+        "Pin 5": {
             type: 'number',
             displayName: 'Pin 5',
             get() {
-                return this._internal.pin5;
+                return this._internal["Pin 5"];
             }
         },
-        pin6: {
+        "Pin 6": {
             type: 'number',
             displayName: 'Pin 6',
             get() {
-                return this._internal.pin6;
+                return this._internal["Pin 6"];
             }
         },
-        pin7: {
+        "Pin 7": {
             type: 'number',
             displayName: 'Pin 7',
             get() {
-                return this._internal.pin7;
+                return this._internal["Pin 7"];
             }
         },
     }

@@ -9,126 +9,126 @@ const DeviceNode = {
     this._internal.inputs = [];
   },
   inputs: {
-    pingIn: {
+    "Ping in": {
       type: 'signal',
       group: 'Connection',
       displayName: 'Ping in',
       get() {
-        return this._internal.pingIn;
+        return this._internal["Ping in"];
       }
     },
-    publishMessage: {
+    "Publish msg in": {
       type: 'string',
       group: 'Message',
       displayName: 'Publish msg in',
       get() {
-        return this._internal.publishMessage;
+        return this._internal["Publish msg in"];
       }
     },
-    topic: {
+    "Topic": {
       type: 'string',
       group: 'Message',
       displayName: 'Topic',
       get() {
-        return this._internal.topic;
+        return this._internal["Topic"];
       }
     },
-    clientID: {
+    "Client ID": {
       type: 'string',
       group: 'Settings',
       displayName: 'Client ID',
       get() {
-        return this._internal.clientID;
+        return this._internal["Client ID"];
       }
     },
-    username: {
+    "Username": {
       type: 'string',
       group: 'Settings',
       displayName: 'Username',
       get() {
-        return this._internal.username;
+        return this._internal["Username"];
       }
     },
-    password: {
+    "Password": {
       type: 'string',
       group: 'Settings',
       displayName: 'Password',
       get() {
-        return this._internal.password;
+        return this._internal["Password"];
       }
     },
-    port: {
+    "Port": {
       type: 'number',
       group: 'Settings',
       displayName: 'Port',
       get() {
-        return this._internal.port;
+        return this._internal["Port"];
       }
     },
-    host: {
+    "Host": {
       type: 'string',
       group: 'Settings',
       displayName: 'Host',
       get() {
-        return this._internal.host;
+        return this._internal["Host"];
       }
     },
-    connect: {
+    "Connect": {
       type: 'boolean',
       group: 'Connection',
       displayName: 'Connect',
       get() {
-        return this._internal.connect;
+        return this._internal["Connect"];
       }
     },
-    subscribe: {
+    "Subscribe": {
       type: 'boolean',
       group: 'Connection',
       displayName: 'Subscribe',
       get() {
-        return this._internal.subscribe;
+        return this._internal["Subscribe"];
       }
     },
-    useSSL: {
+    "UseSSL": {
       type: 'boolean',
       group: 'Connection',
       displayName: 'UseSSL',
       get() {
-        return this._internal.useSSL;
+        return this._internal["UseSSL"];
       }
     }
   },
   outputs: {
-    messageOut: {
+    "MQTT msg out": {
       type: 'string',
       group: 'Output',
       displayName: 'MQTT msg out',
       get() {
-        return this._internal.messageOut;
+        return this._internal["MQTT msg out"];
       }
     },
-    pongOut: {
+    "MQTT pong out": {
       type: 'string',
       group: 'Connection',
       displayName: 'MQTT pong out',
       get() {
-        return this._internal.pongOut;
+        return this._internal["MQTT pong out"];
       }
     },
-    errorOut: {
+    "Error out": {
       type: 'string',
       group: 'Output',
       displayName: 'Error out',
       get() {
-        return this._internal.errorOut;
+        return this._internal["Error out"];
       }
     },
-    statusOut: {
+    "Status out": {
       type: 'string',
       group: 'Connection',
       displayName: 'Status out',
       get() {
-        return this._internal.statusOut;
+        return this._internal["Status out"];
       }
     }
   }

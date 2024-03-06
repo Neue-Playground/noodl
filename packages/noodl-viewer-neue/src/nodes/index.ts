@@ -12,6 +12,9 @@ export function registerNodes(runtime: NoodlRuntime) {
     require('./shNodes/rgbLed'),
     require('./shNodes/iO'),
     require('./logic/range'),
+    require('./logic/generator'),
+    require('./logic/timer'),
+    require('./logic/toggle'),
     require('./logic/compare')
   ].forEach(function (nodeDefinition) {
     runtime.registerNode(nodeDefinition);
