@@ -19,11 +19,12 @@ import { PropertyPanelRow } from '@noodl-core-ui/components/property-panel/Prope
 import { PropertyPanelPasswordInput } from '@noodl-core-ui/components/property-panel/PropertyPanelPasswordInput';
 import { Label } from '@noodl-core-ui/components/typography/Label';
 import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
-import { exportComponentsToJSON } from '@noodl-utils/exporter';
 import NeueExportModal from '../../NeueConfigurationExport/NeueExportModal';
+import { ComponentModel } from '@noodl-models/componentmodel';
+import { filesystem } from '@noodl/platform';
+import { NodeGraphNodeSet } from '@noodl-models/nodegraphmodel';
 
 export function iENBLPanel() {
-  const environment = useActiveEnvironment(ProjectModel.instance);
   const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
 
@@ -93,13 +94,37 @@ export function iENBLPanel() {
   async function getJsonConfiguration() {
     const allComponents = ProjectModel.instance.components.filter(comp => isComponentModel_NeueRuntime(comp));
 
-    const json = await exportComponentsToJSON(ProjectModel.instance, allComponents, { useBundleHashes: false, useBundles: true }).components
-    //await filesystem.writeJson(__dirname + 'exportTest.json', json);
+    const test = [];
+    allComponents.forEach(element => {
+      const nodes = element?.graph?.getNodeSetWithNodes(element.getNodes()).nodes;
+      test.push({
+        ...element.toJSON(),
+        nodes
+      })
+    });
+
+    await filesystem.writeJson(__dirname + 'exportedConfig.json', { components: test });
+
+    const json = await filesystem.readJson(__dirname + 'exportedConfig.json')
 
     setJsonData(json)
     setIsExportModalOpen(!isExportModalOpen)
   }
 
+  async function loadJsonConfiguration() {
+    const json = await filesystem.readJson(__dirname + 'exportedConfig.json')
+
+    for (let i = json.components.length - 1; i >= 0; i--) {
+      const importComponent = ProjectModel.instance.getComponentWithName(json.components[i].name);
+      ProjectModel.instance.removeComponent(importComponent);
+
+      const component = ComponentModel.fromJSON(json.components[i])
+      const nodeset = NodeGraphNodeSet.fromJSON(json.components[i])
+      component.graph.insertNodeSet(nodeset, {});
+
+      ProjectModel.instance.addComponent(component);
+    }
+  }
 
   return (
     <BasePanel title="Neue Playground" isFill>
@@ -130,6 +155,9 @@ export function iENBLPanel() {
           <Box hasXSpacing hasYSpacing>
             <VStack>
               <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} />
+            </VStack>
+            <VStack>
+              <PrimaryButton label="Load Configuration from Neue" onClick={loadJsonConfiguration} />
             </VStack>
           </Box>
           <Section

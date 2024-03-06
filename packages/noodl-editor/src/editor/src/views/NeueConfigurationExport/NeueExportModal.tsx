@@ -8,12 +8,12 @@ import React, { useEffect, useState } from 'react'
 type ModalProps = {
     isVisible: boolean,
     onClose: () => void,
-    jsonData: any[],
+    jsonData: any,
     devices: any[]
 }
 
 export default function NeueExportModal(props: ModalProps) {
-    const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
+    const [selectedConfiguration, setSetSelectedConfiguration] = useState(props.jsonData);
     const [selectedDevice, setSetSelectedDevice] = useState(null);
     const [error, setError] = useState(null);
 
@@ -67,13 +67,16 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
-                        const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
-                        if (response.status === 200) {
-                            props.onClose()
-                        } else {
-                            const body = await response.json()
-                            setError('Failed to push to device: ' + body)
-                        }
+                        // const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
+                        // if (response.status === 200) {
+                        //     props.onClose()
+                        // } else {
+                        //     const body = await response.json()
+                        //     setError('Failed to push to device: ' + body)
+                        // }
+                        await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration: props.jsonData });
+                        props.onClose()
+                        //TODO: send config to device
                     }} />
                 </div>
             </div>
