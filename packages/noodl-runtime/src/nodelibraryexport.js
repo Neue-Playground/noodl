@@ -467,7 +467,7 @@ function generateNodeLibrary(nodeRegister) {
         },
         {
           name: 'Neue Utils',
-          items: ['Compare', 'Range', 'Value generator', 'Toggle', 'Timer']
+          items: ['Compare', 'Range', 'Value generator', 'Stepper', 'Threshold', 'Toggle', 'Timer']
         },
         {
           name: 'Logic',
