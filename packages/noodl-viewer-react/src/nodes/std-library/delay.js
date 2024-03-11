@@ -1,7 +1,7 @@
 'use strict';
 
-const Timer = {
-  name: 'Timer',
+const Delay = {
+  name: 'Delay',
   docs: 'https://docs.noodl.net/nodes/utilities/delay',
   displayName: 'Delay',
   category: 'Utilities',
@@ -81,5 +81,5 @@ const Timer = {
 };
 
 module.exports = {
-  node: Timer
+  node: Delay
 };

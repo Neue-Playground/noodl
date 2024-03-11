@@ -15,6 +15,8 @@ export function registerNodes(runtime: NoodlRuntime) {
     require('./logic/generator'),
     require('./logic/timer'),
     require('./logic/toggle'),
+    require('./logic/stepper'),
+    require('./logic/threshold'),
     require('./logic/compare')
   ].forEach(function (nodeDefinition) {
     runtime.registerNode(nodeDefinition);
