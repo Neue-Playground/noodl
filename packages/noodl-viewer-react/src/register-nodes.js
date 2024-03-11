@@ -43,7 +43,7 @@ export default function registerNodes(noodlRuntime) {
     //require('./nodes/std-library/datetostring'),
     //require('./nodes/std-library/stringmapper'),
     //require('./nodes/std-library/inverter'),
-    require('./nodes/std-library/timer'),
+    require('./nodes/std-library/delay'),
     require('./nodes/std-library/variables/color'),
     //require('./nodes/std-library/substring'), // moved to runtime
     require('./nodes/std-library/eventsender'),
@@ -147,11 +147,10 @@ export default function registerNodes(noodlRuntime) {
     require('./nodes-deprecated/std-library/data/dbmodelnode'),
     require('./nodes-deprecated/std-library/data/dbcollectionnode'),
     require('./nodes-deprecated/std-library/data/collectionnode'),
-    require('./nodes-deprecated/std-library/scriptdownloader'),
+    require('./nodes-deprecated/std-library/scriptdownloader')
 
     //Neue
     // require('./nodes/std-library/shNodes/shNode'),
-
   ].forEach(function (nodeDefinition) {
     noodlRuntime.registerNode(nodeDefinition);
   });
@@ -194,5 +193,4 @@ export default function registerNodes(noodlRuntime) {
 
   //Neue
   // noodlRuntime.registerNode(shNode);
-
 }

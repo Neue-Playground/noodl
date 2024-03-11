@@ -457,7 +457,7 @@ function generateNodeLibrary(nodeRegister) {
           items: [
             'States',
             'Value Changed',
-            'Timer',
+            'Delay',
             'Color Blend',
             'Number Remapper',
             'Counter',
