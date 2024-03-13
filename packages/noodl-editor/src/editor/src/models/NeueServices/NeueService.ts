@@ -114,19 +114,21 @@ export class NeueService extends Model {
     });
   }
 
-  public saveFlow(id: string, flow: any) {
-    return this.performRequest('/flows', 'POST', { id, flow });
+  public saveFlow(flow: any) {
+    return new Promise<string>((resolve) => {
+      this.performRequest('/flows', 'POST', { flow }).then((response) =>
+        response.json().then((data) => {
+          resolve(data);
+        })
+      );
+    });
   }
 
   public fetchFlow(id: string) {
     return new Promise<any>((resolve) => {
       this.performRequest('/flows/' + id, 'GET').then((response) =>
         response.json().then((data) => {
-          if (data.Items) {
-            resolve(data.Items[0].flow.S);
-          } else {
-            resolve('');
-          }
+          resolve(JSON.parse(data));
         })
       );
     });
