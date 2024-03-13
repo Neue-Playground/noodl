@@ -114,8 +114,8 @@ export class NeueService extends Model {
     });
   }
 
-  public saveFlow(id: string, flow: any) {
-    return this.performRequest('/flows', 'POST', { id, flow });
+  public saveFlow(flow: any) {
+    return this.performRequest('/flows', 'POST', { flow });
   }
 
   public fetchFlow(id: string) {
