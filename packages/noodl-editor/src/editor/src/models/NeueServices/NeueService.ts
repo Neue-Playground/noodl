@@ -93,7 +93,6 @@ export class NeueService extends Model {
       },
       body: method === 'GET' ? undefined : JSON.stringify(body)
     }).then((response) => {
-      console.log(response);
       if (response.status === 401) this.logout();
       return response;
     });
@@ -119,6 +118,30 @@ export class NeueService extends Model {
     return this.performRequest('/flows', 'POST', { id, flow });
   }
 
+  public fetchFlow(id: string) {
+    return new Promise<any>((resolve) => {
+      this.performRequest('/flows/' + id, 'GET').then((response) =>
+        response.json().then((data) => {
+          if (data.Items) {
+            resolve(data.Items[0].flow.S);
+          } else {
+            resolve('');
+          }
+        })
+      );
+    });
+  }
+
+  public updateFlow(id: string, flow: any) {
+    return this.performRequest('/flow', 'PUT', { id, flow });
+  }
+
+  public fetchFlowIds() {
+    return new Promise<Array<string>>((resolve) => {
+      this.performRequest('/flows/id', 'GET').then((response) => response.json().then((data) => resolve(data)));
+    });
+  }
+
   public fetchFlows() {
     return new Promise<Array<any>>((resolve) => {
       this.performRequest('/flows', 'GET').then((response) => response.json().then((data) => resolve(data)));
@@ -127,5 +150,9 @@ export class NeueService extends Model {
 
   public deployFlow(deviceid: string, flow: string) {
     return this.performRequest('/devices/deploy', 'POST', { deviceid, flow });
+  }
+
+  public deleteFlow(id: string) {
+    return this.performRequest('/flows/' + id, 'DELETE');
   }
 }
