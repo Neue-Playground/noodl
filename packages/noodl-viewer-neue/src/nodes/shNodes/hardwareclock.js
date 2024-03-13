@@ -4,7 +4,7 @@ const DeviceNode = {
   name: 'Hardware Clock',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
-  color: 'neue',
+  color: 'neueSensor',
   initialize: function () {
     this._internal.inputs = [];
   },
@@ -12,23 +12,23 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    "On/Off": {
+    'On/Off': {
       type: 'boolean',
       displayName: 'On/Off',
       get() {
-        return this._internal["On/Off"];
+        return this._internal['On/Off'];
       }
     },
-    "Read Rate": {
+    'Read Rate': {
       type: 'number',
       displayName: 'Read Rate',
       get() {
-        return this._internal["Read Rate"];
+        return this._internal['Read Rate'];
       }
     }
   },
   outputs: {
-    "Read value": {
+    'Read value': {
       type: 'number',
       displayName: 'Read value',
       get() {

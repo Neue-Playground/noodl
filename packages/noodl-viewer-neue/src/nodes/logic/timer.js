@@ -3,78 +3,78 @@
 const DeviceNode = {
   name: 'Timer',
   docs: 'https://docs.noodl.net/nodes/utilities/logic/condition',
-  category: 'Logic',
-  color: 'visual',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
     this._internal.inputs = [];
   },
 
   inputs: {
-    "Trigger count": {
+    'Trigger count': {
       type: 'number',
       displayName: 'Trigger count'
     },
-    "ON/OFF": {
+    'ON/OFF': {
       type: 'boolean',
-      displayName: 'ON/OFF',
+      displayName: 'ON/OFF'
     },
-    "Output 1 count": {
+    'Output 1 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 1 count',
+      displayName: 'Output 1 count'
     },
-    "Output 2 count": {
+    'Output 2 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 2 count',
+      displayName: 'Output 2 count'
     },
-    "Output 3 count": {
+    'Output 3 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 3 count',
+      displayName: 'Output 3 count'
     },
-    "Output 4 count": {
+    'Output 4 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 4 count',
+      displayName: 'Output 4 count'
     },
-    "Output 5 count": {
+    'Output 5 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 5 count',
+      displayName: 'Output 5 count'
     },
-    "Output 6 count": {
+    'Output 6 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 6 count',
+      displayName: 'Output 6 count'
     },
-    "Output 7 count": {
+    'Output 7 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 7 count',
+      displayName: 'Output 7 count'
     },
-    "Output 8 count": {
+    'Output 8 count': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Output 8 count',
+      displayName: 'Output 8 count'
     },
-    "Mode": {
+    Mode: {
       type: {
         name: 'enum',
         allowEditOnly: true,
@@ -88,42 +88,41 @@ const DeviceNode = {
             value: 'Continous counting'
           }
         ]
-      },
+      }
     }
-
   },
   outputs: {
-    "Counter 1": {
+    'Counter 1': {
       type: 'signal',
-      displayName: 'Counter 1',
+      displayName: 'Counter 1'
     },
-    "Counter 2": {
+    'Counter 2': {
       type: 'signal',
-      displayName: 'Counter 2',
+      displayName: 'Counter 2'
     },
-    "Counter 3": {
+    'Counter 3': {
       type: 'signal',
-      displayName: 'Counter 3',
+      displayName: 'Counter 3'
     },
-    "Counter 4": {
+    'Counter 4': {
       type: 'signal',
-      displayName: 'Counter 4',
+      displayName: 'Counter 4'
     },
-    "Counter 5": {
+    'Counter 5': {
       type: 'signal',
-      displayName: 'Counter 5',
+      displayName: 'Counter 5'
     },
-    "Counter 6": {
+    'Counter 6': {
       type: 'signal',
-      displayName: 'Counter 6',
+      displayName: 'Counter 6'
     },
-    "Counter 7": {
+    'Counter 7': {
       type: 'signal',
-      displayName: 'Counter 7',
+      displayName: 'Counter 7'
     },
-    "Counter 8": {
+    'Counter 8': {
       type: 'signal',
-      displayName: 'Counter 8',
+      displayName: 'Counter 8'
     }
   }
 };

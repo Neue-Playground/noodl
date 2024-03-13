@@ -4,31 +4,31 @@ const DeviceNode = {
   name: 'Accelerometer/Gyroscope',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
-  color: 'neue',
+  color: 'neueSensor',
   initialize: function () {
     this._internal.inputs = [];
   },
 
   inputs: {
-    "Gyroscope  off": {
+    'Gyroscope  off': {
       group: 'Gyroscope',
       type: 'boolean',
       displayName: 'Gyroscope  off',
       default: false,
       get() {
-        return this._internal["Gyroscope  off"];
+        return this._internal['Gyroscope  off'];
       }
     },
-    "Accelerometer off": {
+    'Accelerometer off': {
       group: 'Accelerometer',
       type: 'boolean',
       displayName: 'Accelerometer off',
       default: false,
       get() {
-        return this._internal["Accelerometer off"];
+        return this._internal['Accelerometer off'];
       }
     },
-    "Sensor update rate": {
+    'Sensor update rate': {
       group: 'General',
       type: {
         name: 'enum',
@@ -50,10 +50,10 @@ const DeviceNode = {
       default: '13',
       displayName: 'Sensor update rate',
       get() {
-        return this._internal["Sensor update rate"];
+        return this._internal['Sensor update rate'];
       }
     },
-    "Accelerometer scale": {
+    'Accelerometer scale': {
       group: 'Accelerometer',
       type: {
         name: 'enum',
@@ -79,10 +79,10 @@ const DeviceNode = {
       default: '2',
       displayName: 'Accelerometer scale',
       get() {
-        return this._internal["Accelerometer scale"];
+        return this._internal['Accelerometer scale'];
       }
     },
-    "Gyro max degrees per second": {
+    'Gyro max degrees per second': {
       group: 'Gyroscope',
       type: {
         name: 'enum',
@@ -108,10 +108,10 @@ const DeviceNode = {
       default: '250',
       displayName: 'Gyro max degrees per second',
       get() {
-        return this._internal["Gyro max degrees per second"];
+        return this._internal['Gyro max degrees per second'];
       }
     },
-    "Performance mode": {
+    'Performance mode': {
       group: 'General',
       type: {
         name: 'enum',
@@ -129,10 +129,10 @@ const DeviceNode = {
       default: 'low',
       displayName: 'Performance mode',
       get() {
-        return this._internal["Performance mode"];
+        return this._internal['Performance mode'];
       }
     },
-    "Event type": {
+    'Event type': {
       group: 'General',
       type: {
         name: 'enum',
@@ -170,49 +170,49 @@ const DeviceNode = {
       default: 'none',
       displayName: 'Event type',
       get() {
-        return this._internal["Event type"];
+        return this._internal['Event type'];
       }
     }
   },
   outputs: {
-    "Accelerometer": {
+    Accelerometer: {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Accelerometer',
       get() {
-        return this._internal["Accelerometer"];
+        return this._internal['Accelerometer'];
       }
     },
-    "Gyroscope": {
+    Gyroscope: {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Gyroscope',
       get() {
-        return this._internal["Gyroscope"];
+        return this._internal['Gyroscope'];
       }
     },
-    "Acc/Gyro": {
+    'Acc/Gyro': {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Acc/Gyro',
       get() {
-        return this._internal["Acc/Gyro"];
+        return this._internal['Acc/Gyro'];
       }
     },
-    "Acc event": {
+    'Acc event': {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Acc event',
       get() {
-        return this._internal["Acc event"];
+        return this._internal['Acc event'];
       }
     },
-    "Acc vector length": {
+    'Acc vector length': {
       group: 'Sensor Data',
       type: 'number',
       displayName: 'Acc vector length',
       get() {
-        return this._internal["Acc vector length"];
+        return this._internal['Acc vector length'];
       }
     }
   }

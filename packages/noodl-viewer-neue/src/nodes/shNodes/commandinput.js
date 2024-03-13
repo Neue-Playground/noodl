@@ -4,7 +4,7 @@ const DeviceNode = {
   name: 'Commands Input',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
-  color: 'neue',
+  color: 'neueData',
   initialize: function () {
     this._internal.inputs = [];
   },
@@ -12,7 +12,7 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   outputs: {
-    "Command": {
+    Command: {
       type: 'string',
       displayName: 'Command',
       get() {

@@ -67,7 +67,10 @@ export interface NodeLibraryData {
       data: NodeLibraryDataNodeColors;
       javascript: NodeLibraryDataNodeColors;
       default: NodeLibraryDataNodeColors;
-      neue:NodeLibraryDataNodeColors;
+      neueSensor: NodeLibraryDataNodeColors;
+      neueLogic: NodeLibraryDataNodeColors;
+      neueData: NodeLibraryDataNodeColors;
+      neueComponent: NodeLibraryDataNodeColors;
     };
     connections: {
       signal: NodeLibraryDataConnectionColors;

@@ -4,7 +4,7 @@ const DeviceNode = {
   name: 'Stepper',
   docs: '',
   category: 'Neue',
-  color: 'visual',
+  color: 'neueLogic',
   initialize: function () {
     this._internal.inputs = [];
   },

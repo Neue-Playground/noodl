@@ -36,7 +36,16 @@
   &--is-theme-javascript {
     border-left-color: var(--theme-color-node-custom-2);
   }
-  &--is-theme-Neue {
+  &--is-theme-neueData {
+    border-left-color: var(--theme-color-node-data-2);
+  }
+  &--is-theme-neueLogic {
+    border-left-color: var(--theme-color-node-logic-2);
+  }
+  &--is-theme-neueComponent {
+    border-left-color: var(--theme-color-node-component-2);
+  }
+  &--is-theme-neueSensor {
     border-left-color: var(--theme-color-node-neue-2);
   }
   .Root--is-highlighted & {
