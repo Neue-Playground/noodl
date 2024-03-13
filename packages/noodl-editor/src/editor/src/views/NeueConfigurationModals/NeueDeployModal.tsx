@@ -12,10 +12,11 @@ type ModalProps = {
     devices: any[]
 }
 
-export default function NeueExportModal(props: ModalProps) {
+export default function NeueDeployModal(props: ModalProps) {
     const [selectedConfiguration, setSetSelectedConfiguration] = useState(props.jsonData);
     const [selectedDevice, setSetSelectedDevice] = useState(null);
     const [error, setError] = useState(null);
+    const [first, setfirst] = useState('')
 
     useEffect(() => {
         if (props.isVisible) {
@@ -43,20 +44,10 @@ export default function NeueExportModal(props: ModalProps) {
                         padding: '32px'
                     }}
                 >
-                    {Boolean(props.jsonData.length) && (
-                        <Select
-                            options={props.jsonData.map((comp) => { return { label: comp.name.split("/#__neue__/").pop(), value: comp, isDisabled: false } })}
-                            onChange={(value: string) => setSetSelectedConfiguration(value)}
-                            placeholder="Select device configuration"
-                            value={selectedConfiguration}
-                            label="Device flow"
-                            hasBottomSpacing
-                        />
-                    )}
                     {Boolean(props.devices.length) && (
                         <Select
                             options={props.devices.map((device) => { return { label: device, value: device, isDisabled: false } })}
-                            onChange={(value: string) => setSetSelectedDevice(value)}
+                            onChange={(value: any) => setSetSelectedDevice(value)}
                             placeholder="Select device"
                             value={selectedDevice}
                             label="Available devices"
@@ -67,17 +58,13 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
-                        // const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
-                        // if (response.status === 200) {
-                        //     props.onClose()
-                        // } else {
-                        //     const body = await response.json()
-                        //     setError('Failed to push to device: ' + body)
-                        // }
-                        await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration: props.jsonData });
-                        props.onClose()
-                        //TODO: send config to device
+                        // NeueService.instance.deployFlow(selectedDevice, props.jsonData).then((res) => setfirst(JSON.stringify(res))
+                        // )
+                        setfirst(selectedDevice)
+                        //await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration: props.jsonData });
+                        //props.onClose()
                     }} />
+                    {first}
                 </div>
             </div>
 

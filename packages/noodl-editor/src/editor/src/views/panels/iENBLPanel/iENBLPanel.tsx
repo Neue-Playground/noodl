@@ -18,11 +18,10 @@ import { PropertyPanelTextInput } from '@noodl-core-ui/components/property-panel
 import { PropertyPanelRow } from '@noodl-core-ui/components/property-panel/PropertyPanelInput';
 import { PropertyPanelPasswordInput } from '@noodl-core-ui/components/property-panel/PropertyPanelPasswordInput';
 import { Label } from '@noodl-core-ui/components/typography/Label';
-import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
-import NeueExportModal from '../../NeueConfigurationExport/NeueExportModal';
-import { ComponentModel } from '@noodl-models/componentmodel';
-import { filesystem } from '@noodl/platform';
-import { NodeGraphNodeSet } from '@noodl-models/nodegraphmodel';
+import NeueDeployModal from '../../NeueConfigurationModals/NeueDeployModal';
+import NeueImportModal from '../../NeueConfigurationModals/NeueImportModal';
+import NeueSaveModal from '../../NeueConfigurationModals/NeueSaveModal';
+import { getJsonConfiguration, loadJsonConfiguration } from '@noodl-utils/NeueExportImportFunctions';
 
 export function iENBLPanel() {
   const [signedIn, setSignedIn] = useState(false);
@@ -34,8 +33,11 @@ export function iENBLPanel() {
 
   const [devices, setDevices] = useState([]);
 
-  const [jsonData, setJsonData] = useState([]);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [jsonData, setJsonData] = useState({});
+  const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
+  const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
+  const [isImportModalOpen, setIsImportModalOpen] = useState(false)
+  const [flowId, setFlowId] = useState('')
 
   useEffect(() => {
     NeueService.instance.load().then((result) => {
@@ -85,45 +87,31 @@ export function iENBLPanel() {
     });
   }
 
-  function handleCloseModal() {
+  function handleCloseDeployModal() {
     setJsonData([]);
-    setIsExportModalOpen(false)
+    setIsDeployModalOpen(false)
   }
 
-
-  async function getJsonConfiguration() {
-    const allComponents = ProjectModel.instance.components.filter(comp => isComponentModel_NeueRuntime(comp));
-
-    const test = [];
-    allComponents.forEach(element => {
-      const nodes = element?.graph?.getNodeSetWithNodes(element.getNodes()).nodes;
-      test.push({
-        ...element.toJSON(),
-        nodes
-      })
-    });
-
-    await filesystem.writeJson(__dirname + 'exportedConfig.json', { components: test });
-
-    const json = await filesystem.readJson(__dirname + 'exportedConfig.json')
-
-    setJsonData(json)
-    setIsExportModalOpen(!isExportModalOpen)
+  function handleCloseSaveModal() {
+    setJsonData([]);
+    setIsSaveModalOpen(false)
   }
 
-  async function loadJsonConfiguration() {
-    const json = await filesystem.readJson(__dirname + 'exportedConfig.json')
+  function handleCloseImportModal() {
+    setIsImportModalOpen(false)
+  }
 
-    for (let i = json.components.length - 1; i >= 0; i--) {
-      const importComponent = ProjectModel.instance.getComponentWithName(json.components[i].name);
-      ProjectModel.instance.removeComponent(importComponent);
+  function pushConfigurationToDevice() {
+    getJsonConfiguration(flowId, setJsonData)
+    setIsDeployModalOpen(true)
+  }
 
-      const component = ComponentModel.fromJSON(json.components[i])
-      const nodeset = NodeGraphNodeSet.fromJSON(json.components[i])
-      component.graph.insertNodeSet(nodeset, {});
-
-      ProjectModel.instance.addComponent(component);
-    }
+  function saveConfigurationToCloud() {
+    getJsonConfiguration(flowId, setJsonData)
+    setIsSaveModalOpen(true)
+  }
+  function importConfigurationFromCloud() {
+    setIsImportModalOpen(true)
   }
 
   return (
@@ -154,10 +142,13 @@ export function iENBLPanel() {
         <Container direction={ContainerDirection.Vertical} isFill>
           <Box hasXSpacing hasYSpacing>
             <VStack>
-              <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} />
+              <PrimaryButton hasBottomSpacing label="Push Flow to Device" onClick={pushConfigurationToDevice} />
             </VStack>
             <VStack>
-              <PrimaryButton label="Load Configuration from Neue" onClick={loadJsonConfiguration} />
+              <PrimaryButton hasBottomSpacing label="Save Configuration" onClick={saveConfigurationToCloud} />
+            </VStack>
+            <VStack>
+              <PrimaryButton label="Import Configuration" onClick={importConfigurationFromCloud} />
             </VStack>
           </Box>
           <Section
@@ -205,7 +196,9 @@ export function iENBLPanel() {
         </Container>
       )}
 
-      <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} />
+      <NeueDeployModal onClose={handleCloseDeployModal} isVisible={isDeployModalOpen} jsonData={jsonData} devices={devices} />
+      <NeueImportModal onClose={handleCloseImportModal} isVisible={isImportModalOpen} jsonData={jsonData} setFlowId={setFlowId} />
+      <NeueSaveModal onClose={handleCloseSaveModal} isVisible={isSaveModalOpen} jsonData={jsonData} flowId={flowId} />
     </BasePanel>
 
   );
