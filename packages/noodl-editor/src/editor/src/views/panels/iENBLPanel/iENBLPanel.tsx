@@ -37,7 +37,7 @@ export function iENBLPanel() {
   const [isDeployModalOpen, setIsDeployModalOpen] = useState(false)
   const [isSaveModalOpen, setIsSaveModalOpen] = useState(false)
   const [isImportModalOpen, setIsImportModalOpen] = useState(false)
-  const [flowId, setFlowId] = useState('')
+  const [flowId, setFlowId] = useState(localStorage.getItem('flowId'))
 
   useEffect(() => {
     NeueService.instance.load().then((result) => {
@@ -198,7 +198,7 @@ export function iENBLPanel() {
 
       <NeueDeployModal onClose={handleCloseDeployModal} isVisible={isDeployModalOpen} jsonData={jsonData} devices={devices} />
       <NeueImportModal onClose={handleCloseImportModal} isVisible={isImportModalOpen} jsonData={jsonData} setFlowId={setFlowId} />
-      <NeueSaveModal onClose={handleCloseSaveModal} isVisible={isSaveModalOpen} jsonData={jsonData} flowId={flowId} />
+      <NeueSaveModal onClose={handleCloseSaveModal} isVisible={isSaveModalOpen} jsonData={jsonData} flowId={localStorage.getItem('flowId')} />
     </BasePanel>
 
   );

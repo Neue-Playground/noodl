@@ -1,8 +1,9 @@
 import { Icon, IconName } from '@noodl-core-ui/components/common/Icon'
-import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton'
+import { PrimaryButton, PrimaryButtonVariant } from '@noodl-core-ui/components/inputs/PrimaryButton'
 import { Select } from '@noodl-core-ui/components/inputs/Select'
 import { TextInput, TextInputVariant } from '@noodl-core-ui/components/inputs/TextInput'
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog'
+import { HStack } from '@noodl-core-ui/components/layout/Stack'
 import { Text, TextType } from '@noodl-core-ui/components/typography/Text'
 import { Title, TitleSize, TitleVariant } from '@noodl-core-ui/components/typography/Title'
 import { NeueService } from '@noodl-models/NeueServices/NeueService'
@@ -17,16 +18,12 @@ type ModalProps = {
 }
 
 export default function NeueSaveModal(props: ModalProps) {
-    const [selectedConfiguration, setSetSelectedConfiguration] = useState(props.jsonData);
-    const [selectedDevice, setSetSelectedDevice] = useState(null);
+    const [loading, setLoading] = useState(false)
     const [error, setError] = useState(null);
     const [configName, setConfigName] = useState('')
-    const [first, setfirst] = useState('')
 
     useEffect(() => {
         if (props.isVisible) {
-            setSetSelectedConfiguration(null)
-            setSetSelectedDevice(null)
             setError(null)
         }
     }, [props.isVisible])
@@ -49,16 +46,24 @@ export default function NeueSaveModal(props: ModalProps) {
                         padding: '32px'
                     }}
                 >
-                    {props.jsonData.flowId !== '' ? <>
+                    {localStorage.getItem('flowId') !== null ? <>
                         <Title size={TitleSize.Large} variant={TitleVariant.Highlighted}>
                             Save new flow version?
                         </Title>
-                        <PrimaryButton hasTopSpacing label="Save" onClick={async () => {
-                            NeueService.instance.updateFlow(props.jsonData.flowId, props.jsonData).then((res) => setfirst(JSON.stringify(res)))
-                            //setfirst(selectedDevice)
-                            //await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration: props.jsonData });
-                            //props.onClose()
-                        }} />
+                        {!localStorage.getItem('flowName') && <TextInput
+                            slotBeforeInput={<Icon icon={IconName.CloudUpload} variant={TextType.Shy} />}
+                            value={configName}
+                            onChange={(e) => setConfigName(e.currentTarget.value)}
+                            variant={TextInputVariant.InModal}
+                        />}
+                        <HStack>
+                            <PrimaryButton hasTopSpacing label="Save" onClick={async () => {
+                                NeueService.instance.updateFlow(props.jsonData.flowId, { name: localStorage.getItem('flowName') !== null ? localStorage.getItem('flowName') : configName, ...props.jsonData }).then((res) => { props.onClose(); localStorage.removeItem('flowName'); localStorage.removeItem('flowId') })
+                            }} />
+                            <PrimaryButton hasTopSpacing hasLeftSpacing label="Cancel" variant={PrimaryButtonVariant.Danger} onClick={async () => {
+                                props.onClose()
+                            }} />
+                        </HStack>
                     </> : <>
                         <TextInput
                             slotBeforeInput={<Icon icon={IconName.CloudUpload} variant={TextType.Shy} />}
@@ -66,19 +71,17 @@ export default function NeueSaveModal(props: ModalProps) {
                             onChange={(e) => setConfigName(e.currentTarget.value)}
                             variant={TextInputVariant.InModal}
                         />
-                        <PrimaryButton hasTopSpacing label="Add new Configuration" onClick={async () => {
-                            NeueService.instance.saveFlow({ name: configName, ...props.jsonData, }).then(data => { setfirst(JSON.stringify(data)); props.onClose() }).catch(e => setfirst(JSON.stringify({ error: e })))
-                            //await filesystem.writeJson(__dirname + 'exportConfiguration.json', { selectedDevice, selectedConfiguration: props.jsonData });
-                            //props.onClose()
+                        <PrimaryButton hasTopSpacing label="Add new Configuration" isDisabled={loading} onClick={async () => {
+                            setLoading(true)
+                            NeueService.instance.saveFlow({ name: configName, ...props.jsonData, })
+                                .then(data => { setLoading(false); localStorage.setItem('flowId', data); props.onClose(); localStorage.removeItem('flowName'); localStorage.removeItem('flowId') })
+                                .catch(e => setError(JSON.stringify(e)))
+
                         }} />
                     </>}
 
-
-
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
-
-                    {first}
                 </div>
             </div>
 

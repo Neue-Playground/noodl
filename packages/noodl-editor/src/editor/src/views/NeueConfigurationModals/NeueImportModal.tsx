@@ -20,7 +20,7 @@ export default function NeueImportModal(props: ModalProps) {
     const [error, setError] = useState(null);
     const [loading, setLoading] = useState(true);
     const [flows, setFlows] = useState([])
-    const [first, setfirst] = useState('')
+
     useEffect(() => {
         if (props.isVisible) {
             setLoading(true)
@@ -68,10 +68,11 @@ export default function NeueImportModal(props: ModalProps) {
                         {error && <div style={{ color: 'red' }}>{error}</div>}
 
                         <PrimaryButton label="Import flow" onClick={async () => {
+                            localStorage.setItem('flowId', selectedFlow.id)
+                            localStorage.setItem('flowName', JSON.parse(selectedFlow.flow).name)
                             loadJsonConfiguration(selectedFlow.id)
                             props.onClose()
                         }} />
-                        {first}
                     </>}
 
                 </div>
