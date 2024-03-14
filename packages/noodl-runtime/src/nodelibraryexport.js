@@ -196,7 +196,7 @@ function generateNodeLibrary(nodeRegister) {
           outlineHighlighted: '#d57bab',
           text: '#e4cfd9'
         },
-        neue: {
+        neueSensor: {
           base: '#05806c',
           baseHighlighted: '#00b495',
           header: '#0a6557',
@@ -204,6 +204,33 @@ function generateNodeLibrary(nodeRegister) {
           outline: '#0a6557',
           outlineHighlighted: '#b58900',
           text: '#effefa'
+        },
+        neueData: {
+          base: '#465524',
+          baseHighlighted: '#5b6a37',
+          header: '#314110',
+          headerHighlighted: '#465524',
+          outline: '#314110',
+          outlineHighlighted: '#b58900',
+          text: '#d2d6c5'
+        },
+        neueComponent: {
+          base: '#643D8B',
+          baseHighlighted: '#79559b',
+          header: '#4E2877',
+          headerHighlighted: '#643d8b',
+          outline: '#4E2877',
+          outlineHighlighted: '#b58900',
+          text: '#dbd0e4'
+        },
+        neueLogic: {
+          base: '#4C4F59',
+          baseHighlighted: '#62656e',
+          header: '#373B45',
+          headerHighlighted: '#4c4f59',
+          outline: '#373B45',
+          outlineHighlighted: '#b58900',
+          text: '#d3d4d6'
         },
         default: {
           base: '#4C4F59',
@@ -466,10 +493,6 @@ function generateNodeLibrary(nodeRegister) {
           ]
         },
         {
-          name: 'Neue Utils',
-          items: ['Compare', 'Range', 'Value generator', 'Stepper', 'Threshold', 'Toggle', 'Timer']
-        },
-        {
           name: 'Logic',
           items: ['Boolean To String', 'Switch', 'And', 'Or', 'Condition', 'Inverter']
         },
@@ -589,6 +612,7 @@ function generateNodeLibrary(nodeRegister) {
         }
       ]
     },
+    // Neue
     {
       name: 'Cloud Functions',
       description: 'Nodes to be used in cloud functions',
@@ -606,16 +630,49 @@ function generateNodeLibrary(nodeRegister) {
       ]
     },
     {
-      name: 'Neue',
-      description: 'Custom Neue nodes',
-      type: 'Neue',
+      name: 'Logic',
+      description: 'Logic, events',
+      type: 'neueLogic',
+      subCategories: [
+        {
+          // Neue
+          name: 'General',
+          items: ['Compare', 'Range', 'Stepper', 'Threshold', 'Toggle']
+        },
+        {
+          name: 'Events',
+          items: ['Value generator']
+        },
+        {
+          name: 'System',
+          items: ['Timer']
+        }
+      ]
+    },
+    // Neue
+    {
+      name: 'Device nodes',
+      description: 'Sensors, inputs, outputs',
+      type: 'neueSensor',
       subCategories: [
         {
           name: 'Sensors',
-          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'Hardware Clock', 'A2.1 RGB LED', 'I/O']
+          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'Hardware Clock']
         },
         {
-          name: 'Communications',
+          name: 'I/O',
+          items: ['A2.1 RGB LED', 'I/O']
+        }
+      ]
+    },
+    // Neue
+    {
+      name: 'Cloud communication',
+      description: 'Send, recieve data from the cloud',
+      type: 'neueData',
+      subCategories: [
+        {
+          name: '',
           items: ['MQTT', 'Save Telemetry', 'Commands Input', 'Register event']
         }
       ]

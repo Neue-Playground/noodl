@@ -3,18 +3,18 @@
 const DeviceNode = {
   name: 'Compare',
   docs: 'https://docs.noodl.net/nodes/utilities/logic/condition',
-  category: 'Logic',
-  color: 'visual',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
     this._internal.inputs = [];
   },
 
   inputs: {
-    "Value in": {
+    'Value in': {
       type: 'number',
       displayName: 'Value in'
     },
-    "Threshold 1": {
+    'Threshold 1': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -22,7 +22,7 @@ const DeviceNode = {
       displayName: 'Threshold 1',
       group: 'Threshold'
     },
-    "Threshold 2": {
+    'Threshold 2': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -30,7 +30,7 @@ const DeviceNode = {
       displayName: 'Threshold 2',
       group: 'Threshold'
     },
-    "Threshold 3": {
+    'Threshold 3': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -38,7 +38,7 @@ const DeviceNode = {
       displayName: 'Threshold 3',
       group: 'Threshold'
     },
-    "Threshold 4": {
+    'Threshold 4': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -46,7 +46,7 @@ const DeviceNode = {
       displayName: 'Threshold 4',
       group: 'Threshold'
     },
-    "Threshold 5": {
+    'Threshold 5': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -54,7 +54,7 @@ const DeviceNode = {
       displayName: 'Threshold 5',
       group: 'Threshold'
     },
-    "Threshold 6": {
+    'Threshold 6': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -62,7 +62,7 @@ const DeviceNode = {
       displayName: 'Threshold 6',
       group: 'Threshold'
     },
-    "Threshold 7": {
+    'Threshold 7': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -70,7 +70,7 @@ const DeviceNode = {
       displayName: 'Threshold 7',
       group: 'Threshold'
     },
-    "Threshold 8": {
+    'Threshold 8': {
       type: {
         name: 'number',
         allowEditOnly: true
@@ -80,37 +80,37 @@ const DeviceNode = {
     }
   },
   outputs: {
-    "Equal out": {
+    'Equal out': {
       type: 'boolean',
       displayName: 'Equal out',
       group: 'Equal'
     },
-    "Equal value out": {
+    'Equal value out': {
       type: 'number',
       displayName: 'Equal value out',
       group: 'Equal'
     },
-    "Greater than": {
+    'Greater than': {
       type: 'boolean',
       displayName: 'Greater than',
       group: 'Greater'
     },
-    "Greater than value out": {
+    'Greater than value out': {
       type: 'number',
       displayName: 'Greater than value out',
       group: 'Greater'
     },
-    "Smaller than": {
+    'Smaller than': {
       type: 'boolean',
       displayName: 'Smaller than',
       group: 'Smaller'
     },
-    "Smaller than value out": {
+    'Smaller than value out': {
       type: 'number',
       displayName: 'Smaller than value out',
       group: 'Smaller'
     },
-    "Error out": {
+    'Error out': {
       type: 'number',
       displayName: 'Error out'
     }

@@ -4,7 +4,7 @@ const DeviceNode = {
   name: 'Save Telemetry',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
-  color: 'neue',
+  color: 'neueData',
   initialize: function () {
     this._internal.inputs = [];
   },
@@ -12,23 +12,23 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    "Telemetry Data": {
+    'Telemetry Data': {
       type: 'collection',
       displayName: 'Telemetry Data',
       get() {
-        return this._internal["Telemetry Data"];
+        return this._internal['Telemetry Data'];
       }
     },
-    "Send data": {
+    'Send data': {
       type: 'signal',
       displayName: 'Send data',
       get() {
-        return this._internal["Send data"];
+        return this._internal['Send data'];
       }
     }
   },
   outputs: {
-    "Response": {
+    Response: {
       type: 'string',
       displayName: 'Response',
       get() {

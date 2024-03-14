@@ -4,7 +4,7 @@ const DeviceNode = {
   name: 'Register event',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
-  color: 'neue',
+  color: 'neueData',
   initialize: function () {
     this._internal.inputs = [];
   },
@@ -12,7 +12,7 @@ const DeviceNode = {
     return and(this._internal.inputs);
   },
   inputs: {
-    "Event type": {
+    'Event type': {
       type: {
         name: 'enum',
         enums: ['Acceleration event', 'Temperature event', 'Hardware clock event', 'Command event'],
@@ -20,19 +20,19 @@ const DeviceNode = {
       },
       displayName: 'Event type',
       get() {
-        return this._internal["Event type"];
+        return this._internal['Event type'];
       }
     },
-    "Send data": {
+    'Send data': {
       type: 'signal',
       displayName: 'Send data',
       get() {
-        return this._internal["Send data"];
+        return this._internal['Send data'];
       }
     }
   },
   outputs: {
-    "Response": {
+    Response: {
       type: 'string',
       displayName: 'Response',
       get() {

@@ -4,54 +4,54 @@ const DeviceNode = {
   name: 'Range',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
-  color: 'visual',
+  color: 'neueLogic',
   initialize: function () {
     this._internal.inputs = [];
   },
 
   inputs: {
-    "Value in": {
+    'Value in': {
       type: 'number',
       displayName: 'Value in',
       get() {
-        return this._internal["Value in"];
+        return this._internal['Value in'];
       }
     },
-    "Input range min": {
+    'Input range min': {
       type: 'number',
       displayName: 'Input range min',
       get() {
-        return this._internal["Input range min"];
+        return this._internal['Input range min'];
       }
     },
-    "Input range max": {
+    'Input range max': {
       type: 'number',
       displayName: 'Input range max',
       get() {
-        return this._internal["Input range max"];
+        return this._internal['Input range max'];
       }
     },
-    "Output range min": {
+    'Output range min': {
       type: 'number',
       displayName: 'Output range min',
       get() {
-        return this._internal["Output range min"];
+        return this._internal['Output range min'];
       }
     },
-    "Output range max": {
+    'Output range max': {
       type: 'number',
       displayName: 'Output range max',
       get() {
-        return this._internal["Output range max"];
+        return this._internal['Output range max'];
       }
     }
   },
   outputs: {
-    "Value out": {
+    'Value out': {
       type: 'number',
       displayName: 'Value out',
       get() {
-        return this._internal["Value out"];
+        return this._internal['Value out'];
       }
     }
   }
