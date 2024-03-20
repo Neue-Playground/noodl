@@ -5,11 +5,21 @@ import getDocsEndpoint from '@noodl-utils/getDocsEndpoint';
 
 import { Logo, LogoSize } from '@noodl-core-ui/components/common/Logo';
 import { TextButton } from '@noodl-core-ui/components/inputs/TextButton';
-import { HStack } from '@noodl-core-ui/components/layout/Stack';
+import { HStack, VStack } from '@noodl-core-ui/components/layout/Stack';
 
 import { IRouteProps } from '../AppRoute';
 import { ProjectsView } from '../../views/projectsview';
 import { BaseWindow } from '../../views/windows/BaseWindow';
+
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
+import { BasePanel } from '@noodl-core-ui/components/sidebar/BasePanel';
+import { Container, ContainerDirection } from '@noodl-core-ui/components/layout/Container';
+import { PropertyPanelRow } from '@noodl-core-ui/components/property-panel/PropertyPanelInput';
+import { PropertyPanelTextInput } from '@noodl-core-ui/components/property-panel/PropertyPanelTextInput';
+import { PropertyPanelPasswordInput } from '@noodl-core-ui/components/property-panel/PropertyPanelPasswordInput';
+import { Label } from '@noodl-core-ui/components/typography/Label';
+import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
+import { ActivityIndicator } from '@noodl-core-ui/components/common/ActivityIndicator';
 
 export interface ProjectsPageProps extends IRouteProps {
   from: TSFixme;
@@ -19,48 +29,73 @@ export function LoginPage({ route, from }: ProjectsPageProps) {
   const [view, setView] = useState<ProjectsView>(null);
   const [showSpinner, setShowSpinner] = useState(false);
 
+  const [signedIn, setSignedIn] = useState(false);
+  const [loading, setLoading] = useState(false);
+
+  const [email, setEmail] = useState('');
+  const [password, setPassword] = useState('');
+  const [error, setError] = useState('');
+
+  useEffect(() => {
+    setLoading(true);
+    NeueService.instance.load().then((result) => {
+      setSignedIn(result);
+      if (result) {
+        route.router.route({ to: 'projects', from: 'login' })
+      } else {
+        setLoading(false);
+      }
+    });
+  }, [setSignedIn, setLoading]);
+
+  function loginClick() {
+    setLoading(true);
+    NeueService.instance.login(email, password).then(() => {
+      setSignedIn(true);
+      setLoading(false);
+      route.router.route({ to: 'projects', from: 'login' })
+    }).catch((err) => {
+      setSignedIn(false);
+      setLoading(false);
+      setError(err);
+    });
+  }
+
+  function logoutClick() {
+    NeueService.instance.logout();
+    setSignedIn(false);
+    setLoading(false);
+  }
+
   return (
     <BaseWindow title="">
-      <TopBar showSpinner={showSpinner} setShowSpinner={setShowSpinner} />
-      <div style={{ position: 'relative', flex: 1 }} onClick={() => route.router.route({ to: 'projects', from: 'login' })}>
-        test
+      <div style={{paddingLeft: "30%", paddingRight: "30%", paddingTop: "10%"}}>
+        <BasePanel title="Neue Playground" isFill>
+          <Container direction={ContainerDirection.Vertical} isFill>
+            <VStack>
+              <PropertyPanelRow label="Email" isChanged={false}>
+                <PropertyPanelTextInput value={email} onChange={(value) => setEmail(value)} />
+              </PropertyPanelRow>
+              <PropertyPanelRow label="Password" isChanged={false}>
+                <PropertyPanelPasswordInput value={password} onChange={(value) => setPassword(value)} />
+              </PropertyPanelRow>
+              {error !== '' ? (
+                <Label>
+                  Invalid email or password...
+                </Label>
+              ) : null}
+              <PrimaryButton label="Login" onClick={loginClick} />
+              {loading ? (
+                <Container hasLeftSpacing hasTopSpacing>
+                  <ActivityIndicator />
+                </Container>
+              ) : null}
+            </VStack>
+          </Container>
+        </BasePanel>
       </div>
     </BaseWindow>
   );
 }
+//onClick={() => route.router.route({ to: 'projects', from: 'login' })
 
-interface TopBarProps {
-  showSpinner: boolean;
-  setShowSpinner: (value: boolean) => void;
-}
-
-function TopBar({ showSpinner, setShowSpinner }: TopBarProps) {
-  return (
-    <div
-      style={{
-        height: '52px',
-        display: 'flex',
-        flexDirection: 'row',
-        justifyContent: 'space-between',
-        backgroundColor: 'var(--theme-color-bg-2)'
-      }}
-    >
-      <HStack
-        UNSAFE_style={{
-          alignItems: 'center',
-          height: '100%'
-        }}
-        hasSpacing={6}
-      >
-        <Logo
-          size={LogoSize.Small}
-          UNSAFE_style={{
-            marginLeft: '24px'
-          }}
-        />
-        <TextButton label="Docs" onClick={() => platform.openExternal(getDocsEndpoint())} />
-        <TextButton label="Community" onClick={() => platform.openExternal('https://www.noodl.net/community')} />
-      </HStack>
-    </div>
-  );
-}
