@@ -86,10 +86,11 @@ export class NeueService extends Model {
   }
 
   private performRequest(url: string, method: string, body: any = {}): Promise<Response> {
+    const token = this.session ? this.session.token : '';
     const promise = fetch(api.invokeUrl + url, {
       method,
       headers: {
-        Authorization: this.session?.token || ''
+        Authorization: token
       },
       body: method === 'GET' ? undefined : JSON.stringify(body)
     }).then((response) => {
@@ -99,6 +100,7 @@ export class NeueService extends Model {
     return promise;
   }
 
+  // DEVICES
   public fetchDevices() {
     return new Promise<Array<string>>((resolve) => {
       this.performRequest('/devices', 'GET')
@@ -114,6 +116,7 @@ export class NeueService extends Model {
     });
   }
 
+  // FLOW
   public saveFlow(flow: any) {
     return new Promise<string>((resolve) => {
       this.performRequest('/flows', 'POST', { flow }).then((response) =>
@@ -156,5 +159,60 @@ export class NeueService extends Model {
 
   public deleteFlow(id: string) {
     return this.performRequest('/flows/' + id, 'DELETE');
+  }
+
+  // PROJECT
+  public saveProject(fileData: ArrayBuffer | Blob, name = '', image = '', config = '') {
+    return new Promise<string>((resolve) => {
+      this.performRequest('/project', 'POST', { name, image, config }).then((response) =>
+        response.json().then(async (presignedInfo) => {
+          const form = new FormData();
+          Object.entries(presignedInfo.fields).forEach(([field, value]) => {
+            const str = value as string;
+            form.append(field, str);
+          });
+
+          if (fileData instanceof ArrayBuffer) form.append('file', new Blob([fileData], { type: 'application/zip' }));
+          else form.append('file', fileData);
+
+          const result = await fetch(presignedInfo.url, {
+            method: 'POST',
+            body: form
+          });
+          console.log(result);
+          resolve('done');
+        })
+      );
+    });
+  }
+
+  public fetchProject(id: string) {
+    return new Promise<ArrayBuffer>((resolve) => {
+      this.performRequest('/project/' + id, 'GET').then((response) =>
+        response.json().then(async (presignedInfo) => {
+          fetch(presignedInfo, { method: 'GET' }).then((response) => {
+            response.arrayBuffer().then((buffer) => {
+              resolve(buffer);
+            });
+          });
+        })
+      );
+    });
+  }
+
+  public updateProject(id: string, flow: any) {
+    // TODO: Implement
+    // return this.performRequest('/project', 'PUT', { id, flow });
+  }
+
+  public listProjects() {
+    return new Promise<Array<string>>((resolve) => {
+      this.performRequest('/project', 'GET').then((response) => response.json().then((data) => resolve(data)));
+    });
+  }
+
+  public deleteProject(id: string) {
+    // TODO: Implement
+    //return this.performRequest('/project/' + id, 'DELETE');
   }
 }
