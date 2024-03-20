@@ -163,7 +163,7 @@ export class NeueService extends Model {
 
   // PROJECT
   public saveProject(fileData: ArrayBuffer | Blob, name = '', image = '', config = '') {
-    return new Promise<string>((resolve) => {
+    return new Promise<Response>((resolve) => {
       this.performRequest('/project', 'POST', { name, image, config }).then((response) =>
         response.json().then(async (presignedInfo) => {
           const form = new FormData();
@@ -179,8 +179,7 @@ export class NeueService extends Model {
             method: 'POST',
             body: form
           });
-          console.log(result);
-          resolve('done');
+          resolve(result);
         })
       );
     });
