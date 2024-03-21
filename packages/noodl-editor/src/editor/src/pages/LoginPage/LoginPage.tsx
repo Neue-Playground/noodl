@@ -26,7 +26,6 @@ export interface ProjectsPageProps extends IRouteProps {
 }
 
 export function LoginPage({ route, from }: ProjectsPageProps) {
-  const [view, setView] = useState<ProjectsView>(null);
   const [showSpinner, setShowSpinner] = useState(false);
 
   const [signedIn, setSignedIn] = useState(false);
