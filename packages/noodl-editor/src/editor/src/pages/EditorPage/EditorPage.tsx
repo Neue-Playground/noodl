@@ -118,6 +118,17 @@ export function EditorPage({ route }: EditorPageProps) {
       this
     );
 
+    App.instance.off(this).on(
+      'logoutFromEditor',
+      () => {
+        route.router.route({ to: 'projects' });
+
+        //close viewer window and broadcast that no project is open
+        ipcRenderer.send('project-closed');
+      },
+      this
+    );
+
     // Listen to project changed on disk, reload editor
     EventDispatcher.instance.on('projectChangedOnDisk', () => reloadProjectFromDisk(), eventGroup);
     EventDispatcher.instance.on('importFromUrl', (url) => importFromUrl(url), eventGroup);
