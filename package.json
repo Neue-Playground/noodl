@@ -48,6 +48,7 @@
     "node": ">=16.0.0"
   },
   "dependencies": {
+    "adm-zip": "^0.5.12",
     "amazon-cognito-identity-js": "^6.3.7"
   }
 }

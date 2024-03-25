@@ -109,3 +109,9 @@
     min-width: 0;
   }
 }
+.SaveButton {
+  .Root.is-small & {
+    padding: 0 4px 0 8px;
+    min-width: 0;
+  }
+}

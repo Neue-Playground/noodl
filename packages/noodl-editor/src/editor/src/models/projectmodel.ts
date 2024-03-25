@@ -119,7 +119,7 @@ export class ProjectModel extends Model {
     if (args) {
       this.name = args.name;
       this.settings = args.settings;
-      // this.thumbnailURI = args.thumbnailURI;
+      this.thumbnailURI = args.thumbnailURI;
       this.version = args.version;
       this.metadata = args.metadata;
       // this.deviceSettings = args.deviceSettings;
@@ -1076,7 +1076,7 @@ export class ProjectModel extends Model {
       components: [],
       settings: this.settings,
       rootNodeId: this.rootNode ? this.rootNode.id : undefined,
-      // thumbnailURI:this.thumbnailURI,
+      thumbnailURI:this.thumbnailURI,
       version: this.version,
       lesson: this.lesson ? this.lesson.toJSON() : undefined,
       metadata: this.metadata,

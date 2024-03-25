@@ -23,9 +23,11 @@ enum CardState {
 }
 export interface ProjectCardProps {
   project: ProjectItem;
+  handleNeueImport?: () => any;
+  isNeue?: boolean;
 }
 
-export function ProjectCard({ project }: ProjectCardProps) {
+export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardProps) {
   const context = useNodePickerContext();
 
   const [cardState, setCardState] = useState(CardState.Idle);
@@ -62,7 +64,7 @@ export function ProjectCard({ project }: ProjectCardProps) {
 
         <div className={css['HoverOverlay']}>
           <div className={css['CtaContainer']}>
-            <PrimaryButton label="Import" onClick={() => handleDownload()} />
+            <PrimaryButton label="Import" onClick={() => isNeue ? handleNeueImport() : handleDownload()} />
           </div>
         </div>
 

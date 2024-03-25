@@ -15,6 +15,8 @@ import { IRouteProps } from '../../pages/AppRoute';
 import { Frame } from '../../views/common/Frame';
 import { ProjectsView } from '../../views/projectsview';
 import { BaseWindow } from '../../views/windows/BaseWindow';
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
+import NeueProjectImportModal from '../../views/NeueConfigurationExport/NeueProjectImport';
 
 export interface ProjectsPageProps extends IRouteProps {
   from: TSFixme;
@@ -23,9 +25,14 @@ export interface ProjectsPageProps extends IRouteProps {
 export function ProjectsPage({ route, from }: ProjectsPageProps) {
   const [view, setView] = useState<ProjectsView>(null);
   const [showSpinner, setShowSpinner] = useState(false);
+  const [signedIn, setSignedIn] = useState(false);
+  const [showCloudImport, setShowCloudImport] = useState(true)
 
   useEffect(() => {
     const eventGroup = {};
+    NeueService.instance.load().then((result) => {
+      setSignedIn(result);
+    });
 
     // Switch main window size
     ipcRenderer.send('main-window-resize', { size: 'editor', center: true });
@@ -59,6 +66,14 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
     };
   }, []);
 
+  // useEffect(() => {
+  //   setShowCloudImport(signedIn)
+  // }, [signedIn])
+
+  function handleImportModalClose() {
+    setShowCloudImport(false)
+  }
+
   return (
     <BaseWindow title="">
       <TopBar showSpinner={showSpinner} setShowSpinner={setShowSpinner} />
@@ -75,6 +90,7 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
           </div>
         )}
       </div>
+      <NeueProjectImportModal isVisible={showCloudImport} onClose={handleImportModalClose}></NeueProjectImportModal>
     </BaseWindow>
   );
 }

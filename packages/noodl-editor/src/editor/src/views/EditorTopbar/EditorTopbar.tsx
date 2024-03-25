@@ -33,7 +33,8 @@ import {
   getScreenSizeObjectFromMeasurements,
   getIconFromScreenSizeGroupName
 } from './ScreenSizes';
-
+import { ToastLayer } from '../ToastLayer';
+import { exportProjectToZip } from '../../utils/exporter/exportProjectToZip'
 export interface EditorTopbarProps {
   instance: TitleBar;
   routes: string[];
@@ -188,6 +189,18 @@ export function EditorTopbar({
     }
   ]);
 
+  //Neue
+  async function saveProjectToNeueCloud() {
+    try {
+      await exportProjectToZip()
+      ToastLayer.showSuccess('Project successfully saved to cloud');
+
+    } catch (error) {
+      ToastLayer.showError(error);
+
+    }
+  }
+
   return (
     <div ref={rootRef} className={classNames(css['Root'], isSmall && css['is-small'])}>
       <div className={css['LeftSide']}>
@@ -201,88 +214,97 @@ export function EditorTopbar({
             />
           </Tooltip>
         </div>
-
-       {!isNeuePanelOpen &&<>
-       <div className={css['is-padded']}>
-          <Tooltip content="Navigate back">
-            <IconButton
-              variant={IconButtonVariant.Transparent}
-              icon={IconName.CaretLeft}
-              onClick={onUrlNavigateBack}
-              isDisabled={!navigationState.canGoBack}
-            />
-          </Tooltip>
-          <Tooltip content="Navigate forward">
-            <IconButton
-              variant={IconButtonVariant.Transparent}
-              icon={IconName.CaretRight}
-              onClick={onUrlNavigateForward}
-              isDisabled={!navigationState.canGoForward}
-            />
-          </Tooltip>
-          <Tooltip content="Refresh preview" fineType={Keybindings.REFRESH_PREVIEW.label}>
-            <IconButton
-              icon={IconName.Refresh}
-              variant={IconButtonVariant.Transparent}
-              onClick={() => EventDispatcher.instance.emit('viewer-refresh')}
-            />
-          </Tooltip>
-        </div>
-
-        <MenuDialog
-          title="Preview routes"
-          width={MenuDialogWidth.Large}
-          isVisible={isRouteListVisible}
-          onClose={() => setIsRouteListVisible(false)}
-          triggerRef={urlInputRef}
-          items={routes.map((url) => ({
-            label: url,
-            isHighlighted: routes.length > 1 && navigationState.route === url,
-            onClick: () => onRouteChanged(url)
-          }))}
-        />
-
-        <div ref={urlInputRef} className={css.UrlBarWrapper}>
-          <TextInput
-            onRefChange={(ref) => {
-              urlBarRef.current = ref.current;
-            }}
-            value={routeTextInputValue}
-            onFocus={() => setIsRouteListVisible(true)}
-            onChange={(e) => {
-              setRouteTextInputValue(e.target.value);
-              setIsRouteListVisible(false);
-            }}
-            onEnter={() => onRouteChanged(routeTextInputValue)}
-            UNSAFE_className={css.UrlBarTextInput}
-            variant={TextInputVariant.OpaqueOnHover}
-            slotBeforeInput={
-              <Icon
-                size={IconSize.Small}
-                variant={TextType.Default}
-                icon={navigationState.route === '/' ? IconName.Home : IconName.File}
-                UNSAFE_style={{ marginRight: 8 }}
-              />
-            }
-            slotAfterInput={
-              <Icon icon={IconName.CaretDown} variant={TextType.Default} UNSAFE_style={{ marginTop: -2 }} />
-            }
+        <div >
+          <PrimaryButton
+            label={'Save'}
+            icon={IconName.CloudUpload}
+            onClick={() => saveProjectToNeueCloud()}
+            UNSAFE_className={css['SaveButton']}
+            testId="save-popup-button"
           />
         </div>
 
-        <div className={css['is-padded-s']}>
-          <Tooltip content="Open dev tools" fineType={Keybindings.OPEN_DEVTOOLS.label}>
-            <IconButton
-              icon={IconName.Bug}
-              variant={IconButtonVariant.Transparent}
-              onClick={() => EventDispatcher.instance.emit('viewer-open-devtools')}
+        {!isNeuePanelOpen && <>
+          <div className={css['is-padded']}>
+            <Tooltip content="Navigate back">
+              <IconButton
+                variant={IconButtonVariant.Transparent}
+                icon={IconName.CaretLeft}
+                onClick={onUrlNavigateBack}
+                isDisabled={!navigationState.canGoBack}
+              />
+            </Tooltip>
+            <Tooltip content="Navigate forward">
+              <IconButton
+                variant={IconButtonVariant.Transparent}
+                icon={IconName.CaretRight}
+                onClick={onUrlNavigateForward}
+                isDisabled={!navigationState.canGoForward}
+              />
+            </Tooltip>
+            <Tooltip content="Refresh preview" fineType={Keybindings.REFRESH_PREVIEW.label}>
+              <IconButton
+                icon={IconName.Refresh}
+                variant={IconButtonVariant.Transparent}
+                onClick={() => EventDispatcher.instance.emit('viewer-refresh')}
+              />
+            </Tooltip>
+          </div>
+
+          <MenuDialog
+            title="Preview routes"
+            width={MenuDialogWidth.Large}
+            isVisible={isRouteListVisible}
+            onClose={() => setIsRouteListVisible(false)}
+            triggerRef={urlInputRef}
+            items={routes.map((url) => ({
+              label: url,
+              isHighlighted: routes.length > 1 && navigationState.route === url,
+              onClick: () => onRouteChanged(url)
+            }))}
+          />
+
+          <div ref={urlInputRef} className={css.UrlBarWrapper}>
+            <TextInput
+              onRefChange={(ref) => {
+                urlBarRef.current = ref.current;
+              }}
+              value={routeTextInputValue}
+              onFocus={() => setIsRouteListVisible(true)}
+              onChange={(e) => {
+                setRouteTextInputValue(e.target.value);
+                setIsRouteListVisible(false);
+              }}
+              onEnter={() => onRouteChanged(routeTextInputValue)}
+              UNSAFE_className={css.UrlBarTextInput}
+              variant={TextInputVariant.OpaqueOnHover}
+              slotBeforeInput={
+                <Icon
+                  size={IconSize.Small}
+                  variant={TextType.Default}
+                  icon={navigationState.route === '/' ? IconName.Home : IconName.File}
+                  UNSAFE_style={{ marginRight: 8 }}
+                />
+              }
+              slotAfterInput={
+                <Icon icon={IconName.CaretDown} variant={TextType.Default} UNSAFE_style={{ marginTop: -2 }} />
+              }
             />
-          </Tooltip>
-        </div>
-       </>}
+          </div>
+
+          <div className={css['is-padded-s']}>
+            <Tooltip content="Open dev tools" fineType={Keybindings.OPEN_DEVTOOLS.label}>
+              <IconButton
+                icon={IconName.Bug}
+                variant={IconButtonVariant.Transparent}
+                onClick={() => EventDispatcher.instance.emit('viewer-open-devtools')}
+              />
+            </Tooltip>
+          </div>
+        </>}
       </div>
 
-    { !isNeuePanelOpen && <div className={css['RightSide']}>
+      {!isNeuePanelOpen && <div className={css['RightSide']}>
         {instance.warningsAmount > 0 && (
           <div className={css['is-padded']} ref={warningButtonRef}>
             <Tooltip content="Show warnings">
