@@ -2,6 +2,7 @@ import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cogn
 import { JSONStorage } from '@noodl/platform';
 
 import { api, cognito } from '@noodl-constants/NeueBackend';
+import { ProjectItem } from '@noodl-utils/LocalProjectsModel';
 import { Model } from '@noodl-utils/model';
 
 import { NeueSession } from './type';
@@ -162,9 +163,9 @@ export class NeueService extends Model {
   }
 
   // PROJECT
-  public saveProject(fileData: ArrayBuffer | Blob, name = '', image = '', config = '') {
+  public saveProject(fileData: ArrayBuffer | Blob, projectItem: ProjectItem, config: string) {
     return new Promise<Response>((resolve) => {
-      this.performRequest('/project', 'POST', { name, image, config }).then((response) =>
+      this.performRequest('/project', 'POST', { ...projectItem, config }).then((response) =>
         response.json().then(async (presignedInfo) => {
           const form = new FormData();
           Object.entries(presignedInfo.fields).forEach(([field, value]) => {
@@ -186,12 +187,12 @@ export class NeueService extends Model {
   }
 
   public fetchProject(id: string) {
-    return new Promise<ArrayBuffer>((resolve) => {
+    return new Promise<[ArrayBuffer, string]>((resolve) => {
       this.performRequest('/project/' + id, 'GET').then((response) =>
-        response.json().then(async (presignedInfo) => {
-          fetch(presignedInfo, { method: 'GET' }).then((response) => {
+        response.json().then(async (data) => {
+          fetch(data.url, { method: 'GET' }).then((response) => {
             response.arrayBuffer().then((buffer) => {
-              resolve(buffer);
+              resolve([buffer, data.config]);
             });
           });
         })
@@ -205,7 +206,7 @@ export class NeueService extends Model {
   }
 
   public listProjects() {
-    return new Promise<Array<string>>((resolve) => {
+    return new Promise<Array<ProjectItem>>((resolve) => {
       this.performRequest('/project', 'GET').then((response) => response.json().then((data) => resolve(data)));
     });
   }
