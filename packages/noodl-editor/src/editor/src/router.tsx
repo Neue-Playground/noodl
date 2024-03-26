@@ -18,6 +18,7 @@ import { EditorPage } from './pages/EditorPage';
 import { ProjectsPage } from './pages/ProjectsPage';
 import { DialogLayerContainer } from './views/DialogLayer';
 import { ToastLayerContainer } from './views/ToastLayer';
+import { LoginPage } from './pages/LoginPage';
 
 function createToastLayer() {
   const toastLayer = document.createElement('div');
@@ -76,8 +77,8 @@ export default class Router
 
     //start at projects page
     this.state = {
-      routeName: 'projects',
-      route: ProjectsPage,
+      routeName: 'login',
+      route: LoginPage,
       routeArgs: { route: new AppRoute(this) }
     };
 
@@ -161,6 +162,11 @@ export default class Router
     if (args.to === 'editor') {
       this.setState({
         route: EditorPage,
+        routeArgs: { route }
+      });
+    } else if (args.to === 'login') {
+      this.setState({
+        route: LoginPage,
         routeArgs: { route }
       });
     } else if (args.to === 'projects') {
