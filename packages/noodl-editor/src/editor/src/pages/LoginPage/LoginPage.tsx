@@ -29,6 +29,7 @@ export function LoginPage({ route, from }: ProjectsPageProps) {
   const [showSpinner, setShowSpinner] = useState(false);
 
   const [signedIn, setSignedIn] = useState(false);
+  const [checking, setChecking] = useState(false);
   const [loading, setLoading] = useState(false);
 
   const [email, setEmail] = useState('');
@@ -39,23 +40,25 @@ export function LoginPage({ route, from }: ProjectsPageProps) {
     setLoading(true);
     NeueService.instance.load().then((result) => {
       setSignedIn(result);
+      setLoading(false);
       if (result) {
         route.router.route({ to: 'projects', from: 'login' })
-      } else {
-        setLoading(false);
       }
-    });
-  }, [setSignedIn, setLoading]);
+    }).catch((err) => {
+      setLoading(false)
+      setError(err);
+      });
+  }, [setSignedIn, setLoading, setError]);
 
   function loginClick() {
-    setLoading(true);
+    setChecking(true);
     NeueService.instance.login(email, password).then(() => {
       setSignedIn(true);
-      setLoading(false);
+      setChecking(false);
       route.router.route({ to: 'projects', from: 'login' })
     }).catch((err) => {
       setSignedIn(false);
-      setLoading(false);
+      setChecking(false);
       setError(err);
     });
   }
@@ -63,12 +66,13 @@ export function LoginPage({ route, from }: ProjectsPageProps) {
   function logoutClick() {
     NeueService.instance.logout();
     setSignedIn(false);
-    setLoading(false);
+    setChecking(false);
   }
 
   return (
     <BaseWindow title="">
       <div style={{paddingLeft: "30%", paddingRight: "30%", paddingTop: "10%"}}>
+      {!loading ?
         <BasePanel title="Neue Playground" isFill>
           <Container direction={ContainerDirection.Vertical} isFill>
             <VStack>
@@ -84,7 +88,7 @@ export function LoginPage({ route, from }: ProjectsPageProps) {
                 </Label>
               ) : null}
               <PrimaryButton label="Login" onClick={loginClick} />
-              {loading ? (
+              {checking ? (
                 <Container hasLeftSpacing hasTopSpacing>
                   <ActivityIndicator />
                 </Container>
@@ -92,6 +96,7 @@ export function LoginPage({ route, from }: ProjectsPageProps) {
             </VStack>
           </Container>
         </BasePanel>
+        : null}
       </div>
     </BaseWindow>
   );

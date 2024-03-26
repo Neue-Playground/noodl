@@ -17,6 +17,7 @@ import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
 import { exportComponentsToJSON } from '@noodl-utils/exporter';
 import NeueExportModal from '../../NeueConfigurationExport/NeueExportModal';
+import { App } from '@noodl-models/app';
 
 export function iENBLPanel() {
   const environment = useActiveEnvironment(ProjectModel.instance);
@@ -40,10 +41,11 @@ export function iENBLPanel() {
     componentTitle: 'Neue components'
   };
 
-  function logoutClick() {
-    NeueService.instance.logout();
+  async function logoutClick() {
+    await NeueService.instance.logout();
     setLoading(false);
     setDevices([]);
+    App.instance.logout();
   }
 
   function fetchDevices() {

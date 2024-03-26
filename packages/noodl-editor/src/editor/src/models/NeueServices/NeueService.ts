@@ -62,51 +62,54 @@ export class NeueService extends Model {
   }
 
   public logout() {
-    this.reset();
     this.notifyListeners('signedIn', false);
+    return this.reset();
   }
 
   private reset() {
-    console.log('reset');
     this.session = undefined;
-    JSONStorage.remove('neueSession');
+    return JSONStorage.remove('neueSession');
   }
 
   public async load() {
     return new Promise<boolean>((resolve) => {
-      JSONStorage.get('neueSession').then((data) => {
-        const keys = Object.keys(data);
+      JSONStorage.get('neueSession')
+        .then((data) => {
+          const keys = Object.keys(data);
 
-        if (keys && data.tokenUpdatedAt - Date.now() < cognito.tokenLifetime) {
-          const userPool = new CognitoUserPool({
-            UserPoolId: cognito.userPoolId,
-            ClientId: cognito.clientId
-          });
-          const cognitoUser = new CognitoUser({
-            Username: data.email,
-            Pool: userPool
-          });
-          cognitoUser.refreshSession({ getToken: () => data.refreshToken }, (err, session) => {
-            if (err) {
-              console.log(err);
-              resolve(false);
-            } else {
-              this.session = {
-                email: data.email,
-                refreshToken: data.refreshToken,
-                token: session.getIdToken().getJwtToken(),
-                tokenUpdatedAt: Date.now()
-              };
-              JSONStorage.set('neueSession', this.session);
-              resolve(true);
-            }
-          });
-          this.notifyListeners('session', this.session);
-        } else {
-          this.logout();
+          if (keys && data.tokenUpdatedAt - Date.now() < cognito.tokenLifetime) {
+            const userPool = new CognitoUserPool({
+              UserPoolId: cognito.userPoolId,
+              ClientId: cognito.clientId
+            });
+            const cognitoUser = new CognitoUser({
+              Username: data.email,
+              Pool: userPool
+            });
+            cognitoUser.refreshSession({ getToken: () => data.refreshToken }, (err, session) => {
+              if (err) {
+                console.log(err);
+                resolve(false);
+              } else {
+                this.session = {
+                  email: data.email,
+                  refreshToken: data.refreshToken,
+                  token: session.getIdToken().getJwtToken(),
+                  tokenUpdatedAt: Date.now()
+                };
+                JSONStorage.set('neueSession', this.session);
+                resolve(true);
+              }
+            });
+            this.notifyListeners('session', this.session);
+          } else {
+            this.logout();
+            resolve(false);
+          }
+        })
+        .catch(() => {
           resolve(false);
-        }
-      });
+        });
     });
   }
 
