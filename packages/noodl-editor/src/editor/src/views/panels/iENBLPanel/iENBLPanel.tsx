@@ -14,21 +14,14 @@ import { Section, SectionVariant } from '@noodl-core-ui/components/sidebar/Secti
 import { Text } from '@noodl-core-ui/components/typography/Text';
 import { ActivityIndicator } from '@noodl-core-ui/components/common/ActivityIndicator';
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
-import { PropertyPanelTextInput } from '@noodl-core-ui/components/property-panel/PropertyPanelTextInput';
-import { PropertyPanelRow } from '@noodl-core-ui/components/property-panel/PropertyPanelInput';
-import { PropertyPanelPasswordInput } from '@noodl-core-ui/components/property-panel/PropertyPanelPasswordInput';
-import { Label } from '@noodl-core-ui/components/typography/Label';
 import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
 import { exportComponentsToJSON } from '@noodl-utils/exporter';
 import NeueExportModal from '../../NeueConfigurationExport/NeueExportModal';
+import { App } from '@noodl-models/app';
 
 export function iENBLPanel() {
   const environment = useActiveEnvironment(ProjectModel.instance);
-  const [signedIn, setSignedIn] = useState(false);
   const [loading, setLoading] = useState(true);
-
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
   const [error, setError] = useState('');
 
   const [devices, setDevices] = useState([]);
@@ -38,14 +31,9 @@ export function iENBLPanel() {
 
   useEffect(() => {
     NeueService.instance.load().then((result) => {
-      setSignedIn(result);
-      if (result) {
-        fetchDevices();
-      } else {
-        setLoading(false);
-      }
+      fetchDevices();
     });
-  }, [setSignedIn, setLoading]);
+  }, [setLoading]);
 
   const componentPanelOptions = {
     showSheetList: false,
@@ -53,24 +41,11 @@ export function iENBLPanel() {
     componentTitle: 'Neue components'
   };
 
-  function loginClick() {
-    setLoading(true);
-    NeueService.instance.login(email, password).then(() => {
-      setSignedIn(true);
-      setLoading(false);
-      fetchDevices();
-    }).catch((err) => {
-      setSignedIn(false);
-      setLoading(false);
-      setError(err);
-    });
-  }
-
-  function logoutClick() {
-    NeueService.instance.logout();
-    setSignedIn(false);
+  async function logoutClick() {
+    await NeueService.instance.logout();
     setLoading(false);
     setDevices([]);
+    App.instance.logout();
   }
 
   function fetchDevices() {
@@ -103,29 +78,6 @@ export function iENBLPanel() {
 
   return (
     <BasePanel title="Neue Playground" isFill>
-      {!signedIn ? (
-        <Container direction={ContainerDirection.Vertical} isFill>
-          <VStack>
-            <PropertyPanelRow label="Email" isChanged={false}>
-              <PropertyPanelTextInput value={email} onChange={(value) => setEmail(value)} />
-            </PropertyPanelRow>
-            <PropertyPanelRow label="Password" isChanged={false}>
-              <PropertyPanelPasswordInput value={password} onChange={(value) => setPassword(value)} />
-            </PropertyPanelRow>
-            {error !== '' ? (
-              <Label>
-                Invalid email or password...
-              </Label>
-            ) : null}
-            <PrimaryButton label="Login" onClick={loginClick} />
-            {loading ? (
-              <Container hasLeftSpacing hasTopSpacing>
-                <ActivityIndicator />
-              </Container>
-            ) : null}
-          </VStack>
-        </Container>
-      ) : (
         <Container direction={ContainerDirection.Vertical} isFill>
           <Box hasXSpacing hasYSpacing>
             <VStack>
@@ -175,8 +127,6 @@ export function iENBLPanel() {
             </VStack>
           </Box>
         </Container>
-      )}
-
       <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} />
     </BasePanel>
 

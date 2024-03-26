@@ -2,6 +2,7 @@ import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cogn
 import { JSONStorage } from '@noodl/platform';
 
 import { api, cognito } from '@noodl-constants/NeueBackend';
+import { ProjectItem } from '@noodl-utils/LocalProjectsModel';
 import { Model } from '@noodl-utils/model';
 
 import { NeueSession } from './type';
@@ -33,6 +34,8 @@ export class NeueService extends Model {
         .then((result) => {
           const accessToken = result.getIdToken().getJwtToken();
           this.session = {
+            email,
+            refreshToken: result.getRefreshToken().getToken(),
             token: accessToken,
             tokenUpdatedAt: Date.now()
           };
@@ -60,28 +63,54 @@ export class NeueService extends Model {
   }
 
   public logout() {
-    this.reset();
     this.notifyListeners('signedIn', false);
+    return this.reset();
   }
 
   private reset() {
-    console.log('reset');
     this.session = undefined;
-    JSONStorage.remove('neueSession');
+    return JSONStorage.remove('neueSession');
   }
 
   public async load() {
     return new Promise<boolean>((resolve) => {
-      JSONStorage.get('neueSession').then((data) => {
-        const keys = Object.keys(data);
-        if (keys && data.tokenUpdatedAt - Date.now() < cognito.tokenLifetime) {
-          this.session = data;
-          this.notifyListeners('session', this.session);
-        } else {
-          this.logout();
-        }
-        resolve(keys.length > 0);
-      });
+      JSONStorage.get('neueSession')
+        .then((data) => {
+          const keys = Object.keys(data);
+
+          if (keys && data.tokenUpdatedAt - Date.now() < cognito.tokenLifetime) {
+            const userPool = new CognitoUserPool({
+              UserPoolId: cognito.userPoolId,
+              ClientId: cognito.clientId
+            });
+            const cognitoUser = new CognitoUser({
+              Username: data.email,
+              Pool: userPool
+            });
+            cognitoUser.refreshSession({ getToken: () => data.refreshToken }, (err, session) => {
+              if (err) {
+                console.log(err);
+                resolve(false);
+              } else {
+                this.session = {
+                  email: data.email,
+                  refreshToken: data.refreshToken,
+                  token: session.getIdToken().getJwtToken(),
+                  tokenUpdatedAt: Date.now()
+                };
+                JSONStorage.set('neueSession', this.session);
+                resolve(true);
+              }
+            });
+            this.notifyListeners('session', this.session);
+          } else {
+            this.logout();
+            resolve(false);
+          }
+        })
+        .catch(() => {
+          resolve(false);
+        });
     });
   }
 
@@ -162,9 +191,9 @@ export class NeueService extends Model {
   }
 
   // PROJECT
-  public saveProject(fileData: ArrayBuffer | Blob, name = '', image = '', config = '') {
+  public saveProject(fileData: ArrayBuffer | Blob, projectItem: ProjectItem, config: string) {
     return new Promise<Response>((resolve) => {
-      this.performRequest('/project', 'POST', { name, image, config }).then((response) =>
+      this.performRequest('/project', 'POST', { ...projectItem, config }).then((response) =>
         response.json().then(async (presignedInfo) => {
           const form = new FormData();
           Object.entries(presignedInfo.fields).forEach(([field, value]) => {
@@ -186,12 +215,12 @@ export class NeueService extends Model {
   }
 
   public fetchProject(id: string) {
-    return new Promise<ArrayBuffer>((resolve) => {
+    return new Promise<[ArrayBuffer, string]>((resolve) => {
       this.performRequest('/project/' + id, 'GET').then((response) =>
-        response.json().then(async (presignedInfo) => {
-          fetch(presignedInfo, { method: 'GET' }).then((response) => {
+        response.json().then(async (data) => {
+          fetch(data.url, { method: 'GET' }).then((response) => {
             response.arrayBuffer().then((buffer) => {
-              resolve(buffer);
+              resolve([buffer, data.config]);
             });
           });
         })
@@ -205,7 +234,7 @@ export class NeueService extends Model {
   }
 
   public listProjects() {
-    return new Promise<Array<string>>((resolve) => {
+    return new Promise<Array<ProjectItem>>((resolve) => {
       this.performRequest('/project', 'GET').then((response) => response.json().then((data) => resolve(data)));
     });
   }

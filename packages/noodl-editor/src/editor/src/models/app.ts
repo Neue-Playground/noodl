@@ -12,6 +12,10 @@ export class App extends Model {
     this.notifyListeners('exitEditor');
   }
 
+  public logout() {
+    this.notifyListeners('logout');
+  }
+
   public maximize() {
     const win = require('@electron/remote').getCurrentWindow();
     win.isMaximized() ? win.unmaximize() : win.maximize();

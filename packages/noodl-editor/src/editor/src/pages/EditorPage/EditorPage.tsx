@@ -110,12 +110,21 @@ export function EditorPage({ route }: EditorPageProps) {
     App.instance.off(this).on(
       'exitEditor',
       () => {
+        console.log('exit editor')
         route.router.route({ to: 'projects' });
 
         //close viewer window and broadcast that no project is open
         ipcRenderer.send('project-closed');
       },
       this
+    ).on(
+      'logout',
+      () => {
+        route.router.route({ to: 'login' });
+
+        //close viewer window and broadcast that no project is open
+        ipcRenderer.send('project-closed');
+      }
     );
 
     // Listen to project changed on disk, reload editor

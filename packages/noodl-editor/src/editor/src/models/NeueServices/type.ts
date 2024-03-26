@@ -1,4 +1,6 @@
 export type NeueSession = {
+  email: string;
+  refreshToken: string;
   token: string;
   tokenUpdatedAt: number;
 };
