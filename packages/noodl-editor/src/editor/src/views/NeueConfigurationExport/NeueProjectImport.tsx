@@ -10,13 +10,14 @@ import { EventDispatcher } from '../../../../shared/utils/EventDispatcher'
 import { getuid } from 'process'
 import { ProjectCard } from '../NodePicker/components/ProjectCard'
 import css from '../NodePicker/tabs/ImportFromProject/ImportFromProject.module.scss';
+import { forEach } from 'underscore'
 
 type ModalProps = {
     isVisible: boolean,
     onClose: () => void,
 }
 
-const projects: ProjectItem[] = [{
+const projectsw: ProjectItem[] = [{
     'id': 'awnjnkkl',
     'name': 'string',
     'latestAccessed': new Date().getMilliseconds(),
@@ -42,37 +43,46 @@ const projects: ProjectItem[] = [{
     'retainedProjectDirectory': 'nekiput'
 }]
 
-async function onPickFolderClicked() {
+async function onPickFolderClicked(id) {
     const activityId = 'deploying-project';
-
     filesystem
         .openDialog({
             allowCreateDirectory: true
         })
         .then(async (direntry) => {
-            importProjectFromZip(direntry);
-            const a = await LocalProjectsModel.instance.openProjectFromFolder(direntry)
+            importProjectFromZip(direntry, id).then(async () => {
+                await LocalProjectsModel.instance.openProjectFromFolder(direntry)
+            })
+
             // a.setThumbnailFromDataURI('https://media.gettyimages.com/id/1350035428/photo/sarajevo-cityscape-covered-by-snow.jpg?s=612x612&w=gi&k=20&c=54T_FUxKP4OPfBTV0X7bS578DqDWjZUbwp8YFhPP_pM=')
         });
 }
 
 export default function NeueProjectImportModal(props: ModalProps) {
-    const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
-    const [selectedDevice, setSetSelectedDevice] = useState(null);
+    const [projects, setProjects] = useState<Array<ProjectItem>>([]);
     const [error, setError] = useState(null);
 
     useEffect(() => {
+        let isSubscribed = true;
+
         if (props.isVisible) {
-            setSetSelectedConfiguration(null)
-            setSetSelectedDevice(null)
             setError(null)
         }
+        const fetchData = async () => {
+            const data = await NeueService.instance.listProjects();
+            //alert(data.length)
+            setProjects(data);
+        }
+        fetchData()
+            // make sure to catch any error
+            .catch((err) => setError(err));
+        return () => { isSubscribed = false };
+
     }, [props.isVisible])
 
-    useEffect(() => {
-        alert(JSON.stringify(NeueService.instance.listProjects()))
-
-    }, [])
+    // useEffect(() => {
+    //     alert(JSON.stringify(projects))
+    // }, [projects])
 
 
     return (

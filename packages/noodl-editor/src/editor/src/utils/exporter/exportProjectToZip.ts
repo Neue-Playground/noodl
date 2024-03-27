@@ -1,29 +1,35 @@
 import { ProjectModel } from "@noodl-models/projectmodel";
 
 import AdmZip from 'adm-zip';
-import { ipcRenderer } from "electron";
-import { useCanvasView } from "../../views/documents/EditorDocument/hooks/UseCanvasView";
-import { useCaptureThumbnails } from "../../views/documents/EditorDocument/hooks/UseCaptureThumbnails";
+import { filesystem } from "@noodl/platform";
+import { ProjectItem } from "@noodl-utils/LocalProjectsModel";
+import { NeueService } from "@noodl-models/NeueServices/NeueService";
 
-export function exportProjectToZip() {
+export async function exportProjectToZip() {
   const zip = new AdmZip();
-  //ProjectModel.instance.setThumbnailFromDataURI('https://media.istockphoto.com/id/495199168/photo/latin-bridge-in-sarajevo-bosnia-and-herzegovina.jpg?s=612x612&w=0&k=20&c=CnWiNahELbd4wEJWokVk5Pxq5u3CVVMtX7wkYtjP2m8=')
-  alert()
+  alert(ProjectModel.instance._retainedProjectDirectory)
+
   zip.addLocalFolder(ProjectModel.instance._retainedProjectDirectory);
-  ProjectModel.instance.getThumbnailURI() === undefined && ipcRenderer.emit('viewer-capture-thumb')
-  // .on('viewer-capture-thumb', async ({ sender }) => {
-  //   // Capture a snapshot of the viewer
-  //   useCaptureThumbnails( this.canvasView, true)
-  //   // const image = await this.canvasView.captureThumbnail();
-  //   // ProjectModel.instance.setThumbnailFromDataURI(image.toDataURL())
-  // });
   const zipBuffer = zip.toBuffer();
 
-  const zip2 = new AdmZip(zipBuffer);
-  zip2.writeZip(`C:/Users/User/Desktop/${ProjectModel.instance.name}_Buffer.zip`)
+  const projectItem:ProjectItem = {  
+      id: ProjectModel.instance.id,
+      name: ProjectModel.instance.name,
+      latestAccessed: new Date().getMilliseconds(),
+      thumbURI: ProjectModel.instance.getThumbnailURI(),
+      retainedProjectDirectory: ProjectModel.instance._retainedProjectDirectory
+  }
+  const json = await filesystem.readJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`)
+  //alert(JSON.stringify(json))
+  //alert(zipBuffer.buffer instanceof ArrayBuffer)
+
+  await NeueService.instance.saveProject( new Uint8Array(zipBuffer).buffer, projectItem, JSON.stringify(json)).then((d)=>{alert(`${d} usp`)})
 }
 
-export function importProjectFromZip(direntry:string) {
-  const zip = new AdmZip(`C:/Users/User/Desktop/hmm_Buffer.zip`);
+export async function importProjectFromZip(direntry:string, id:string) {
+  const arrayBuffer = await NeueService.instance.fetchProject(id)
+  const copiedBuffer = Buffer.from(arrayBuffer[0])
+
+  const zip = new AdmZip(copiedBuffer);
   zip.extractAllTo(direntry, true);
 }

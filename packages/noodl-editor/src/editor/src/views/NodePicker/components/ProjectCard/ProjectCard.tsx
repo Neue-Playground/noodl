@@ -23,7 +23,7 @@ enum CardState {
 }
 export interface ProjectCardProps {
   project: ProjectItem;
-  handleNeueImport?: () => any;
+  handleNeueImport?: (x: any) => any;
   isNeue?: boolean;
 }
 
@@ -57,14 +57,14 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
             <Title hasBottomSpacing>{project.name}</Title>
 
             {project.latestAccessed && (
-              <Text textType={TextType.Shy}>Last accessed {timeSince(project.latestAccessed)} ago</Text>
+              <Text textType={TextType.Shy}>Last accessed {isNeue ? timeSince(new Date(project.latestAccessed)) : timeSince(project.latestAccessed)} ago</Text>
             )}
           </header>
         </div>
 
         <div className={css['HoverOverlay']}>
           <div className={css['CtaContainer']}>
-            <PrimaryButton label="Import" onClick={() => isNeue ? handleNeueImport() : handleDownload()} />
+            <PrimaryButton label="Import" onClick={() => isNeue ? handleNeueImport(project.id) : handleDownload()} />
           </div>
         </div>
 

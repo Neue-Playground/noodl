@@ -193,6 +193,8 @@ export class NeueService extends Model {
   // PROJECT
   public saveProject(fileData: ArrayBuffer | Blob, projectItem: ProjectItem, config: string) {
     return new Promise<Response>((resolve) => {
+      //alert(JSON.stringify(projectItem))
+
       this.performRequest('/project', 'POST', { ...projectItem, config }).then((response) =>
         response.json().then(async (presignedInfo) => {
           const form = new FormData();
