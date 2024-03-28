@@ -53,6 +53,7 @@ export interface EditorTopbarProps {
   nodeGraph: NodeGraphEditor;
   deployIsDisabled: boolean;
   isNeuePanelOpen: boolean;
+  setShowSpinner: (x: boolean) => void;
 }
 
 export function EditorTopbar({
@@ -72,7 +73,8 @@ export function EditorTopbar({
   onPreviewModeChanged,
   nodeGraph,
   deployIsDisabled,
-  isNeuePanelOpen
+  isNeuePanelOpen,
+  setShowSpinner
 }: EditorTopbarProps) {
   const urlBarRef = useRef<HTMLInputElement>(null);
   const deployButtonRef = useRef();
@@ -192,12 +194,12 @@ export function EditorTopbar({
   //Neue
   async function saveProjectToNeueCloud() {
     try {
-      await exportProjectToZip()
+      await exportProjectToZip(setShowSpinner)
       ToastLayer.showSuccess('Project successfully saved to cloud');
 
     } catch (error) {
+      setShowSpinner(false);
       ToastLayer.showError(error);
-
     }
   }
 

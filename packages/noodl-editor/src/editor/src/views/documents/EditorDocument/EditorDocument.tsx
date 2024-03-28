@@ -53,6 +53,9 @@ function EditorDocument() {
   const [viewportSize, setViewportSize] = useState({ width: null, height: null, deviceName: null });
   const [frameDividerSize, setFrameDividerSize] = useState(undefined);
 
+  //Neue 
+  const [showSpinner, setShowSpinner] = useState(false)
+
   const [enableAi, setEnableAi] = useState(OpenAiStore.getVersion() !== 'disabled');
 
   useEffect(() => {
@@ -458,6 +461,7 @@ function EditorDocument() {
         nodeGraph={nodeGraph}
         deployIsDisabled={ProjectModel.instance.isLesson()}
         isNeuePanelOpen={isNeuePanelOpen}
+        setShowSpinner={setShowSpinner}
       />
       {(hasLoadedEditorSettings) && (
         <ViewComponent
@@ -468,6 +472,7 @@ function EditorDocument() {
           onSizeUpdated={(size) => {
             setFrameDividerSize(size);
           }}
+          showSpinner={showSpinner}
         />
       )}
 
@@ -482,35 +487,53 @@ function ViewComponent({
   documentLayout,
   nodeGraphEditorInstance,
   onSizeUpdated,
-  frameDividerSize
+  frameDividerSize,
+  showSpinner
 }: TSFixme) {
   const [frameBounds, setFrameBounds] = useState(undefined);
 
   const horizontal = documentLayout === 'horizontal';
   const totalSize = frameBounds ? (horizontal ? frameBounds.height : frameBounds.width) : undefined;
+  return (
+    <>
 
-  if (documentLayout === 'detachedPreview') {
-    return <Frame instance={nodeGraphEditorInstance} onResize={(bounds) => nodeGraphEditorInstance.resize(bounds)} />;
-  } else {
-    const firstInstance = horizontal ? canvasViewInstance : nodeGraphEditorInstance;
-    const secondInstance = horizontal ? nodeGraphEditorInstance : canvasViewInstance;
+      {(() => {
+        if (documentLayout === 'detachedPreview') {
+          return <Frame instance={nodeGraphEditorInstance} onResize={(bounds) => nodeGraphEditorInstance.resize(bounds)} />;
+        } else {
+          const firstInstance = horizontal ? canvasViewInstance : nodeGraphEditorInstance;
+          const secondInstance = horizontal ? nodeGraphEditorInstance : canvasViewInstance;
 
-    return (
-      <FrameDivider
-        splitOwner={horizontal ? FrameDividerOwner.First : FrameDividerOwner.Second}
-        horizontal={!horizontal}
-        first={<Frame instance={firstInstance} onResize={(bounds) => firstInstance.resize(bounds)} />}
-        second={<Frame instance={secondInstance} onResize={(bounds) => secondInstance.resize(bounds)} />}
-        sizeMin={100}
-        sizeMax={totalSize ? totalSize - 100 : undefined}
-        size={frameDividerSize}
-        onSizeChanged={(size) => {
-          onSizeUpdated(size);
-        }}
-        onBoundsChanged={setFrameBounds}
-      />
-    );
-  }
+          return (
+            <FrameDivider
+              splitOwner={horizontal ? FrameDividerOwner.First : FrameDividerOwner.Second}
+              horizontal={!horizontal}
+              first={<Frame instance={firstInstance} onResize={(bounds) => firstInstance.resize(bounds)} />}
+              second={<Frame instance={secondInstance} onResize={(bounds) => secondInstance.resize(bounds)} />}
+              sizeMin={100}
+              sizeMax={totalSize ? totalSize - 100 : undefined}
+              size={frameDividerSize}
+              onSizeChanged={(size) => {
+                onSizeUpdated(size);
+              }}
+              onBoundsChanged={setFrameBounds}
+            />
+          );
+        }
+      })()}
+      {showSpinner && (
+        <div
+          className="spinner page-spinner"
+          style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
+        >
+          <div className="bounce1"></div>
+          <div className="bounce2"></div>
+          <div className="bounce3"></div>
+        </div>
+      )}
+    </>
+  )
+
 }
 
 function createKeyboardCommands(nodeGraph: NodeGraphEditor) {

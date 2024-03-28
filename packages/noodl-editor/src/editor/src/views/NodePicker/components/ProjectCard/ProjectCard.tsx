@@ -2,7 +2,7 @@ import classNames from 'classnames';
 import React, { useState } from 'react';
 
 import { ProjectLibraryModel } from '@noodl-models/projectlibrarymodel';
-import { ProjectItem } from '@noodl-utils/LocalProjectsModel';
+import { LocalProjectsModel, ProjectItem } from '@noodl-utils/LocalProjectsModel';
 import { timeSince } from '@noodl-utils/utils';
 
 import { ActivityIndicator } from '@noodl-core-ui/components/common/ActivityIndicator';
@@ -14,6 +14,9 @@ import { TitleVariant } from '@noodl-core-ui/components/typography/Title/Title';
 
 import { useNodePickerContext } from '../../NodePicker.context';
 import css from './ProjectCard.module.scss';
+import { filesystem } from '@noodl/platform';
+import { importProjectFromZip } from '@noodl-utils/exporter/exportProjectToZip';
+import { EventDispatcher } from '../../../../../../shared/utils/EventDispatcher';
 
 enum CardState {
   Idle = 'is-idle',
@@ -44,7 +47,21 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
       })
       .finally(() => setTimeout(() => setCardState(CardState.Idle), 3000));
   }
-
+  async function onPickFolderClicked(id) {
+    filesystem
+      .openDialog({
+        allowCreateDirectory: true
+      })
+      .then(async (direntry) => {
+        setCardState(CardState.Downloading);
+        importProjectFromZip(direntry, id).then(async (projectName) => {
+          await LocalProjectsModel.instance.openProjectFromFolder(`${direntry}/${projectName}`).then(() => {
+            setCardState(CardState.Finished)
+            EventDispatcher.instance.notifyListeners('import-neue-cloud-close')
+          })
+        });
+      });
+  }
   return (
     <article className={classNames(css['Root'], css[cardState])}>
       <div className={css['ImageContainer']}>
@@ -57,14 +74,14 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
             <Title hasBottomSpacing>{project.name}</Title>
 
             {project.latestAccessed && (
-              <Text textType={TextType.Shy}>Last accessed {isNeue ? timeSince(new Date(project.latestAccessed)) : timeSince(project.latestAccessed)} ago</Text>
+              <Text textType={TextType.Shy}>Last accessed {isNeue ? parseInt(project.latestAccessed.toString()) : timeSince(project.latestAccessed)} ago</Text>
             )}
           </header>
         </div>
 
         <div className={css['HoverOverlay']}>
           <div className={css['CtaContainer']}>
-            <PrimaryButton label="Import" onClick={() => isNeue ? handleNeueImport(project.id) : handleDownload()} />
+            <PrimaryButton label="Import" onClick={() => isNeue ? onPickFolderClicked(project.id) : handleDownload()} />
           </div>
         </div>
 

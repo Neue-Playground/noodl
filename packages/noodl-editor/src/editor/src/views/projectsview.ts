@@ -15,6 +15,7 @@ import { tracker } from '../utils/tracker';
 import { timeSince } from '../utils/utils';
 import { getLessonsState } from './projectsview.lessonstate';
 import { ToastLayer } from './ToastLayer/ToastLayer';
+import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ProjectsViewTemplate = require('../templates/projectsview.html');
@@ -553,6 +554,9 @@ export class ProjectsView extends View {
     } finally {
       ToastLayer.hideActivity(activityId);
     }
+  }
+  async onImportProjectFromCloudClicked(){
+    EventDispatcher.instance.notifyListeners('import-neue-cloud-open')
   }
 
   onRenameProjectClicked(scope: ProjectItemScope, el, evt) {

@@ -25,14 +25,24 @@ export interface ProjectsPageProps extends IRouteProps {
 export function ProjectsPage({ route, from }: ProjectsPageProps) {
   const [view, setView] = useState<ProjectsView>(null);
   const [showSpinner, setShowSpinner] = useState(false);
-  const [signedIn, setSignedIn] = useState(false);
-  const [showCloudImport, setShowCloudImport] = useState(true)
+  const [showCloudImport, setShowCloudImport] = useState(false)
 
   useEffect(() => {
+    EventDispatcher.instance.on(
+      ['import-neue-cloud-open'],
+      () => {
+        setShowCloudImport(true)
+      },
+      this
+    );
+    EventDispatcher.instance.on(
+      ['import-neue-cloud-close'],
+      () => {
+        setShowCloudImport(false)
+      },
+      this
+    );
     const eventGroup = {};
-    NeueService.instance.load().then((result) => {
-      setSignedIn(result);
-    });
 
     // Switch main window size
     ipcRenderer.send('main-window-resize', { size: 'editor', center: true });
@@ -65,10 +75,6 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
       instance?.dispose();
     };
   }, []);
-
-  // useEffect(() => {
-  //   setShowCloudImport(signedIn)
-  // }, [signedIn])
 
   function handleImportModalClose() {
     setShowCloudImport(false)
