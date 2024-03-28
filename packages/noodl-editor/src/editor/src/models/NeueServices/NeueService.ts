@@ -240,7 +240,12 @@ export class NeueService extends Model {
   }
 
   public deleteProject(id: string) {
-    // TODO: Implement
-    //return this.performRequest('/project/' + id, 'DELETE');
+    return new Promise<[ArrayBuffer, string]>((resolve) => {
+      this.performRequest('/project/' + id, 'DELETE').then((response) =>
+        response.json().then(async (data) => {
+          resolve(data);
+        })
+      );
+    });
   }
 }
