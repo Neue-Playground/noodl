@@ -29,6 +29,7 @@ export class NeueRunner {
         isRunningLocally: () => options.connectToEditor
       },
       componentFilter: (c) => c.name.startsWith('/#__neue__/'),
+      nodeLibraryExtensions: [],
       dontCreateRootComponent: true
     });
 

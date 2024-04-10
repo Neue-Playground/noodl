@@ -133,7 +133,7 @@ export class ViewerConnection extends Model {
       }
     } else if (request.cmd === 'nodelibrary' && request.type === 'viewer') {
       const content = JSON.parse(request.content);
-
+      console.log('NODELIBRARY IMPORT', content);
       this.loadNodeLibrary(request.clientId, request.runtimeType, content);
     } else if (request.cmd === 'sendToOtherClients' && request.type === 'viewer') {
       this.send({
@@ -142,6 +142,7 @@ export class ViewerConnection extends Model {
         content: request.content
       });
     } else if (request.cmd === 'getNoodlModules' && request.type === 'viewer') {
+      console.log('Requesting noodl modules');
       ProjectModules.instance.scanProjectModules(ProjectModel.instance._retainedProjectDirectory, (modules) => {
         this.send({
           cmd: 'noodlModules',
@@ -339,6 +340,23 @@ export class ViewerConnection extends Model {
     }
 
     this.modelChangesListenerGroup = {};
+
+    EventDispatcher.instance.on(
+      'Model.projectLoaded',
+      function (event) {
+        console.log('Project loaded, exporting...');
+        if (event.model instanceof ProjectModel) {
+          _this.send({
+            cmd: 'modelUpdate',
+            content: {
+              type: 'firmwareChanged',
+              firmware: event.model.firmware
+            }
+          });
+        }
+      },
+      this.modelChangesListenerGroup
+    );
 
     EventDispatcher.instance.on(
       'Model.settingsChanged',
@@ -958,7 +976,7 @@ export class ViewerConnection extends Model {
       'ProjectModel.metadataChanged',
       ({ key, data }) => {
         if (_this.watchModelChangesDisabled) return;
-
+        console.log('metadata changed', key, data);
         _this.send({
           cmd: 'modelUpdate',
           content: {

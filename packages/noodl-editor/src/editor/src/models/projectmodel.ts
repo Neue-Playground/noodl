@@ -76,6 +76,8 @@ export class ProjectModel extends Model {
     return ProjectModel._instance;
   }
   public static set instance(project: ProjectModel | undefined) {
+    console.log('##############################################', project);
+    project.notifyListeners('projectLoaded');
     if (ProjectModel._instance !== project) {
       //unload old project
       if (ProjectModel._instance) {
@@ -109,6 +111,7 @@ export class ProjectModel extends Model {
   public componentAnnotations: TSFixme;
   public previews: TSFixme;
   public thumbnailURI: TSFixme;
+  public firmware: string;
 
   constructor(args?: TSFixme) {
     super();
@@ -116,6 +119,7 @@ export class ProjectModel extends Model {
     this.components = [];
     this.variants = [];
     this.settings = {};
+    this.firmware = '0.0.0';
     if (args) {
       this.name = args.name;
       this.settings = args.settings;
@@ -535,11 +539,13 @@ export class ProjectModel extends Model {
   }
 
   setSettings(settings) {
+    console.log('setSettings', settings);
     this.settings = settings;
     this.notifyListeners('settingsChanged');
   }
 
   setSetting(name, value) {
+    console.log('setSetting', name);
     if (this.settings[name] === value) {
       return;
     }
@@ -1076,7 +1082,7 @@ export class ProjectModel extends Model {
       components: [],
       settings: this.settings,
       rootNodeId: this.rootNode ? this.rootNode.id : undefined,
-      thumbnailURI:this.thumbnailURI,
+      thumbnailURI: this.thumbnailURI,
       version: this.version,
       lesson: this.lesson ? this.lesson.toJSON() : undefined,
       metadata: this.metadata,
