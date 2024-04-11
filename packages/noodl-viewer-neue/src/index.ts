@@ -40,6 +40,12 @@ export class NeueRunner {
     if (options.connectToEditor && options.editorAddress) {
       this.runtime.connectToEditor(options.editorAddress);
     }
+
+    this.runtime.editorConnection.on('firmware', (content: any) => {
+      // TODO: download nodes
+      //this.runtime.registerNode({ node });
+      this.runtime.sendNodeLibrary();
+    });
   }
 
   public async load(exportData: any, projectSettings?: any) {

@@ -351,8 +351,6 @@ NoodlRuntime.prototype.setProjectSettings = function (settings) {
 };
 
 NoodlRuntime.prototype.getNodeLibrary = function () {
-
-  console.log('Generating node library#########################################################################################');
   var projectSettings = ProjectSettings.generateProjectSettings(this.graphModel.getSettings(), this.noodlModules);
 
   if (this.projectSettings) {

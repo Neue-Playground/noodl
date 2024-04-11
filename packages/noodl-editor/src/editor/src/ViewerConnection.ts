@@ -84,6 +84,13 @@ export class ViewerConnection extends Model {
 
     // A new viewer is connected
     if (request.cmd === 'registered' && request.type === 'viewer') {
+      this.send({
+        cmd: 'firmware',
+        content: {
+          type: 'firmwareChanged',
+          firmware: ProjectModel.instance.firmware
+        }
+      });
       WarningsModel.instance.clearWarningsForRefMatching((ref) => ref.isFromViewer);
       this.sendDebugInspectorsEnabled();
     }
@@ -342,23 +349,6 @@ export class ViewerConnection extends Model {
     this.modelChangesListenerGroup = {};
 
     EventDispatcher.instance.on(
-      'Model.projectLoaded',
-      function (event) {
-        console.log('Project loaded, exporting...');
-        if (event.model instanceof ProjectModel) {
-          _this.send({
-            cmd: 'modelUpdate',
-            content: {
-              type: 'firmwareChanged',
-              firmware: event.model.firmware
-            }
-          });
-        }
-      },
-      this.modelChangesListenerGroup
-    );
-
-    EventDispatcher.instance.on(
       'Model.settingsChanged',
       function (event) {
         if (_this.watchModelChangesDisabled) return;
@@ -480,7 +470,6 @@ export class ViewerConnection extends Model {
         if (_this.watchModelChangesDisabled) return;
 
         if (!e.model.owner) return; //Model is being created, no owner yet. Viewer will use full export
-
         _this.send({
           cmd: 'modelUpdate',
           content: {
