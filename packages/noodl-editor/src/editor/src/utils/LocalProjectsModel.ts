@@ -20,9 +20,10 @@ import { guid } from './utils';
 export interface ProjectItem {
   id: string;
   name: string;
-  latestAccessed: number;
+  latestAccessed: any;
   thumbURI: string;
   retainedProjectDirectory: string;
+  isCloud?:boolean;
 }
 export class LocalProjectsModel extends Model {
   public static instance = new LocalProjectsModel();
@@ -139,11 +140,12 @@ export class LocalProjectsModel extends Model {
     this.projectEntries.push({
       retainedProjectDirectory: project._retainedProjectDirectory,
       latestAccessed: Date.now(),
-      id: id, // Generate a new project id (will be used internally to store project specific local settings)
+      id: project.id ? project.id : id, // Generate a new project id (will be used internally to store project specific local settings)
       name: project.name ? project.name : 'Untitled',
+      isCloud: project.isCloud ? project.isCloud : false,
       thumbURI: project.getThumbnailURI()
     });
-    project.id = id;
+    project.id = project.id ? project.id: id;
 
     // Store the project model
     this.bindProject(project);

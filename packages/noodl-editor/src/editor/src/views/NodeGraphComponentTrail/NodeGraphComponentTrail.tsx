@@ -1,7 +1,7 @@
 import classNames from 'classnames';
 import React, { useEffect, useRef } from 'react';
 
-import { getComponentIconType } from '@noodl-models/nodelibrary/ComponentIcon';
+import { ComponentIconType, getComponentIconType } from '@noodl-models/nodelibrary/ComponentIcon';
 import { getDefaultComponent } from '@noodl-models/projectmodel.utils';
 
 import { Icon, IconName, IconSize } from '@noodl-core-ui/components/common/Icon';

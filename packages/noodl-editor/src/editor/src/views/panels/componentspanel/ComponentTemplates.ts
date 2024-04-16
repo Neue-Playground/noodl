@@ -3,7 +3,6 @@ import ReactDOM from 'react-dom';
 
 import { IconName } from '@noodl-core-ui/components/common/Icon';
 
-import View from '../../../../../shared/view';
 import { ComponentModel } from '../../../models/componentmodel';
 import { NodeGraphModel } from '../../../models/nodegraphmodel';
 import { RouterAdapter } from '../../../models/NodeTypeAdapters/RouterAdapter';
@@ -84,7 +83,7 @@ class LogicComponentTemplate extends ComponentTemplate {
     super('Logic Component', IconName.Component);
 
     this.parentTypes = ['folder', 'component'];
-    this.runtimeTypes = ['cloud', 'browser', 'neue'];
+    this.runtimeTypes = ['cloud', 'browser'];
 
     this.template = {
       connections: [],
@@ -207,7 +206,7 @@ class NeueComponentTemplate extends ComponentTemplate {
   constructor() {
     super('Neue Component', IconName.Neue);
 
-    this.parentTypes = ['folder'];
+    this.parentTypes = ['folder', 'component'];
     this.runtimeTypes = ['neue'];
 
     this.template = {
@@ -215,7 +214,7 @@ class NeueComponentTemplate extends ComponentTemplate {
       roots: [
         {
           id: 'A',
-          type: 'Sensor',
+          type: 'MQTT',
           x: 0,
           y: 0,
           parameters: {},

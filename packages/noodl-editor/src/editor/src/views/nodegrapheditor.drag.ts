@@ -58,12 +58,12 @@ export function canAcceptDrop(editor: NodeGraphEditor, dragItem: DragItem) {
       }
 
       //Neue
-      if (activeNeue && newNeue && newIcon === ComponentIconType.Neue) {
-        // We dont allow Cloud Functions in Cloud Functions,
-        // they have to be splitted up into logic nodes.
-        PopupLayer.instance.setDragMessage('Cannot create Cloud Function inside Cloud Function.');
-        return false;
-      }
+      // if (activeNeue && newNeue && newIcon === ComponentIconType.Neue) {
+      //   // We dont allow Cloud Functions in Cloud Functions,
+      //   // they have to be splitted up into logic nodes.
+      //   PopupLayer.instance.setDragMessage('Cannot create Cloud Function inside Cloud Function.');
+      //   return false;
+      // }
 
       // TODO: Cloud Function with children
 
