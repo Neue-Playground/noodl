@@ -1,4 +1,5 @@
 import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
+import { reject } from 'underscore';
 import { JSONStorage } from '@noodl/platform';
 
 import { api, cognito } from '@noodl-constants/NeueBackend';
@@ -215,16 +216,17 @@ export class NeueService extends Model {
   }
 
   public fetchProject(id: string) {
-    return new Promise<[ArrayBuffer, string]>((resolve) => {
-      this.performRequest('/project/' + id, 'GET').then((response) =>
+    return new Promise<[ArrayBuffer, string]>((resolve, reject) => {
+      this.performRequest('/project/' + id, 'GET').then((response) => {
+        if (response.status !== 200) reject();
         response.json().then(async (data) => {
           fetch(data.url, { method: 'GET' }).then((response) => {
             response.arrayBuffer().then((buffer) => {
               resolve([buffer, data.config]);
             });
           });
-        })
-      );
+        });
+      });
     });
   }
 
