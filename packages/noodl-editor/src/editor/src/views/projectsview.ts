@@ -647,9 +647,9 @@ export class ProjectsView extends View {
           }
         })
         .catch(async (err) => {
-          alert(err);
           ToastLayer.hideActivity(activityId);
-          //ToastLayer.showActivity(err, activityId);
+          ToastLayer.showError(err ? err : 'Something went wrong while trying to sync to cloud');
+          EventDispatcher.instance.notifyListeners('check-cloud-version-close');
         });
     } else {
       this.openProject(scope, el);
