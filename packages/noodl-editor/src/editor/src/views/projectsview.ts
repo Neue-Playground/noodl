@@ -2,10 +2,12 @@ import { filesystem, platform } from '@noodl/platform';
 
 import { DialogLayerModel } from '@noodl-models/DialogLayerModel';
 import { LessonsProjectsModel } from '@noodl-models/LessonsProjectModel';
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { CloudServiceMetadata } from '@noodl-models/projectmodel';
 import { setCloudServices } from '@noodl-models/projectmodel.editor';
 import { LocalProjectsModel, ProjectItem } from '@noodl-utils/LocalProjectsModel';
 
+import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
 import View from '../../../shared/view';
 import LessonTemplatesModel from '../models/lessontemplatesmodel';
 import TutorialsModel from '../models/tutorialsmodel';
@@ -15,7 +17,6 @@ import { tracker } from '../utils/tracker';
 import { timeSince } from '../utils/utils';
 import { getLessonsState } from './projectsview.lessonstate';
 import { ToastLayer } from './ToastLayer/ToastLayer';
-import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ProjectsViewTemplate = require('../templates/projectsview.html');
@@ -296,7 +297,7 @@ export class ProjectsView extends View {
 
       const el = this.bindView(this.cloneTemplate(template), scope);
 
-      if(items[i].isCloud){
+      if (items[i].isCloud) {
         const img = el.find('#isCloud');
         img.show();
       }
@@ -307,7 +308,6 @@ export class ProjectsView extends View {
         // No thumbnail, show cloud download icon
         View.$(el, '.projects-item-cloud-download').show();
       }
-
 
       this.$(projectItemsSelector).append(el);
     }
@@ -564,16 +564,16 @@ export class ProjectsView extends View {
     }
   }
 
-  async onImportProjectFromCloudClicked(){
-    EventDispatcher.instance.notifyListeners('import-neue-cloud-open')
+  async onImportProjectFromCloudClicked() {
+    EventDispatcher.instance.notifyListeners('import-neue-cloud-open');
   }
 
   onRenameProjectClicked(scope: ProjectItemScope, el, evt) {
     const input = el.parents('.projects-item').find('#project-name-input');
     const container = el.parents('.projects-item').find('#project-name');
-      const img = el.find('#isCloud');
-      img.hide();
-    
+    const img = el.find('#isCloud');
+    img.hide();
+
     input.val(scope.label);
     container.show();
 
@@ -585,7 +585,9 @@ export class ProjectsView extends View {
       //hack to make sure this isn't set to false before the click event
       //on the project item has had a chance to see this flag (blur comes before click)
       setTimeout(() => {
-        img.show()
+        if (scope.project.isCloud) {
+          img.show();
+        }
         this.isRenamingProject = false;
       }, 100);
 
@@ -622,19 +624,46 @@ export class ProjectsView extends View {
       input.blur();
       return;
     }
-
+    EventDispatcher.instance.on(
+      ['check-cloud-version-close'],
+      () => {
+        this.openProject(scope, el);
+      },
+      this
+    );
     const activityId = 'opening-project';
 
     ToastLayer.showActivity('Opening project', activityId);
+    if (scope.isCloud) {
+      NeueService.instance
+        .fetchProject(scope.project.id)
+        .then(async (res) => {
+          const config = JSON.parse(res[1]);
+          if (new Date(config.latestAccessed) > new Date(scope.project.latestAccessed)) {
+            ToastLayer.hideActivity(activityId);
+            EventDispatcher.instance.notifyListeners('check-cloud-version-open');
+          } else {
+            EventDispatcher.instance.notifyListeners('check-cloud-version-close');
+          }
+        })
+        .catch(async (err) => {
+          alert(err);
+          ToastLayer.hideActivity(activityId);
+          //ToastLayer.showActivity(err, activityId);
+        });
+    } else {
+      this.openProject(scope, el);
+    }
+  }
 
+  async openProject(scope: ProjectItemScope, el) {
+    const activityId = 'opening-project';
     const project = await this.projectsModel.loadProject(scope.project);
     ToastLayer.hideActivity(activityId);
-
     if (!project) {
       ToastLayer.showError("Couldn't load project.");
       return;
     }
-
     this.notifyListeners('projectLoaded', project);
   }
 

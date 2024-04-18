@@ -9,6 +9,7 @@ import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog';
 import { ProjectCard } from '../NodePicker/components/ProjectCard';
 import css from '../NodePicker/tabs/ImportFromProject/ImportFromProject.module.scss';
 import { EventDispatcher } from '../../../../shared/utils/EventDispatcher';
+import { Title, TitleSize, TitleVariant } from '@noodl-core-ui/components/typography/Title';
 
 type ModalProps = {
     isVisible: boolean;
@@ -45,6 +46,8 @@ export default function NeueProjectImportModal(props: ModalProps) {
             const data = await NeueService.instance.listProjects();
             const localProjects = LocalProjectsModel.instance.getProjects();
             setProjects(localProjects.length > 0 ? data.filter((cloud) => !localProjects.map((local) => local.id).includes(cloud.id)) : data);
+
+            //data.forEach((d) => NeueService.instance.deleteProject(d.id))
             setIsLoading(false)
         };
         fetchData()
@@ -68,7 +71,8 @@ export default function NeueProjectImportModal(props: ModalProps) {
                         padding: '32px'
                     }}
                 >
-                    {Boolean(projects.length) && (
+                    <Title hasBottomSpacing isCentered size={TitleSize.Large} variant={TitleVariant.Highlighted}>Your cloud projects</Title>
+                    {Boolean(projects.length) && !isLoading && (
                         <ul className={css['Grid']}>
                             {projects.map((project) => {
                                 return (
@@ -79,6 +83,7 @@ export default function NeueProjectImportModal(props: ModalProps) {
                             })}
                         </ul>
                     )}
+
                     {isLoading && (
                         <div
                             className="spinner page-spinner"
@@ -89,10 +94,9 @@ export default function NeueProjectImportModal(props: ModalProps) {
                             <div className="bounce3"></div>
                         </div>
                     )}
-                    {projects.length < 1 && (
-                        <ul className={css['Grid']}>
-                            No Projects Found
-                        </ul>
+
+                    {projects.length < 1 && !isLoading && (
+                        <Title hasBottomSpacing variant={TitleVariant.Notice} isCentered size={TitleSize.Large}> No Projects Found</Title>
                     )}
 
                     {error && <div style={{ color: 'red' }}>{error}</div>}

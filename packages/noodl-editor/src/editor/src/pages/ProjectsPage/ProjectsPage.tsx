@@ -15,8 +15,8 @@ import { IRouteProps } from '../../pages/AppRoute';
 import { Frame } from '../../views/common/Frame';
 import { ProjectsView } from '../../views/projectsview';
 import { BaseWindow } from '../../views/windows/BaseWindow';
-import { NeueService } from '@noodl-models/NeueServices/NeueService';
-import NeueProjectImportModal from '../../views/NeueConfigurationExport/NeueProjectImport';
+import NeueProjectImportModal from '../../views/NeueConfigurationModals/NeueProjectImport';
+import NeueCloudSyncModal from '../../views/NeueConfigurationModals/NeueCloudSyncModal';
 
 export interface ProjectsPageProps extends IRouteProps {
   from: TSFixme;
@@ -26,6 +26,7 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
   const [view, setView] = useState<ProjectsView>(null);
   const [showSpinner, setShowSpinner] = useState(false);
   const [showCloudImport, setShowCloudImport] = useState(false)
+  const [showCloudSync, setShowCloudSync] = useState(false)
 
   useEffect(() => {
     EventDispatcher.instance.on(
@@ -42,6 +43,23 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
       },
       this
     );
+
+    EventDispatcher.instance.on(
+      ['check-cloud-version-open'],
+      () => {
+        setShowCloudSync(true)
+      },
+      this
+    );
+
+    EventDispatcher.instance.on(
+      ['check-cloud-version-close'],
+      () => {
+        setShowCloudSync(false)
+      },
+      this
+    );
+
     const eventGroup = {};
 
     // Switch main window size
@@ -80,6 +98,10 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
     setShowCloudImport(false)
   }
 
+  function handleCloudSyncModalClose() {
+    setShowCloudSync(false)
+  }
+
   return (
     <BaseWindow title="">
       <TopBar showSpinner={showSpinner} setShowSpinner={setShowSpinner} />
@@ -97,6 +119,7 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
         )}
       </div>
       <NeueProjectImportModal isVisible={showCloudImport} onClose={handleImportModalClose}></NeueProjectImportModal>
+      <NeueCloudSyncModal isVisible={showCloudSync} onClose={handleCloudSyncModalClose}></NeueCloudSyncModal>
     </BaseWindow>
   );
 }

@@ -74,12 +74,8 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
         <div>
           <header>
             <Title hasBottomSpacing>{project.name}</Title>
-
             {project.latestAccessed && (
               <Text textType={TextType.Shy}>Last accessed {isNeue ? timeSince(new Date(project.latestAccessed)) : timeSince(project.latestAccessed)} ago</Text>
-            )}
-            {project.isCloud && (
-              <Icon icon={IconName.CloudDownload} size={IconSize.Tiny} />
             )}
           </header>
         </div>

@@ -109,7 +109,7 @@ export class ProjectModel extends Model {
   public componentAnnotations: TSFixme;
   public previews: TSFixme;
   public thumbnailURI: TSFixme;
-  public isCloud?:boolean;
+  public isCloud?: boolean;
 
   constructor(args?: TSFixme) {
     super();
@@ -170,8 +170,8 @@ export class ProjectModel extends Model {
 
     if (json.rootNodeId) _this.rootNode = _this.findNodeWithId(json.rootNodeId);
 
-    if(json.id) _this.id = json.id;
-    if(json.isCloud) _this.isCloud = json.isCloud;
+    if (json.id) _this.id = json.id;
+    if (json.isCloud) _this.isCloud = json.isCloud;
 
     // Upgrade project if necessary
     ProjectModel.upgrade(_this);
@@ -578,6 +578,11 @@ export class ProjectModel extends Model {
   setThumbnailFromDataURI(uri) {
     this.thumbnailURI = uri;
     this.notifyListeners('thumbnailChanged');
+  }
+
+  setIsCloud(isCloud) {
+    this.isCloud = isCloud;
+    this.notifyListeners('isCloudChanged');
   }
 
   // Save to directory
@@ -1080,7 +1085,7 @@ export class ProjectModel extends Model {
       components: [],
       settings: this.settings,
       rootNodeId: this.rootNode ? this.rootNode.id : undefined,
-      thumbnailURI:this.thumbnailURI,
+      thumbnailURI: this.thumbnailURI,
       version: this.version,
       lesson: this.lesson ? this.lesson.toJSON() : undefined,
       metadata: this.metadata,
