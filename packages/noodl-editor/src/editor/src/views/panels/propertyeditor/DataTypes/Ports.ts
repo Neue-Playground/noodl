@@ -28,6 +28,7 @@ import { QueryFilterType } from './QueryFilterType';
 import { QuerySortingType } from './QuerySortingType';
 import { ResizingType } from './ResizingType';
 import { SizeModeType } from './SizeModeType';
+import { SliderType } from './SliderType';
 import { StringListType } from './StringList/StringListType';
 import { TabGroup } from './TabGroup';
 import { TextAreaType } from './TextAreaType';
@@ -234,6 +235,11 @@ export class Ports extends View {
       return NodeLibrary.nameForPortType(type) === 'enum' && typeof type === 'object' && type.enums;
     }
 
+    // Slider types
+    function isOfSliderType() {
+      return NodeLibrary.nameForPortType(type) === 'slider';
+    }
+
     // Color types
     function isOfColorType() {
       return NodeLibrary.nameForPortType(type) === 'color';
@@ -357,6 +363,7 @@ export class Ports extends View {
     if (isOfAlignToolsType()) return AlignToolsType;
     else if (isOfSizeModeType()) return SizeModeType;
     else if (isOfEnumType()) return EnumType;
+    else if (isOfSliderType()) return SliderType;
     else if (isOfColorType()) return ColorType;
     else if (isOfBooleanType()) return BooleanType;
     else if (isOfTextAreaType()) return TextAreaType;
@@ -432,6 +439,7 @@ export class Ports extends View {
       }
 
       const viewClass = this.viewClassForPort(p);
+      console.log('viewClass', viewClass);
       if (viewClass !== undefined) {
         v = viewClass.fromPort({ port: p, parent: this });
         if (v !== undefined) {

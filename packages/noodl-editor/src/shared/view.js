@@ -122,6 +122,12 @@ View.prototype.bindView = function (el, obj) {
     });
   });
 
+  View.$(el, '[data-input]').each(function () {
+    $(this).on('input', function (evt) {
+      _this[$(this).attr('data-input')].apply(_this, [obj, $(this), evt]);
+    });
+  });
+
   // On click events
   View.$(el, '[data-click]').each(function () {
     $(this).on('click', function (evt) {
