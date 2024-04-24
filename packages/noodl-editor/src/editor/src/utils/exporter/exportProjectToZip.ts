@@ -1,21 +1,22 @@
-import { ProjectModel } from "@noodl-models/projectmodel";
-
 import AdmZip from 'adm-zip';
-import { filesystem } from "@noodl/platform";
-import { ProjectItem } from "@noodl-utils/LocalProjectsModel";
-import { NeueService } from "@noodl-models/NeueServices/NeueService";
-import { ipcRenderer } from "electron";
-import { useCaptureThumbnails } from "../../views/documents/EditorDocument/hooks/UseCaptureThumbnails";
+import { ipcRenderer } from 'electron';
+import { filesystem } from '@noodl/platform';
+
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
+import { ProjectModel } from '@noodl-models/projectmodel';
+import { ProjectItem } from '@noodl-utils/LocalProjectsModel';
+
+import { useCaptureThumbnails } from '../../views/documents/EditorDocument/hooks/UseCaptureThumbnails';
 
 export async function exportProjectToZip(setShowSpinner) {
-  setShowSpinner(true)
+  setShowSpinner(true);
   const zip = new AdmZip();
 
   zip.addLocalFolder(ProjectModel.instance._retainedProjectDirectory);
   const zipBuffer = zip.toBuffer();
 
-  if (ProjectModel.instance.getThumbnailURI() === undefined) //&& ipcRenderer.send('viewer-capture-thumb')
-  {
+  if (ProjectModel.instance.getThumbnailURI() === undefined) {
+    //&& ipcRenderer.send('viewer-capture-thumb')
     ipcRenderer.send('viewer-capture-thumb');
     ipcRenderer.once('viewer-capture-thumb-reply', (event, url) => {
       ProjectModel.instance.setThumbnailFromDataURI(url);
@@ -23,9 +24,9 @@ export async function exportProjectToZip(setShowSpinner) {
 
     ipcRenderer.on('viewer-capture-thumb', async ({ sender }) => {
       // Capture a snapshot of the viewer
-      useCaptureThumbnails(this.canvasView, true)
+      useCaptureThumbnails(this.canvasView, true);
       const image = await this.canvasView.captureThumbnail();
-      ProjectModel.instance.setThumbnailFromDataURI(image.toDataURL())
+      ProjectModel.instance.setThumbnailFromDataURI(image.toDataURL());
     });
   }
 
@@ -34,19 +35,25 @@ export async function exportProjectToZip(setShowSpinner) {
     name: ProjectModel.instance.name,
     latestAccessed: new Date().getMilliseconds(),
     thumbURI: ProjectModel.instance.getThumbnailURI(),
-    retainedProjectDirectory: ProjectModel.instance._retainedProjectDirectory
-  }
-  const json = await filesystem.readJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`)
+    retainedProjectDirectory: ProjectModel.instance._retainedProjectDirectory,
+    firmware: ProjectModel.instance.firmware
+  };
+  const json = await filesystem.readJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`);
 
-  await NeueService.instance.saveProject(new Uint8Array(zipBuffer).buffer, projectItem, JSON.stringify(json)).then((d) => { setShowSpinner(false);}).catch(() => setShowSpinner(false))
+  await NeueService.instance
+    .saveProject(new Uint8Array(zipBuffer).buffer, projectItem, JSON.stringify(json))
+    .then((d) => {
+      setShowSpinner(false);
+    })
+    .catch(() => setShowSpinner(false));
 }
 
 export async function importProjectFromZip(direntry: string, id: string) {
   const arrayBuffer = await NeueService.instance.fetchProject(id);
   const projectName = JSON.parse(arrayBuffer[1]).name;
-  const copiedBuffer = Buffer.from(arrayBuffer[0])
+  const copiedBuffer = Buffer.from(arrayBuffer[0]);
 
   const zip = new AdmZip(copiedBuffer);
   zip.extractAllTo(`${direntry}/${projectName}`, true);
-  return projectName
+  return projectName;
 }

@@ -23,6 +23,7 @@ export interface ProjectItem {
   latestAccessed: number;
   thumbURI: string;
   retainedProjectDirectory: string;
+  firmware: string;
 }
 export class LocalProjectsModel extends Model {
   public static instance = new LocalProjectsModel();
@@ -141,7 +142,8 @@ export class LocalProjectsModel extends Model {
       latestAccessed: Date.now(),
       id: id, // Generate a new project id (will be used internally to store project specific local settings)
       name: project.name ? project.name : 'Untitled',
-      thumbURI: project.getThumbnailURI()
+      thumbURI: project.getThumbnailURI(),
+      firmware: project.firmware
     });
     project.id = id;
 
@@ -186,6 +188,7 @@ export class LocalProjectsModel extends Model {
     fn,
     options: {
       name?: string;
+      firmware?: string;
       projectTemplate: string;
       path?: string;
     }
@@ -193,6 +196,7 @@ export class LocalProjectsModel extends Model {
     tracker.track('New Local Project');
 
     const name = options?.name || 'Untitled';
+    const firmware = options?.firmware || '1.0.1';
     const dirEntry = options?.path || filesystem.makeUniquePath(platform.getDocumentsPath() + name);
 
     await filesystem.makeDirectory(dirEntry);
@@ -221,6 +225,7 @@ export class LocalProjectsModel extends Model {
         }
 
         project.name = name; //update the name from the template
+        project.firmware = firmware; //update the name from the template
 
         // Store the project, this will make it a unique project by
         // forcing it to generate a project id

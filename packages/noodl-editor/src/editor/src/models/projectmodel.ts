@@ -110,7 +110,7 @@ export class ProjectModel extends Model {
   public componentAnnotations: TSFixme;
   public previews: TSFixme;
   public thumbnailURI: TSFixme;
-  public firmware: string;
+  public firmware?: string;
 
   constructor(args?: TSFixme) {
     super();
@@ -118,13 +118,13 @@ export class ProjectModel extends Model {
     this.components = [];
     this.variants = [];
     this.settings = {};
-    this.firmware = '0.0.0';
     if (args) {
       this.name = args.name;
       this.settings = args.settings;
       this.thumbnailURI = args.thumbnailURI;
       this.version = args.version;
       this.metadata = args.metadata;
+      this.firmware = args.firmware;
       // this.deviceSettings = args.deviceSettings;
     }
 
@@ -1085,8 +1085,8 @@ export class ProjectModel extends Model {
       version: this.version,
       lesson: this.lesson ? this.lesson.toJSON() : undefined,
       metadata: this.metadata,
-      variants: this.variants.map((v) => v.toJSON())
-      //   deviceSettings:this.deviceSettings,
+      variants: this.variants.map((v) => v.toJSON()),
+      firmware: this.firmware
     };
     for (const i in this.components) {
       json.components.push(this.components[i].toJSON());

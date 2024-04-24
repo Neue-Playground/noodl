@@ -140,7 +140,6 @@ export class ViewerConnection extends Model {
       }
     } else if (request.cmd === 'nodelibrary' && request.type === 'viewer') {
       const content = JSON.parse(request.content);
-      console.log('NODELIBRARY IMPORT', content);
       this.loadNodeLibrary(request.clientId, request.runtimeType, content);
     } else if (request.cmd === 'sendToOtherClients' && request.type === 'viewer') {
       this.send({

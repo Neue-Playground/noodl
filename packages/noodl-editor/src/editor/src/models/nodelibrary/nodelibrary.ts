@@ -122,7 +122,7 @@ export class NodeLibrary extends Model {
     };*/
     /*  for(var i in this.library.dynamicports) {
       var type = this.library.dynamicports[i].type;
-  
+
       if(type && dynamicPortManagerTypes[type])
         this.dynamicPortManagers.push(new dynamicPortManagerTypes[type](this.library.dynamicports[i]));
     }*/

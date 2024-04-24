@@ -23,6 +23,8 @@
 
       <div data-text="latestAccessedTimeAgo" class="projects-item-sublabel"
         style="position:absolute; bottom:16px; left:10px;"></div>
+      <div data-text="firmware" class="projects-item-sublabel"
+        style="position:absolute; bottom:16px; left:225px;"></div>
 
       <div class="projects-panel-icon-show-on-hover" style="position:absolute;bottom:20px;right:10px" data-click="onDeleteProjectClicked">
         <img class="projects-remove-icon" src="../assets/images/sharp-clear-24px.svg">
@@ -178,7 +180,7 @@
 
         <div style="position:relative; height:100%; display: flex; flex-direction: row; background-color: #222222;">
           <div id="start-pane-feed-item-big-image" class="projects-feed-image-big"
-            style="flex-shrink:0; height:250px; width:250px; margin-left:0px; margin-top:0px;"></div>
+            style="flex-shrink:0; height:280px; width:250px; margin-left:0px; margin-top:0px;"></div>
 
 
 
@@ -196,6 +198,17 @@
               <div style="display: flex; width:400px; height:35px;" class="projects-search-bg">
                 <input id="create-new-project-from-feed-item-name" type="string" placeholder="Untitled"
                   class="projects-project-name-input" style="flex-grow: 1; width:100%;" data-test="new-project-name-input"></input>
+              </div>
+            </div>
+
+            <div style="margin-top:20px; margin-bottom:10px;">
+              <div style="margin-bottom:5px;" class="projects-label-small">Firmware version</div>
+              <div style="display: flex; width:400px; height:35px;" class="projects-search-bg">
+                <select id="create-new-project-from-feed-item-firmware" type="string" placeholder="Untitled"
+                  class="projects-project-name-input" style="flex-grow: 1; width:100%;" data-test="new-project-name-input">
+                  <option>1.0.1</option>
+                  <option>1.0.2</option>
+                </select>
               </div>
             </div>
 

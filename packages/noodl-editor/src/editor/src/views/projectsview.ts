@@ -6,6 +6,7 @@ import { CloudServiceMetadata } from '@noodl-models/projectmodel';
 import { setCloudServices } from '@noodl-models/projectmodel.editor';
 import { LocalProjectsModel, ProjectItem } from '@noodl-utils/LocalProjectsModel';
 
+import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
 import View from '../../../shared/view';
 import LessonTemplatesModel from '../models/lessontemplatesmodel';
 import TutorialsModel from '../models/tutorialsmodel';
@@ -15,7 +16,6 @@ import { tracker } from '../utils/tracker';
 import { timeSince } from '../utils/utils';
 import { getLessonsState } from './projectsview.lessonstate';
 import { ToastLayer } from './ToastLayer/ToastLayer';
-import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
 
 // eslint-disable-next-line @typescript-eslint/no-var-requires
 const ProjectsViewTemplate = require('../templates/projectsview.html');
@@ -30,6 +30,7 @@ type ProjectItemScope = {
   project: ProjectItem;
   label: string;
   latestAccessedTimeAgo: string;
+  firmware: string;
 };
 
 export class ProjectsView extends View {
@@ -289,7 +290,8 @@ export class ProjectsView extends View {
       const scope: ProjectItemScope = {
         project: items[i],
         label: label,
-        latestAccessedTimeAgo: timeSince(latestAccessed) + ' ago'
+        latestAccessedTimeAgo: timeSince(latestAccessed) + ' ago',
+        firmware: items[i].firmware
       };
 
       const el = this.bindView(this.cloneTemplate(template), scope);
@@ -555,8 +557,8 @@ export class ProjectsView extends View {
       ToastLayer.hideActivity(activityId);
     }
   }
-  async onImportProjectFromCloudClicked(){
-    EventDispatcher.instance.notifyListeners('import-neue-cloud-open')
+  async onImportProjectFromCloudClicked() {
+    EventDispatcher.instance.notifyListeners('import-neue-cloud-open');
   }
 
   onRenameProjectClicked(scope: ProjectItemScope, el, evt) {
@@ -721,11 +723,13 @@ export class ProjectsView extends View {
     ToastLayer.showActivity('Creating new project', activityId);
 
     const name = this.$('#create-new-project-from-feed-item-name').val() || 'Untitled';
+    const firmware = this.$('#create-new-project-from-feed-item-firmware').val() || 'Untitled';
 
     const path = filesystem.makeUniquePath(filesystem.join(direntry, name));
 
     const options = {
       name,
+      firmware,
       path,
       projectTemplate: projectTemplate.projectURL
     };
