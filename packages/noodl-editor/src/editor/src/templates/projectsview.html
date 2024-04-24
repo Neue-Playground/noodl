@@ -12,6 +12,7 @@
 
       <div class="projects-item-label" style="position:absolute; bottom:36px; left:10px; right:10px;"
         data-click="onRenameProjectClicked">
+        <img src="../assets/images/cloud_download.svg" id="isCloud" style="display: none; position:relative; top:8px; margin-left:5px;"/>
         <span data-text="label" data-test="project-card-label"></span>
         <img class="projects-edit-icon projects-panel-icon-show-on-hover"
           style="position:relative; top:2px; margin-left:5px;" src="../assets/images/sharp-edit-24px.svg"></img>
@@ -19,7 +20,7 @@
       <div id="project-name" class="projects-item-label"
         style="position:absolute; bottom:36px; left:10px; right:10px; display:none;">
         <input id="project-name-input" class="projects-rename-input"></input>
-      </div>
+      </div> 
 
       <div data-text="latestAccessedTimeAgo" class="projects-item-sublabel"
         style="position:absolute; bottom:16px; left:10px;"></div>
@@ -119,7 +120,15 @@
       <!-- projects list -->
       <div class="projects-list">
         <div style="position:absolute; bottom:74px; top:0px; left:0px; right:0px;overflow-y: auto; padding-top: 20px; ">
-          <div id="get-started" style="margin-top: 14px; margin-bottom: 80px;">
+          
+          <div class="projects-divider-label" style="margin-bottom:15px;">Recent local projects</div>
+          <div id="local-projects" style="margin-bottom:30px;">
+            <div class="local-projects-items" style="display:flex; flex-wrap:wrap; gap: 10px;"></div>
+          </div>
+          <div id="no-projects" style="margin-bottom:30px;">
+            <div class="projects-sub-divider-label">You don't have any projects yet.</div>
+          </div>
+          <div id="get-started" style="margin-top: 80px; margin-bottom: 14px;">
             <div class="tutorial-categories" style="display:flex; flex-wrap:wrap;"></div>
             <div class="tutorial-items"></div>
             <div class="lesson-items-scroll-controls">
@@ -135,13 +144,6 @@
               </svg>
             </div>
             <!-- <div class="lesson-items" style="overflow-x:scroll;white-space: nowrap; margin:5px; margin-top:20px;"></div> -->
-          </div>
-          <div class="projects-divider-label" style="margin-bottom:15px;">Recent projects</div>
-          <div id="local-projects" style="margin-bottom:30px;">
-            <div class="local-projects-items" style="display:flex; flex-wrap:wrap; gap: 10px;"></div>
-          </div>
-          <div id="no-projects" style="margin-bottom:30px;">
-            <div class="projects-sub-divider-label">You don't have any projects yet.</div>
           </div>
           <!--  <div class="projects-divider-label" style="margin-top:30px;">Sample projects</div>
           <div class="sample-projects-items" style="display:flex; flex-wrap:wrap;"></div> -->

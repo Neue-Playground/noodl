@@ -130,8 +130,9 @@ function TopBar({ showSpinner, setShowSpinner }: TopBarProps) {
             marginLeft: '24px'
           }}
         />
-        <TextButton label="Docs" onClick={() => platform.openExternal(getDocsEndpoint())} />
-        <TextButton label="Community" onClick={() => platform.openExternal('https://www.noodl.net/community')} />
+        {/* <TextButton label="Docs" onClick={() => platform.openExternal(getDocsEndpoint())} /> */}
+        <TextButton label="Homepage" onClick={() => platform.openExternal('https://www.neue.se')} />
+        <TextButton label="Account" onClick={() => platform.openExternal('https://playground.neue.se/')} />
       </HStack>
     </div>
   );

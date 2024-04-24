@@ -10,6 +10,24 @@ import { useCaptureThumbnails } from '../../views/documents/EditorDocument/hooks
 
 export async function exportProjectToZip(setShowSpinner) {
   setShowSpinner(true);
+  const projectItem: ProjectItem = {
+    id: ProjectModel.instance.id,
+    name: ProjectModel.instance.name,
+    latestAccessed: new Date(),
+    thumbURI: ProjectModel.instance.getThumbnailURI(),
+    retainedProjectDirectory: ProjectModel.instance._retainedProjectDirectory,
+    firmware: ProjectModel.instance.firmware,
+    isCloud: true
+  };
+
+  const jsonLocal = await filesystem.readJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`);
+  const json = {
+    ...jsonLocal,
+    ...projectItem
+  };
+
+  await filesystem.writeJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`, json);
+
   const zip = new AdmZip();
 
   zip.addLocalFolder(ProjectModel.instance._retainedProjectDirectory);
@@ -30,16 +48,6 @@ export async function exportProjectToZip(setShowSpinner) {
     });
   }
 
-  const projectItem: ProjectItem = {
-    id: ProjectModel.instance.id,
-    name: ProjectModel.instance.name,
-    latestAccessed: new Date().getMilliseconds(),
-    thumbURI: ProjectModel.instance.getThumbnailURI(),
-    retainedProjectDirectory: ProjectModel.instance._retainedProjectDirectory,
-    firmware: ProjectModel.instance.firmware
-  };
-  const json = await filesystem.readJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`);
-
   await NeueService.instance
     .saveProject(new Uint8Array(zipBuffer).buffer, projectItem, JSON.stringify(json))
     .then((d) => {
@@ -50,10 +58,10 @@ export async function exportProjectToZip(setShowSpinner) {
 
 export async function importProjectFromZip(direntry: string, id: string) {
   const arrayBuffer = await NeueService.instance.fetchProject(id);
-  const projectName = JSON.parse(arrayBuffer[1]).name;
+  const projectItem = JSON.parse(arrayBuffer[1]);
   const copiedBuffer = Buffer.from(arrayBuffer[0]);
 
   const zip = new AdmZip(copiedBuffer);
-  zip.extractAllTo(`${direntry}/${projectName}`, true);
-  return projectName;
+  zip.extractAllTo(`${direntry}/${projectItem.name}`, true);
+  return projectItem.name;
 }

@@ -89,13 +89,8 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
     name: 'Neue Playground',
     order: 3,
     icon: IconName.Neue,
-    onOpen: () => {
-      if (appRegistry.CurrentDocumentId !== EditorDocumentProvider.ID) {
-        appRegistry.openDocument(EditorDocumentProvider.ID);
-      }
-    },
+
     panelProps: {
-      // This is a temporary solution so we can keep the state of open folder etc
       options: {
         showSheetList: true,
         hideSheets: ['__cloud__']

@@ -111,6 +111,7 @@ export class ProjectModel extends Model {
   public previews: TSFixme;
   public thumbnailURI: TSFixme;
   public firmware?: string;
+  public isCloud?: boolean;
 
   constructor(args?: TSFixme) {
     super();
@@ -171,6 +172,9 @@ export class ProjectModel extends Model {
     if (json.variants !== undefined) _this.variants = json.variants.map((v) => VariantModel.fromJSON(v));
 
     if (json.rootNodeId) _this.rootNode = _this.findNodeWithId(json.rootNodeId);
+
+    if (json.id) _this.id = json.id;
+    if (json.isCloud) _this.isCloud = json.isCloud;
 
     // Upgrade project if necessary
     ProjectModel.upgrade(_this);

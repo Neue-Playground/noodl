@@ -32,6 +32,7 @@ async function onPickFolderClicked(id) {
 export default function NeueProjectImportModal(props: ModalProps) {
     const [projects, setProjects] = useState<Array<ProjectItem>>([]);
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false)
 
     useEffect(() => {
         let isSubscribed = true;
@@ -40,8 +41,11 @@ export default function NeueProjectImportModal(props: ModalProps) {
             setError(null);
         }
         const fetchData = async () => {
+            setIsLoading(true)
             const data = await NeueService.instance.listProjects();
-            setProjects(data);
+            const localProjects = LocalProjectsModel.instance.getProjects();
+            setProjects(localProjects.length > 0 ? data.filter((cloud) => !localProjects.map((local) => local.id).includes(cloud.id)) : data);
+            setIsLoading(false)
         };
         fetchData()
             .catch((err) => setError(err));
@@ -75,7 +79,7 @@ export default function NeueProjectImportModal(props: ModalProps) {
                             })}
                         </ul>
                     )}
-                    {projects.length < 1 && (
+                    {isLoading && (
                         <div
                             className="spinner page-spinner"
                             style={{ display: 'flex', justifyContent: 'center', alignItems: 'center' }}
@@ -84,6 +88,11 @@ export default function NeueProjectImportModal(props: ModalProps) {
                             <div className="bounce2"></div>
                             <div className="bounce3"></div>
                         </div>
+                    )}
+                    {projects.length < 1 && (
+                        <ul className={css['Grid']}>
+                            No Projects Found
+                        </ul>
                     )}
 
                     {error && <div style={{ color: 'red' }}>{error}</div>}

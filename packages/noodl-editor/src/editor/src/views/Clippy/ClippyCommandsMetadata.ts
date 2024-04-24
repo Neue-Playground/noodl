@@ -50,7 +50,7 @@ export const promptToNodeCommands: CommandMetadata[] = [
     description: 'Create Neue nodes',
     placeholder: 'What should it be?',
     type: PopupItemType.Neue,
-    icon: IconName.Code,
+    icon: IconName.Neue,
     availableOnFrontend: false,
     availableOnBackend: true,
     requireGPT4: true,

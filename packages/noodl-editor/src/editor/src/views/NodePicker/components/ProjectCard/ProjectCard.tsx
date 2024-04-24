@@ -17,6 +17,7 @@ import css from './ProjectCard.module.scss';
 import { filesystem } from '@noodl/platform';
 import { importProjectFromZip } from '@noodl-utils/exporter/exportProjectToZip';
 import { EventDispatcher } from '../../../../../../shared/utils/EventDispatcher';
+import { Icon, IconName, IconSize } from '@noodl-core-ui/components/common/Icon';
 
 enum CardState {
   Idle = 'is-idle',
@@ -69,12 +70,16 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
       </div>
 
       <div className={css['Content']}>
+
         <div>
           <header>
             <Title hasBottomSpacing>{project.name}</Title>
 
             {project.latestAccessed && (
-              <Text textType={TextType.Shy}>Last accessed {isNeue ? parseInt(project.latestAccessed.toString()) : timeSince(project.latestAccessed)} ago</Text>
+              <Text textType={TextType.Shy}>Last accessed {isNeue ? timeSince(new Date(project.latestAccessed)) : timeSince(project.latestAccessed)} ago</Text>
+            )}
+            {project.isCloud && (
+              <Icon icon={IconName.CloudDownload} size={IconSize.Tiny} />
             )}
           </header>
         </div>

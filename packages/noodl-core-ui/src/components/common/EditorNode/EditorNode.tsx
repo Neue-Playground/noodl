@@ -43,6 +43,8 @@ function nodeNameToIconName(itemName: INodeType['name']) {
       return IconName.TextInput;
     case 'net.noodl.visual.columns':
       return IconName.Columns;
+    case 'MQTT':
+      return IconName.Neue;
     default:
       return null;
   }

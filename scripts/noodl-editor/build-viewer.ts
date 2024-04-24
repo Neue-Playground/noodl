@@ -77,6 +77,6 @@ async function buildViewer({ name, relativePath }) {
   //Neue
   await buildViewer({
     relativePath: 'noodl-viewer-neue',
-    name: '@noodl/neue-runtime'
+    name: '@noodl/noodl-viewer-neue'
   });
 })();

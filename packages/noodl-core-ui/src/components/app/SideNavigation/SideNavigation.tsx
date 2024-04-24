@@ -10,8 +10,6 @@ import { IconButton, IconButtonState, IconButtonVariant } from '@noodl-core-ui/c
 import { DialogRenderDirection } from '@noodl-core-ui/components/layout/BaseDialog';
 import { MenuDialog, MenuDialogProps } from '@noodl-core-ui/components/popups/MenuDialog';
 import { Tooltip } from '@noodl-core-ui/components/popups/Tooltip';
-import { Label, LabelSize } from '@noodl-core-ui/components/typography/Label';
-import { Text, TextType } from '@noodl-core-ui/components/typography/Text';
 import { Slot } from '@noodl-core-ui/types/global';
 
 import css from './SideNavigation.module.scss';
@@ -118,7 +116,7 @@ export function SideNavigation({ toolbar, panel, onExitClick }: SideNavigationPr
         <div className={css['Toolbar']}>
           <div className={css['Logo']}>
             <SideNavigationButton
-              icon={IconName.Logo}
+              icon={IconName.NeueLogo}
               label="Exit project"
               menuItems={[{ label: 'Exit project', isDangerous: true, onClick: onExitClick }]}
             />

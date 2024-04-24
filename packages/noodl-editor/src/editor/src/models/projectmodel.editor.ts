@@ -121,7 +121,7 @@ export async function unzipIntoDirectory(
 
     // Store the project again, this will make it a unique project by
     // forcing it to generate a project id
-    project.id = undefined;
+    //project.id = undefined;
     //project.name = dirEntry.split('/').pop();
     project.toDirectory(project._retainedProjectDirectory, function (res) {
       if (res.result === 'success')

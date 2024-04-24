@@ -31,6 +31,7 @@ type ProjectItemScope = {
   label: string;
   latestAccessedTimeAgo: string;
   firmware: string;
+  isCloud: boolean;
 };
 
 export class ProjectsView extends View {
@@ -291,10 +292,16 @@ export class ProjectsView extends View {
         project: items[i],
         label: label,
         latestAccessedTimeAgo: timeSince(latestAccessed) + ' ago',
-        firmware: items[i].firmware
+        firmware: items[i].firmware,
+        isCloud: items[i].isCloud
       };
 
       const el = this.bindView(this.cloneTemplate(template), scope);
+
+      if (items[i].isCloud) {
+        const img = el.find('#isCloud');
+        img.show();
+      }
       if (items[i].thumbURI) {
         // Set the thumbnail image if there is one
         View.$(el, '.projects-item-thumb').css('background-image', 'url(' + items[i].thumbURI + ')');
@@ -564,6 +571,8 @@ export class ProjectsView extends View {
   onRenameProjectClicked(scope: ProjectItemScope, el, evt) {
     const input = el.parents('.projects-item').find('#project-name-input');
     const container = el.parents('.projects-item').find('#project-name');
+    const img = el.find('#isCloud');
+    img.hide();
 
     input.val(scope.label);
     container.show();
@@ -576,6 +585,7 @@ export class ProjectsView extends View {
       //hack to make sure this isn't set to false before the click event
       //on the project item has had a chance to see this flag (blur comes before click)
       setTimeout(() => {
+        img.show();
         this.isRenamingProject = false;
       }, 100);
 
@@ -596,7 +606,6 @@ export class ProjectsView extends View {
     });
 
     input.focus();
-
     evt.stopPropagation();
   }
 
