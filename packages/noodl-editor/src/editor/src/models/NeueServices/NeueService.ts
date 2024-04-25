@@ -193,7 +193,7 @@ export class NeueService extends Model {
 
   // PROJECT
   public saveProject(fileData: ArrayBuffer | Blob, projectItem: ProjectItem, config: string) {
-    return new Promise<Response>((resolve) => {
+    return new Promise<ProjectItem>((resolve) => {
       this.performRequest('/project', 'POST', { ...projectItem, config }).then((response) =>
         response.json().then(async (presignedInfo) => {
           const form = new FormData();
@@ -209,7 +209,7 @@ export class NeueService extends Model {
             method: 'POST',
             body: form
           });
-          resolve(result);
+          resolve(presignedInfo.item);
         })
       );
     });
