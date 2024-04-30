@@ -25,12 +25,13 @@ import { HelpCenter } from '../../HelpCenter';
 import { NodeGraphEditor } from '../../nodegrapheditor';
 import { showContextMenuInPopup } from '../../ShowContextMenuInPopup';
 import { useCanvasView } from './hooks/UseCanvasView';
-import { useCaptureThumbnails } from './hooks/UseCaptureThumbnails';
 import { useImportNodeset } from './hooks/UseImportNodeset';
 import { useRoutes } from './hooks/UseRoutes';
 import { useSetupNodeGraph } from './hooks/UseSetupNodeGraph';
 import { TitleBar } from './titlebar';
-import { isComponentModel_CloudRuntime, isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
+import { getComponentModelRuntimeType, isComponentModel_CloudRuntime, isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
+import { useCaptureThumbnailNeue } from './hooks/UseCaptureTumbnailNeue';
+import NeueCloudSyncModal from '../../NeueConfigurationModals/NeueCloudSyncModal';
 
 type DocumentLayout = 'horizontal' | 'vertical' | 'detachedPreview';
 
@@ -55,6 +56,8 @@ function EditorDocument() {
 
   //Neue 
   const [showSpinner, setShowSpinner] = useState(false)
+  const [showCloudSync, setShowCloudSync] = useState(false)
+  const [cloudSyncArgs, setCloudSyncArgs] = useState(undefined)
 
   const [enableAi, setEnableAi] = useState(OpenAiStore.getVersion() !== 'disabled');
 
@@ -77,6 +80,7 @@ function EditorDocument() {
 
   //Neue
   const [isNeuePanelOpen, setIsNeuePanelOpen] = useState(false)
+  const [isNeueRuntime, setIsNeueRuntime] = useState(false)
 
   const [hasLoadedEditorSettings, setHasLoadedEditorSettings] = useState(false);
 
@@ -113,8 +117,20 @@ function EditorDocument() {
 
   //close detached viewer when EditorDocmument unmounts
   useEffect(() => {
+    const eventGroup = {}
+    //Neue
+    EventDispatcher.instance.on(
+      'check-cloud-version-download-project-open',
+      (args) => {
+        setCloudSyncArgs(args)
+        setShowCloudSync(true)
+      },
+      eventGroup
+    );
+
     return () => {
       ipcRenderer.send('viewer-attach', {});
+      EventDispatcher.instance.off(eventGroup)
     };
   }, []);
 
@@ -128,6 +144,8 @@ function EditorDocument() {
 
   //track which nodes is currently selected. A hack that relies on the side panel to tell us.
   useEffect(() => {
+    setIsNeueRuntime(isComponentModel_NeueRuntime(nodeGraph.activeComponent))
+    setIsNeuePanelOpen(isComponentModel_NeueRuntime(nodeGraph.activeComponent) || isComponentModel_CloudRuntime(nodeGraph.activeComponent))
     const eventGroup = {};
     SidebarModel.instance.on(
       SidebarModelEvent.nodeSelected,
@@ -136,6 +154,7 @@ function EditorDocument() {
         const node = ProjectModel.instance.findNodeWithId(nodeId);
         const comp = node.owner.owner
         setIsNeuePanelOpen(isComponentModel_NeueRuntime(comp) || SidebarModel.instance.ActiveId === 'neuePanel' || isComponentModel_CloudRuntime(comp) || SidebarModel.instance.ActiveId === 'cloud-functions')
+        setIsNeueRuntime(isComponentModel_NeueRuntime(comp) || SidebarModel.instance.ActiveId === 'neuePanel')
 
         setSelectedNodeId(nodeId);
       },
@@ -155,8 +174,10 @@ function EditorDocument() {
         if (activeId === 'neuePanel' || activeId === 'cloud-functions') {
           setDocumentLayout(previousDocumentLayout || 'vertical');
           setIsNeuePanelOpen(true)
+          setIsNeueRuntime(true)
         } else {
           setIsNeuePanelOpen(false)
+          setIsNeueRuntime(false)
         }
       },
       eventGroup
@@ -439,7 +460,12 @@ function EditorDocument() {
   //   };
   // }, []);
 
-  useCaptureThumbnails(canvasView, viewerDetached);
+  useCaptureThumbnailNeue(canvasView, viewerDetached || isNeuePanelOpen, isNeueRuntime);
+
+  function handleCloudSyncModalClose() {
+    setShowCloudSync(false)
+    setCloudSyncArgs(undefined)
+  }
 
   return (
     <Container direction={ContainerDirection.Vertical} isFill>
@@ -478,6 +504,9 @@ function EditorDocument() {
 
       <HelpCenter />
       {enableAi && <Clippy />}
+
+      <NeueCloudSyncModal isVisible={showCloudSync} onClose={handleCloudSyncModalClose} args={cloudSyncArgs}></NeueCloudSyncModal>
+
     </Container>
   );
 }

@@ -34,7 +34,7 @@ import {
   getIconFromScreenSizeGroupName
 } from './ScreenSizes';
 import { ToastLayer } from '../ToastLayer';
-import { exportProjectToZip } from '../../utils/exporter/exportProjectToZip'
+import { exportProjectZipToCloud } from '../../utils/exporter/cloudSyncFunctions'
 export interface EditorTopbarProps {
   instance: TitleBar;
   routes: string[];
@@ -194,7 +194,7 @@ export function EditorTopbar({
   //Neue
   async function saveProjectToNeueCloud() {
     try {
-      await exportProjectToZip(setShowSpinner)
+      await exportProjectZipToCloud(setShowSpinner)
       ToastLayer.showSuccess('Project successfully saved to cloud');
 
     } catch (error) {

@@ -1,34 +1,17 @@
 import React, { useEffect, useState } from 'react';
-import { filesystem } from '@noodl/platform';
 
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
-import { importProjectFromZip } from '@noodl-utils/exporter/exportProjectToZip';
 import { LocalProjectsModel, ProjectItem } from '@noodl-utils/LocalProjectsModel';
 
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog';
 import { ProjectCard } from '../NodePicker/components/ProjectCard';
 import css from '../NodePicker/tabs/ImportFromProject/ImportFromProject.module.scss';
-import { EventDispatcher } from '../../../../shared/utils/EventDispatcher';
 import { Title, TitleSize, TitleVariant } from '@noodl-core-ui/components/typography/Title';
 
 type ModalProps = {
     isVisible: boolean;
     onClose: () => void;
 };
-
-async function onPickFolderClicked(id) {
-    filesystem
-        .openDialog({
-            allowCreateDirectory: true
-        })
-        .then(async (direntry) => {
-            importProjectFromZip(direntry, id).then(async (projectName) => {
-                await LocalProjectsModel.instance.openProjectFromFolder(`${direntry}/${projectName}`).then(() => {
-                    EventDispatcher.instance.notifyListeners('import-neue-cloud-close')
-                })
-            });
-        });
-}
 
 export default function NeueProjectImportModal(props: ModalProps) {
     const [projects, setProjects] = useState<Array<ProjectItem>>([]);
@@ -77,7 +60,7 @@ export default function NeueProjectImportModal(props: ModalProps) {
                             {projects.map((project) => {
                                 return (
                                     <li key={project.id} className={css['GridItem']}>
-                                        <ProjectCard project={project} isNeue={true} handleNeueImport={onPickFolderClicked} />
+                                        <ProjectCard project={project} isNeue={true} />
                                     </li>
                                 );
                             })}

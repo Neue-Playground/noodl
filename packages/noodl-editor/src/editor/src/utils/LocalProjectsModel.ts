@@ -24,6 +24,7 @@ export interface ProjectItem {
   thumbURI: string;
   retainedProjectDirectory: string;
   isCloud?: boolean;
+  cloudVersion: number;
 }
 export class LocalProjectsModel extends Model {
   public static instance = new LocalProjectsModel();
@@ -86,9 +87,12 @@ export class LocalProjectsModel extends Model {
           resolve(null);
           return;
         }
+
         project.id = projectEntry.id; // Assign the project the id stored in the project dir entry
         project.name = projectEntry.name; // Also assign the name
         project.isCloud = projectEntry.isCloud;
+        //project.cloudVersion = projectEntry.cloudVersion;
+
         this.touchProject(projectEntry);
         this.bindProject(project);
         resolve(project);
@@ -119,6 +123,18 @@ export class LocalProjectsModel extends Model {
 
           if (projectdir) {
             projectdir.isCloud = project.isCloud ? project.isCloud : false;
+            this.store();
+          }
+        },
+        this
+      )
+      .on(
+        'cloudVersionChanged',
+        () => {
+          const projectdir = this.getProjectEntryWithId(project.id);
+
+          if (projectdir) {
+            projectdir.cloudVersion = project.cloudVersion;
             this.store();
           }
         },
@@ -156,9 +172,11 @@ export class LocalProjectsModel extends Model {
       id: project.id ? project.id : id, // Generate a new project id (will be used internally to store project specific local settings)
       name: project.name ? project.name : 'Untitled',
       isCloud: project.isCloud ? project.isCloud : false,
+      cloudVersion: project.cloudVersion ? project.cloudVersion : 0,
       thumbURI: project.getThumbnailURI()
     });
     project.id = project.id ? project.id : id;
+    project.cloudVersion = project.cloudVersion ? project.cloudVersion : 0;
 
     // Store the project model
     this.bindProject(project);

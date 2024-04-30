@@ -110,6 +110,7 @@ export class ProjectModel extends Model {
   public previews: TSFixme;
   public thumbnailURI: TSFixme;
   public isCloud?: boolean;
+  public cloudVersion: number;
 
   constructor(args?: TSFixme) {
     super();
@@ -172,6 +173,7 @@ export class ProjectModel extends Model {
 
     if (json.id) _this.id = json.id;
     if (json.isCloud) _this.isCloud = json.isCloud;
+    if (json.cloudVersion) _this.cloudVersion = json.cloudVersion;
 
     // Upgrade project if necessary
     ProjectModel.upgrade(_this);
@@ -583,6 +585,11 @@ export class ProjectModel extends Model {
   setIsCloud(isCloud) {
     this.isCloud = isCloud;
     this.notifyListeners('isCloudChanged');
+  }
+
+  setCloudVersionChange(version: number) {
+    this.cloudVersion = version;
+    this.notifyListeners('cloudVersionChanged');
   }
 
   // Save to directory

@@ -27,40 +27,34 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
   const [showSpinner, setShowSpinner] = useState(false);
   const [showCloudImport, setShowCloudImport] = useState(false)
   const [showCloudSync, setShowCloudSync] = useState(false)
+  const [cloudSyncArgs, setCloudSyncArgs] = useState(undefined)
 
   useEffect(() => {
+    const eventGroup = {};
+
     EventDispatcher.instance.on(
-      ['import-neue-cloud-open'],
+      'import-neue-cloud-open',
       () => {
         setShowCloudImport(true)
       },
-      this
+      eventGroup
     );
     EventDispatcher.instance.on(
-      ['import-neue-cloud-close'],
+      'import-neue-cloud-close',
       () => {
         setShowCloudImport(false)
       },
-      this
+      eventGroup
     );
 
     EventDispatcher.instance.on(
-      ['check-cloud-version-open'],
-      () => {
+      'check-cloud-version-import-project-open',
+      (args) => {
+        setCloudSyncArgs(args)
         setShowCloudSync(true)
       },
-      this
+      eventGroup
     );
-
-    EventDispatcher.instance.on(
-      ['check-cloud-version-close'],
-      () => {
-        setShowCloudSync(false)
-      },
-      this
-    );
-
-    const eventGroup = {};
 
     // Switch main window size
     ipcRenderer.send('main-window-resize', { size: 'editor', center: true });
@@ -100,6 +94,7 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
 
   function handleCloudSyncModalClose() {
     setShowCloudSync(false)
+    setCloudSyncArgs(undefined)
   }
 
   return (
@@ -119,7 +114,7 @@ export function ProjectsPage({ route, from }: ProjectsPageProps) {
         )}
       </div>
       <NeueProjectImportModal isVisible={showCloudImport} onClose={handleImportModalClose}></NeueProjectImportModal>
-      <NeueCloudSyncModal isVisible={showCloudSync} onClose={handleCloudSyncModalClose}></NeueCloudSyncModal>
+      <NeueCloudSyncModal isVisible={showCloudSync} onClose={handleCloudSyncModalClose} args={cloudSyncArgs}></NeueCloudSyncModal>
     </BaseWindow>
   );
 }

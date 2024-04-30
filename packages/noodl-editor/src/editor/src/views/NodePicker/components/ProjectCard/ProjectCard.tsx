@@ -15,9 +15,7 @@ import { TitleVariant } from '@noodl-core-ui/components/typography/Title/Title';
 import { useNodePickerContext } from '../../NodePicker.context';
 import css from './ProjectCard.module.scss';
 import { filesystem } from '@noodl/platform';
-import { importProjectFromZip } from '@noodl-utils/exporter/exportProjectToZip';
-import { EventDispatcher } from '../../../../../../shared/utils/EventDispatcher';
-import { Icon, IconName, IconSize } from '@noodl-core-ui/components/common/Icon';
+import { importProjectFromZip } from '@noodl-utils/exporter/cloudSyncFunctions';
 
 enum CardState {
   Idle = 'is-idle',
@@ -27,11 +25,22 @@ enum CardState {
 }
 export interface ProjectCardProps {
   project: ProjectItem;
-  handleNeueImport?: (x: any) => any;
   isNeue?: boolean;
 }
 
-export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardProps) {
+async function onPickFolderClicked(project, setCardState) {
+  filesystem
+    .openDialog({
+      allowCreateDirectory: true
+    })
+    .then(async (direntry) => {
+      setCardState(CardState.Downloading);
+      await importProjectFromZip(`${direntry}/${project.name}`, project.id)
+      setCardState(CardState.Finished);
+    });
+}
+
+export function ProjectCard({ project, isNeue }: ProjectCardProps) {
   const context = useNodePickerContext();
 
   const [cardState, setCardState] = useState(CardState.Idle);
@@ -48,21 +57,7 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
       })
       .finally(() => setTimeout(() => setCardState(CardState.Idle), 3000));
   }
-  async function onPickFolderClicked(id) {
-    filesystem
-      .openDialog({
-        allowCreateDirectory: true
-      })
-      .then(async (direntry) => {
-        setCardState(CardState.Downloading);
-        importProjectFromZip(direntry, id).then(async (projectName) => {
-          await LocalProjectsModel.instance.openProjectFromFolder(`${direntry}/${projectName}`).then(() => {
-            setCardState(CardState.Finished)
-            EventDispatcher.instance.notifyListeners('import-neue-cloud-close')
-          })
-        });
-      });
-  }
+
   return (
     <article className={classNames(css['Root'], css[cardState])}>
       <div className={css['ImageContainer']}>
@@ -82,7 +77,7 @@ export function ProjectCard({ project, handleNeueImport, isNeue }: ProjectCardPr
 
         <div className={css['HoverOverlay']}>
           <div className={css['CtaContainer']}>
-            <PrimaryButton label="Import" onClick={() => isNeue ? onPickFolderClicked(project.id) : handleDownload()} />
+            <PrimaryButton label="Import" onClick={() => isNeue ? onPickFolderClicked(project, setCardState) : handleDownload()} />
           </div>
         </div>
 

@@ -32,6 +32,7 @@ type ProjectItemScope = {
   label: string;
   latestAccessedTimeAgo: string;
   isCloud: boolean;
+  cloudVersion: number;
 };
 
 export class ProjectsView extends View {
@@ -292,7 +293,8 @@ export class ProjectsView extends View {
         project: items[i],
         label: label,
         latestAccessedTimeAgo: timeSince(latestAccessed) + ' ago',
-        isCloud: items[i].isCloud
+        isCloud: items[i].isCloud,
+        cloudVersion: items[i].cloudVersion
       };
 
       const el = this.bindView(this.cloneTemplate(template), scope);
@@ -625,9 +627,10 @@ export class ProjectsView extends View {
       return;
     }
     EventDispatcher.instance.on(
-      ['check-cloud-version-close'],
+      'check-cloud-version-open-project',
       () => {
         this.openProject(scope, el);
+        EventDispatcher.instance.off(this);
       },
       this
     );
@@ -639,21 +642,26 @@ export class ProjectsView extends View {
         .fetchProject(scope.project.id)
         .then(async (res) => {
           const config = JSON.parse(res[1]);
-          if (new Date(config.latestAccessed) > new Date(scope.project.latestAccessed)) {
+
+          if (config.cloudVersion > scope.cloudVersion) {
             ToastLayer.hideActivity(activityId);
-            EventDispatcher.instance.notifyListeners('check-cloud-version-open');
+            EventDispatcher.instance.notifyListeners('check-cloud-version-import-project-open', {
+              project: scope.project,
+              action: 'open'
+            });
           } else {
-            EventDispatcher.instance.notifyListeners('check-cloud-version-close');
+            EventDispatcher.instance.notifyListeners('check-cloud-version-open-project');
           }
         })
         .catch(async (err) => {
           ToastLayer.hideActivity(activityId);
           ToastLayer.showError(err ? err : 'Something went wrong while trying to sync to cloud');
-          EventDispatcher.instance.notifyListeners('check-cloud-version-close');
+          EventDispatcher.instance.notifyListeners('check-cloud-version-open-project');
         });
     } else {
       this.openProject(scope, el);
     }
+    return;
   }
 
   async openProject(scope: ProjectItemScope, el) {
