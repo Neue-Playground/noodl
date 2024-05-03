@@ -2,14 +2,14 @@ import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton'
 import { Select } from '@noodl-core-ui/components/inputs/Select'
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog'
 import { NeueService } from '@noodl-models/NeueServices/NeueService'
-import { filesystem } from '@noodl/platform'
 import React, { useEffect, useState } from 'react'
 
 type ModalProps = {
     isVisible: boolean,
     onClose: () => void,
     jsonData: any[],
-    devices: any[]
+    devices: any[],
+    firmware: string
 }
 
 export default function NeueExportModal(props: ModalProps) {
@@ -67,13 +67,15 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
-                        const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
-                        if (response.status === 200) {
-                            props.onClose()
-                        } else {
-                            const body = await response.json()
-                            setError('Failed to push to device: ' + body)
-                        }
+                        console.log(selectedDevice, selectedConfiguration, props.firmware)
+                        await NeueService.instance.pushFlow(selectedDevice, selectedConfiguration, props.firmware)
+                        // const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
+                        // if (response.status === 200) {
+                        //     props.onClose()
+                        // } else {
+                        //     const body = await response.json()
+                        //     setError('Failed to push to device: ' + body)
+                        // }
                     }} />
                 </div>
             </div>

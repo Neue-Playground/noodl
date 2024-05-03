@@ -93,7 +93,7 @@ export function iENBLPanel() {
             </VStack>
           </Box>
         </Container>
-      <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} />
+      <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} firmware={ProjectModel.instance.firmware} />
     </BasePanel>
 
   );
