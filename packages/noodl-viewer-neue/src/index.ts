@@ -48,16 +48,26 @@ export class NeueRunner {
         'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2/project/nodes/' + firmware
       );
       const nodes = await response.json();
-      // addDynamicInputPorts(node, 'enX = true', ['enY']);
       for (const node of nodes) {
         if (!node) continue;
         const nodeObj = JSON.parse(node);
+        nodeObj.methods = {
+          setResponseParameter: function (name, value) {
+            this._internal.responseParameters[name] = value;
+          },
+          registerInputIfNeeded: function (name) {
+            if (this.hasInput(name)) {
+              return;
+            }
+
+            if (name.startsWith('pm-'))
+              this.registerInput(name, {
+                set: this.setResponseParameter.bind(this, name.substring('pm-'.length))
+              });
+          }
+        };
         this.runtime.registerNode({ node: nodeObj });
       }
-      // this.runtime.registerNode({ node: node1 });
-      // if (firmware === '1.0.2') {
-      //   this.runtime.registerNode({ node: node2 });
-      // }
       this.runtime.sendNodeLibrary();
     });
   }
