@@ -1,0 +1,454 @@
+{
+    "sensor": {
+        "registers": [
+            {
+                "name": "MAX44009_ADR_INT_STATUS",
+                "value": "0x00"
+            },
+            {
+                "name": "MAX44009_ADR_INT_EN",
+                "value": "0x01"
+            },
+            {
+                "name": "MAX44009_ADR_CONFIG",
+                "value": "0x02"
+            },
+            {
+                "name": "MAX44009_ADR_LUX_OUT_H",
+                "value": "0x03"
+            },
+            {
+                "name": "MAX44009_ADR_LUX_OUT_L",
+                "value": "0x04"
+            },
+            {
+                "name": "MAX44009_ADR_UP_TH_HIGH_BYTE",
+                "value": "0x05"
+            },
+            {
+                "name": "MAX44009_ADR_LOW_TH_HIGH_BYTE",
+                "value": "0x06"
+            },
+            {
+                "name": "MAX44009_ADR_TH_TIMER",
+                "value": "0x07"
+            }
+        ],
+        "bitmasks": [
+            {
+                "name": "INT_STATUS_BM_RESERVED",
+                "value": "0xFE"
+            },
+            {
+                "name": "INT_STATUS_BM_DA_READY",
+                "value": "0x01"
+            },
+            {
+                "name": "INT_EN_BM_RESERVED",
+                "value": "0xFE"
+            },
+            {
+                "name": "INT_EN_BM_RESERVED",
+                "value": "0x01"
+            },
+            {
+                "name": "CONFIG_BM_RESERVED",
+                "value": "0x30"
+            },
+            {
+                "name": "CONFIG_BM_CONT",
+                "value": "0x80"
+            },
+            {
+                "name": "CONFIG_BM_MANUAL",
+                "value": "0x40"
+            },
+            {
+                "name": "CONFIG_BM_CDR",
+                "value": "0x08"
+            },
+            {
+                "name": "CONFIG_BM_TIM",
+                "value": "0x07"
+            }
+        ],
+        "values": [
+            {
+                "name": "VALUE_TRUE",
+                "value": "0x01"
+            },
+            {
+                "name": "VALUE_FALSE",
+                "value": "0x00"
+            },
+            {
+                "name": "INT_STATUS_VAL_DA_READY",
+                "value": "0x01"
+            },
+            {
+                "name": "INT_STATUS_VAL_DA_NREADY",
+                "value": "0x00"
+            },
+            {
+                "name": "INT_EN_VAL_EN",
+                "value": "0x01"
+            },
+            {
+                "name": "INT_EN_VAL_DIS",
+                "value": "0x00"
+            },
+            {
+                "name": "CONFIG_VAL_POWER_DOWN",
+                "value": "0x00"
+            },
+            {
+                "name": "CONFIG_VAL_CONT_EN",
+                "value": "0x80"
+            },
+            {
+                "name": "CONFIG_VAL_CONT_DIS",
+                "value": "0x00"
+            },
+            {
+                "name": "CONFIG_VAL_MANUAL_EN",
+                "value": "0x40"
+            },
+            {
+                "name": "CONFIG_VAL_MANUAL_DIS",
+                "value": "0x00"
+            },
+            {
+                "name": "CONFIG_VAL_CDR_EN",
+                "value": "0x08"
+            },
+            {
+                "name": "CONFIG_VAL_CDR_DIS",
+                "value": "0x00"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_800MS",
+                "value": "0x00"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_400MS",
+                "value": "0x01"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_200MS",
+                "value": "0x02"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_100MS",
+                "value": "0x03"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_50MS",
+                "value": "0x04"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_25MS",
+                "value": "0x05"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_12_5MS",
+                "value": "0x06"
+            },
+            {
+                "name": "CONFIG_VAL_TIM_6_25MS",
+                "value": "0x07"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UE3",
+                "value": "0x80"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UE2",
+                "value": "0x40"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UE1",
+                "value": "0x20"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UE0",
+                "value": "0x10"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UM7",
+                "value": "0x08"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UM6",
+                "value": "0x04"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UM5",
+                "value": "0x02"
+            },
+            {
+                "name": "UPPER_TH_HIGH_BYTE_UM4",
+                "value": "0x01"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LE3",
+                "value": "0x80"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LE2",
+                "value": "0x40"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LE1",
+                "value": "0x20"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LE0",
+                "value": "0x10"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LM7",
+                "value": "0x08"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LM6",
+                "value": "0x04"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LM5",
+                "value": "0x02"
+            },
+            {
+                "name": "LOWER_TH_HIGH_BYTE_LM4",
+                "value": "0x01"
+            },
+            {
+                "name": "TH_TIMER_T7",
+                "value": "0x80"
+            },
+            {
+                "name": "TH_TIMER_T6",
+                "value": "0x40"
+            },
+            {
+                "name": "TH_TIMER_T5",
+                "value": "0x20"
+            },
+            {
+                "name": "TH_TIMER_T4",
+                "value": "0x10"
+            },
+            {
+                "name": "TH_TIMER_T3",
+                "value": "0x08"
+            },
+            {
+                "name": "TH_TIMER_T2",
+                "value": "0x04"
+            },
+            {
+                "name": "TH_TIMER_T1",
+                "value": "0x02"
+            },
+            {
+                "name": "TH_TIMER_T0",
+                "value": "0x01"
+            }
+        ],
+        "name": "Temperature/Humidity Sensor",
+        "examplePartNumber": "MAX44009",
+        "driverId": [
+            "0xF008"
+        ],
+        "platforms": [
+            "iEnable"
+        ],
+        "powerConsumption": "",
+        "groups": [
+            {
+                "groupName": "General Parameters",
+                "configParams": [
+                    {
+                        "internalName": "act",
+                        "name": "Active",
+                        "description" : "Set act to true to enable sensor",
+                        "values": [
+                            [
+                                "False",
+                                "VALUE_FALSE",
+                                0,
+                                0
+                            ],
+                            [
+                                "True",
+                                "VALUE_TRUE",
+                                1,
+                                1
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "True",
+                        "guiControl": "checkbox"
+                    },
+                    {
+                        "internalName": "enCNT",
+                        "name": "Continuous Mode",
+                        "description" : "In Continuous Mode, the time values and the cdr is internally generated and not user controlled",
+                        "values": [
+                            [
+                                "False",
+                                "CONFIG_VAL_CONT_DIS",
+                                0,
+                                0
+                            ],
+                            [
+                                "True",
+                                "CONFIG_VAL_CONT_EN",
+                                1,
+                                1
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0",
+                        "guiControl": "checkbox"
+                    },
+                    {
+                        "internalName": "enMAN",
+                        "name": "Manual Mode",
+                        "description" : "In Manual Mode the time and cdr values are user controlled",
+                        "values": [
+                            [
+                                "False",
+                                "CONFIG_VAL_MANUAL_DIS",
+                                0,
+                                0
+                            ],
+                            [
+                                "True",
+                                "CONFIG_VAL_MANUAL_EN",
+                                1,
+                                1
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0",
+                        "guiControl": "checkbox"
+                    },
+                    {
+                        "internalName": "time",
+                        "name": "Integration Timer",
+                        "description" : "",
+                        "values": [
+                            [
+                                "800 ms",
+                                "CONFIG_VAL_TIM_800MS",
+                                0,
+                                0.8
+                            ],
+                            [
+                                "400 ms",
+                                "CONFIG_VAL_TIM_400MS",
+                                1,
+                                1.05
+                            ],
+                            [
+                                "200 ms",
+                                "CONFIG_VAL_TIM_200MS",
+                                2,
+                                1.4
+                            ],
+                            [
+                                "100 ms",
+                                "CONFIG_VAL_TIM_100MS",
+                                3,
+                                2.1
+                            ],
+                            [
+                                "50 ms",
+                                "CONFIG_VAL_TIM_50MS",
+                                4,
+                                3.43
+                            ],
+                            [
+                                "25 ms",
+                                "CONFIG_VAL_TIM_25MS",
+                                5,
+                                6.15
+                            ],
+                            [
+                                "12.5 ms",
+                                "CONFIG_VAL_TIM_12_5MS",
+                                6,
+                                11.6
+                            ],
+                            [
+                                "6.25 ms",
+                                "CONFIG_VAL_TIM_6_25MS",
+                                7,
+                                22.5
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0 and enMAN == 1",
+                        "guiControl": "slider"
+                    }, 
+                    {
+                        "internalName": "enCDR",
+                        "name": "Enable CDR",
+                        "description" : "The CDR divides the current by 8, it is used in high-brightness situations",
+                        "values": [
+                            [
+                                "False",
+                                "CONFIG_VAL_CDR_EN",
+                                0,
+                                0
+                            ],
+                            [
+                                "True",
+                                "CONFIG_VAL_CDR_EN",
+                                1,
+                                1
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0 and enMAN == 1",
+                        "guiControl": "checkbox"
+                    }
+                ]
+            }
+        ],
+        "commands": [
+            {  "condition": "act == 0",                "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_POWER_DOWN" ], "comment" : "CONFIG"  },
+            {  "condition": "act > 0 and enMAN == 1 and enCNT == 0",  "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_MANUAL_EN + time + cdr" ], "comment" : "CONFIG"  },
+            {  "condition": "act > 0 and enCNT == 1 and enMAN == 0 and time < 4",  "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_CONT_EN" ], "comment" : "CONFIG"  }
+        ],
+        "ports": [
+            {
+                "index": 0,
+                "name": "Enable",
+                "type": "in",
+                "value": "bool"
+            },
+            {
+                "index": 0,
+                "name": "Ambient Light",
+                "type": "out",
+                "value": "data"
+            }
+        ]
+    }
+}

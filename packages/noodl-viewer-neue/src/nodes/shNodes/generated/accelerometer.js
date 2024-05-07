@@ -1,21 +1,14 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'acc',
-  displayNodeName: 'Accelerometer/Gyroscope',
+  name: 'Accelerometer/Gyroscope',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
   color: 'neueSensor',
   initialize: function () {
     this._internal.inputs = [];
   },
-  dynamicports:[
-    {
-        name:'conditionalports/extended',
-        condition:"pmode = low",
-        inputs:['Sensor update rate']
-    }
-  ],
+
   inputs: {
     'Gyroscope  off': {
       group: 'Gyroscope',
@@ -118,28 +111,25 @@ const DeviceNode = {
         return this._internal['Gyro max degrees per second'];
       }
     },
-    pmode: {
+    'Performance mode': {
       group: 'General',
       type: {
         name: 'enum',
         enums: [
           {
             label: 'Low power',
-            value: 'low'
+            value: 'Low power'
           },
           {
             label: 'High performance',
-            value: 'high'
+            value: 'Low power'
           }
         ]
       },
       default: 'low',
       displayName: 'Performance mode',
       get() {
-        return this._internal.pmode;
-      },
-      set: function(value) {
-        this._internal.pmode = value;
+        return this._internal['Performance mode'];
       }
     },
     'Event type': {
@@ -225,72 +215,9 @@ const DeviceNode = {
         return this._internal['Acc vector length'];
       }
     }
-  },
-  methods:{
-    setResponseParameter:function(name,value) {
-      this._internal.responseParameters[name] = value
-    },
-    registerInputIfNeeded: function(name) {
-      if(this.hasInput(name)) {
-          return;
-      }
-
-      if(name.startsWith('pm-')) this.registerInput(name, {
-          set: this.setResponseParameter.bind(this, name.substring('pm-'.length))
-      })
-    },
   }
 };
 
 module.exports = {
-  node: DeviceNode,
-  setup: function (context, graphModel) {
-    if (!context.editorConnection || !context.editorConnection.isRunningLocally()) {
-      return;
-    }
-
-    function _managePortsForNode(node) {
-      function _updatePorts() {
-        var ports = []
-
-        // Add params outputs
-        if(node.parameters.status === 'success' || node.parameters.status === undefined) {
-          var params = node.parameters.params;
-          if (params !== undefined) {
-            params = params.split(',');
-            for (var i in params) {
-              var p = params[i];
-
-              ports.push({
-                type: '*',
-                plug: 'input',
-                group: 'Parameters',
-                name: 'pm-' + p,
-                displayName: p
-              })
-            }
-          }
-        }
-
-        context.editorConnection.sendDynamicPorts(node.id, ports);
-      }
-
-      _updatePorts();
-      node.on("parameterUpdated", function (event) {
-        if (event.name === 'params') {
-          _updatePorts();
-        }
-      });
-    }
-
-    graphModel.on("editorImportComplete", () => {
-      graphModel.on("nodeAdded.acc", function (node) {
-        _managePortsForNode(node)
-      })
-
-      for (const node of graphModel.getNodesWithType('noodl.acc')) {
-        _managePortsForNode(node)
-      }
-    })
-  }
+  node: DeviceNode
 };

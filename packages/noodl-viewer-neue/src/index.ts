@@ -7,6 +7,7 @@ import NoodlRuntime from '@noodl/runtime';
 import Model from '@noodl/runtime/src/model';
 import NodeScope from '@noodl/runtime/src/nodescope';
 import './noodl-js-api';
+import { addDynamicInputPorts } from './node-shared-port-definitions';
 
 require('./services/userservice');
 
@@ -29,6 +30,7 @@ export class NeueRunner {
         isRunningLocally: () => options.connectToEditor
       },
       componentFilter: (c) => c.name.startsWith('/#__neue__/'),
+      nodeLibraryExtensions: [],
       dontCreateRootComponent: true
     });
 
@@ -39,6 +41,35 @@ export class NeueRunner {
     if (options.connectToEditor && options.editorAddress) {
       this.runtime.connectToEditor(options.editorAddress);
     }
+
+    this.runtime.editorConnection.on('firmware', async (content: any) => {
+      const firmware = content.firmware;
+      const response = await fetch(
+        'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2/project/nodes/' + firmware
+      );
+      const nodes = await response.json();
+      for (const node of nodes) {
+        if (!node) continue;
+        const nodeObj = JSON.parse(node);
+        nodeObj.methods = {
+          setResponseParameter: function (name, value) {
+            this._internal.responseParameters[name] = value;
+          },
+          registerInputIfNeeded: function (name) {
+            if (this.hasInput(name)) {
+              return;
+            }
+
+            if (name.startsWith('pm-'))
+              this.registerInput(name, {
+                set: this.setResponseParameter.bind(this, name.substring('pm-'.length))
+              });
+          }
+        };
+        this.runtime.registerNode({ node: nodeObj });
+      }
+      this.runtime.sendNodeLibrary();
+    });
   }
 
   public async load(exportData: any, projectSettings?: any) {

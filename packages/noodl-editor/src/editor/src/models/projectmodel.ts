@@ -76,6 +76,7 @@ export class ProjectModel extends Model {
     return ProjectModel._instance;
   }
   public static set instance(project: ProjectModel | undefined) {
+    project.notifyListeners('projectLoaded');
     if (ProjectModel._instance !== project) {
       //unload old project
       if (ProjectModel._instance) {
@@ -109,6 +110,7 @@ export class ProjectModel extends Model {
   public componentAnnotations: TSFixme;
   public previews: TSFixme;
   public thumbnailURI: TSFixme;
+  public firmware?: string;
   public isCloud?: boolean;
   public cloudVersion: number;
 
@@ -124,6 +126,7 @@ export class ProjectModel extends Model {
       this.thumbnailURI = args.thumbnailURI;
       this.version = args.version;
       this.metadata = args.metadata;
+      this.firmware = args.firmware;
       // this.deviceSettings = args.deviceSettings;
     }
 
@@ -541,11 +544,13 @@ export class ProjectModel extends Model {
   }
 
   setSettings(settings) {
+    console.log('setSettings', settings);
     this.settings = settings;
     this.notifyListeners('settingsChanged');
   }
 
   setSetting(name, value) {
+    console.log('setSetting', name);
     if (this.settings[name] === value) {
       return;
     }
@@ -1096,8 +1101,8 @@ export class ProjectModel extends Model {
       version: this.version,
       lesson: this.lesson ? this.lesson.toJSON() : undefined,
       metadata: this.metadata,
-      variants: this.variants.map((v) => v.toJSON())
-      //   deviceSettings:this.deviceSettings,
+      variants: this.variants.map((v) => v.toJSON()),
+      firmware: this.firmware
     };
     for (const i in this.components) {
       json.components.push(this.components[i].toJSON());

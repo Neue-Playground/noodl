@@ -84,6 +84,13 @@ export class ViewerConnection extends Model {
 
     // A new viewer is connected
     if (request.cmd === 'registered' && request.type === 'viewer') {
+      this.send({
+        cmd: 'firmware',
+        content: {
+          type: 'firmwareChanged',
+          firmware: ProjectModel.instance.firmware
+        }
+      });
       WarningsModel.instance.clearWarningsForRefMatching((ref) => ref.isFromViewer);
       this.sendDebugInspectorsEnabled();
     }
@@ -133,7 +140,6 @@ export class ViewerConnection extends Model {
       }
     } else if (request.cmd === 'nodelibrary' && request.type === 'viewer') {
       const content = JSON.parse(request.content);
-
       this.loadNodeLibrary(request.clientId, request.runtimeType, content);
     } else if (request.cmd === 'sendToOtherClients' && request.type === 'viewer') {
       this.send({
@@ -142,6 +148,7 @@ export class ViewerConnection extends Model {
         content: request.content
       });
     } else if (request.cmd === 'getNoodlModules' && request.type === 'viewer') {
+      console.log('Requesting noodl modules');
       ProjectModules.instance.scanProjectModules(ProjectModel.instance._retainedProjectDirectory, (modules) => {
         this.send({
           cmd: 'noodlModules',
@@ -462,7 +469,6 @@ export class ViewerConnection extends Model {
         if (_this.watchModelChangesDisabled) return;
 
         if (!e.model.owner) return; //Model is being created, no owner yet. Viewer will use full export
-
         _this.send({
           cmd: 'modelUpdate',
           content: {
@@ -958,7 +964,7 @@ export class ViewerConnection extends Model {
       'ProjectModel.metadataChanged',
       ({ key, data }) => {
         if (_this.watchModelChangesDisabled) return;
-
+        console.log('metadata changed', key, data);
         _this.send({
           cmd: 'modelUpdate',
           content: {

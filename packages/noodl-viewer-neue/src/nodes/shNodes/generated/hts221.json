@@ -1,0 +1,610 @@
+{
+    "sensor": {
+        "registers": [
+            {
+                "name": "HTS221_ADR_WHO_AM_I",
+                "value": "0x0F"
+            },
+            {
+                "name": "HTS221_ADR_AV_CONF",
+                "value": "0x10"
+            },
+            {
+                "name": "HTS221_ADR_CTRL1",
+                "value": "0x20"
+            },
+            {
+                "name": "HTS221_ADR_CTRL2",
+                "value": "0x21"
+            },
+            {
+                "name": "HTS221_ADR_CTRL3",
+                "value": "0x22"
+            },
+            {
+                "name": "HTS221_ADR_STATUS",
+                "value": "0x27"
+            },
+            {
+                "name": "HTS221_ADR_H_OUT_1",
+                "value": "0x28"
+            },
+            {
+                "name": "HTS221_ADR_H_OUT_2",
+                "value": "0x29"
+            },
+            {
+                "name": "HTS221_ADR_T_OUT_1",
+                "value": "0x2A"
+            },
+            {
+                "name": "HTS221_ADR_T_OUT_2",
+                "value": "0x2B"
+            },
+            {
+                "name": "HTS221_ADR_H0_rH_x2",
+                "value": "0x30"
+            },
+            {
+                "name": "HTS221_ADR_H1_rH_x2",
+                "value": "0x31"
+            },
+            {
+                "name": "HTS221_ADR_T0_degC_x8",
+                "value": "0x32"
+            },
+            {
+                "name": "HTS221_ADR_T1_degC_x8",
+                "value": "0x33"
+            },
+            {
+                "name": "HTS221_ADR_T1_T0_MSB",
+                "value": "0x35"
+            },
+            {
+                "name": "HTS221_ADR_H0_T0_OUT_1",
+                "value": "0x36"
+            },
+            {
+                "name": "HTS221_ADR_H0_T0_OUT_2",
+                "value": "0x37"
+            },
+            {
+                "name": "HTS221_ADR_H1_T0_OUT_1",
+                "value": "0x3A"
+            },
+            {
+                "name": "HTS221_ADR_H1_T0_OUT_2",
+                "value": "0x3B"
+            },
+            {
+                "name": "HTS221_ADR_T0_OUT_1",
+                "value": "0x3C"
+            },
+            {
+                "name": "HTS221_ADR_T0_OUT_2",
+                "value": "0x3D"
+            },
+            {
+                "name": "HTS221_ADR_T1_OUT_1 ",
+                "value": "0x3E"
+            },
+            {
+                "name": "HTS221_ADR_T1_OUT_2 ",
+                "value": "0x3F"
+            }
+        ],
+        "bitmasks": [
+            {
+                "name": "AV_CONF_BM_AVGH",
+                "value": "0x07"
+            },
+            {
+                "name": "AV_CONF_BM_AVGT",
+                "value": "0x38"
+            },
+            {
+                "name": "AV_CONF_BM_RESERVED",
+                "value": "0xC0"
+            },
+            {
+                "name": "CTRL_REG1_BM_RESERVED",
+                "value": "0x78"
+            },
+            {
+                "name": "CTRL_REG1_BM_PD",
+                "value": "0x80"
+            },
+            {
+                "name": "CTRL_REG1_BM_BDU_BM",
+                "value": "0x04"
+            },
+            {
+                "name": "CTRL_REG1_BM_ODR",
+                "value": "0x03"
+            },
+            {
+                "name": "CTRL_REG2_BM_RESERVED",
+                "value": "0x7C"
+            },
+            {
+                "name": "CTRL_REG2_BM_BOOT",
+                "value": "0x80"
+            },
+            {
+                "name": "CTRL_REG2_BM_HEATER",
+                "value": "0x02"
+            },
+            {
+                "name": "CTRL_REG2_BM_ONE_SHOT",
+                "value": "0x01"
+            },
+            {
+                "name": "CTRL_REG3_BM_RESERVED",
+                "value": "0x3B"
+            },
+            {
+                "name": "CTRL_REG3_BM_DRDY_H_L",
+                "value": "0x80"
+            },
+            {
+                "name": "CTRL_REG3_BM_PP_OD",
+                "value": "0x40"
+            },
+            {
+                "name": "CTRL_REG3_BM_DRDY",
+                "value": "0x04"
+            },
+            {
+                "name": "T0_MSB_BM",
+                "value": "0x03"
+            },
+            {
+                "name": "T1_MSB_BM",
+                "value": "0x0C"
+            }
+        ],
+        "values": [
+            {
+                "name": "VALUE_TRUE",
+                "value": "0x01"
+            },
+            {
+                "name": "VALUE_FALSE",
+                "value": "0x00"
+            },
+            {
+                "name": "HTS221_REG_VALUE_WHO_AM_I",
+                "value": "0xBC"
+            },
+            {
+                "name": "HTS221_REG_VALUE_AV_CONF",
+                "value": "0x1B"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_2",
+                "value": "0x00"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_4",
+                "value": "0x08"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_8",
+                "value": "0x10"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_16",
+                "value": "0x18"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_32",
+                "value": "0x20"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_64",
+                "value": "0x28"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_128",
+                "value": "0x30"
+            },
+            {
+                "name": "AV_CONF_VAL_TEMP_256",
+                "value": "0x38"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_4",
+                "value": "0x00"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_8",
+                "value": "0x01"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_16",
+                "value": "0x02"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_32",
+                "value": "0x03"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_64",
+                "value": "0x04"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_128",
+                "value": "0x05"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_256",
+                "value": "0x06"
+            },
+            {
+                "name": "AV_CONF_VAL_HUMIDITY_512",
+                "value": "0x07"
+            },
+            {
+                "name": "CTRL_REG1_VAL_POWER_UP",
+                "value": "0x80"
+            },
+            {
+                "name": "CTRL_REG1_VAL_POWER_DOWN",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG1_VAL_BDU_MSB_LSB",
+                "value": "0x04"
+            },
+            {
+                "name": "CTRL_REG1_VAL_BDU_CONT_UP",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG1_VAL_ODR_ONE_SHOT",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG1_VAL_ODR_1HZ",
+                "value": "0x01"
+            },
+            {
+                "name": "CTRL_REG1_VAL_ODR_7HZ",
+                "value": "0x02"
+            },
+            {
+                "name": "CTRL_REG1_VAL_ODR_12_5HZ",
+                "value": "0x03"
+            },
+            {
+                "name": "CTRL_REG2_VAL_BOOT_NORMAL",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG2_VAL_BOOT_REBOOT",
+                "value": "0x80"
+            },
+            {
+                "name": "CTRL_REG2_VAL_HEATER_EN",
+                "value": "0x02"
+            },
+            {
+                "name": "CTRL_REG2_VAL_HEATER_DIS",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG2_VAL_OS_START",
+                "value": "0x01"
+            },
+            {
+                "name": "CTRL_REG2_VAL_OS_WAIT",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG3_VAL_DRDY_H",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG3_VAL_DRDY_L",
+                "value": "0x80"
+            },
+            {
+                "name": "CTRL_REG3_VAL_PP",
+                "value": "0x00"
+            },
+            {
+                "name": "CTRL_REG3_VAL_OD",
+                "value": "0x40"
+            },
+            {
+                "name": "CTRL_REG3_VAL_DRDY_EN",
+                "value": "0x04"
+            },
+            {
+                "name": "CTRL_REG3_VAL_DRDY_DIS",
+                "value": "0x00"
+            }
+        ],
+        "name": "Temperature/Humidity Sensor",
+        "examplePartNumber": "HTS221",
+        "driverId": [
+            "0xF005"
+        ],
+        "description" : "The HTS221 sensor is for relative humidity and temperature. It has odr selection from 1-12.5 Hz, and a humidity accuracy of ± 3.5% rH, 20 to +80% rH and a temperature accuracy of ± 0.5 °C,15 to +40 °C. It's output data resolution is 16-bits for the humidity and temperature data.",
+        "platforms": [
+            "iEnable"
+        ],
+        "powerConsumption": "0.5+act*( odr*(avgH+avgT)+heat)",
+        "groups": [
+            {
+                "groupName": "General Parameters",
+                "configParams": [
+                    {
+                        "internalName": "act",
+                        "name": "Active",
+                        "description" : "Set act to true to enable sensor",
+                        "values": [
+                            [
+                                "False",
+                                "VALUE_FALSE",
+                                0,
+                                0
+                            ],
+                            [
+                                "True",
+                                "VALUE_TRUE",
+                                1,
+                                1
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "True",
+                        "guiControl": "checkbox"
+                    },
+                    {
+                        "internalName": "odr",
+                        "name": "ODR",
+                        "description" : "Set odr(output data rate) to desired frequency, or to trigger single reading on demand 'One-Shot' ",
+                        "values": [
+                            [
+                                "One-Shot",
+                                "CTRL_REG1_VAL_ODR_ONE_SHOT",
+                                0,
+                                1
+                            ],
+                            [
+                                "1 Hz",
+                                "CTRL_REG1_VAL_ODR_1HZ",
+                                0,
+                                1
+                            ],
+                            [
+                                "7 Hz",
+                                "CTRL_REG1_VAL_ODR_7HZ",
+                                1,
+                                2
+                            ],
+                            [
+                                "12.5 Hz",
+                                "CTRL_REG1_VAL_ODR_12_5HZ",
+                                2,
+                                3
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0",
+                        "guiControl": "slider"
+                    },
+                    {
+                        "internalName": "avgT",
+                        "name": "Temperature Avg",
+                        "description" : "Select the number of samples to average",
+                        "values": [
+                            [
+                                "2 samples",
+                                "AV_CONF_VAL_TEMP_2",
+                                0,
+                                0.8
+                            ],
+                            [
+                                "4 samples",
+                                "AV_CONF_VAL_TEMP_4",
+                                1,
+                                1.05
+                            ],
+                            [
+                                "8 samples",
+                                "AV_CONF_VAL_TEMP_8",
+                                2,
+                                1.4
+                            ],
+                            [
+                                "16 samples",
+                                "AV_CONF_VAL_TEMP_16",
+                                3,
+                                2.1
+                            ],
+                            [
+                                "32 samples",
+                                "AV_CONF_VAL_TEMP_32",
+                                4,
+                                3.43
+                            ],
+                            [
+                                "64 samples",
+                                "AV_CONF_VAL_TEMP_64",
+                                5,
+                                6.15
+                            ],
+                            [
+                                "128 samples",
+                                "AV_CONF_VAL_TEMP_128",
+                                6,
+                                11.6
+                            ],
+                            [
+                                "256 samples",
+                                "AV_CONF_VAL_TEMP_256",
+                                7,
+                                22.5
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0",
+                        "guiControl": "slider"
+                    },
+                    {
+                        "internalName": "avgH",
+                        "name": "Humidity Avg",
+                        "description" : "Select the number of samples to average",
+                        "values": [
+                            [
+                                "4 samples",
+                                "AV_CONF_VAL_HUMIDITY_4",
+                                0,
+                                0.8
+                            ],
+                            [
+                                "8 samples",
+                                "AV_CONF_VAL_HUMIDITY_8",
+                                1,
+                                1.05
+                            ],
+                            [
+                                "16 samples",
+                                "AV_CONF_VAL_HUMIDITY_16",
+                                2,
+                                1.4
+                            ],
+                            [
+                                "32 samples",
+                                "AV_CONF_VAL_HUMIDITY_32",
+                                3,
+                                2.1
+                            ],
+                            [
+                                "64 samples",
+                                "AV_CONF_VAL_HUMIDITY_64",
+                                4,
+                                3.43
+                            ],
+                            [
+                                "128 samples",
+                                "AV_CONF_VAL_HUMIDITY_128",
+                                5,
+                                6.15
+                            ],
+                            [
+                                "256 samples",
+                                "AV_CONF_VAL_HUMIDITY_256",
+                                6,
+                                11.6
+                            ],
+                            [
+                                "512 samples",
+                                "AV_CONF_VAL_HUMIDITY_512",
+                                7,
+                                22.5
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0",
+                        "guiControl": "slider"
+                    },
+                    {
+                        "internalName": "heat",
+                        "name": "Heater",
+                        "description" : "Enable the heater",
+                        "values": [
+                            [
+                                "False",
+                                "CTRL_REG2_VAL_HEATER_DIS",
+                                0,
+                                0
+                            ],
+                            [
+                                "True",
+                                "CTRL_REG2_VAL_HEATER_EN",
+                                1,
+                                25000
+                            ]
+                        ],
+                        "defaultValue": [
+                            0,
+                            0
+                        ],
+                        "guiEnabled": "act > 0",
+                        "guiControl": "checkbox"
+                    }
+                ]
+            }
+        ],
+        "commands": [
+            {
+                "condition": "act > 0",
+                "command": [
+                    "0x00",
+                    "0x05",
+                    "0x00",
+                    "0x05",
+                    "0x00",
+                    "avgH",
+                    "avgT",
+                    "odr",
+                    "heat"
+                ],
+                "comment": "Set All params in one command"
+            },
+            {
+                "condition": "True",
+                "command": [
+                    "0x00",
+                    "0x01",
+                    "0x00",
+                    "0x01",
+                    "act"
+                ],
+                "comment": "Enable command"
+            }
+        ],
+        "ports": [
+            {
+                "index": 0,
+                "name": "Enable",
+                "type": "in",
+                "value": "bool"
+            },
+            {
+                "index": 0,
+                "name": "Temperature",
+                "type": "out",
+                "value": "data"
+            },
+            {
+                "index": 1,
+                "name": "Humidity",
+                "type": "out",
+                "value": "data"
+            },
+            {
+                "index": 2,
+                "name": "Temperature/Humidity",
+                "type": "out",
+                "value": "data"
+            }
+        ]
+    }
+}

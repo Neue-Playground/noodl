@@ -84,40 +84,6 @@ export function iENBLPanel() {
             <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} />
           </VStack>
         </Box>
-        <Section
-          title="Available Devices"
-          variant={SectionVariant.Panel}
-
-        >
-          {devices.length ? (
-            <VStack>
-              {devices.map((environment, i) => (
-                <Text style={{ margin: '10px 0px 15px 50px' }} key={i}>{environment}</Text>
-
-                // <CloudServiceCardItem
-                //   key={environment.id}
-                //   environment={environment}
-                //   deleteEnvironment={deleteEnvironment}
-                // />
-              ))}
-            </VStack>
-          ) : error ? (
-            <Box hasXSpacing hasYSpacing>
-              <VStack>
-                <Text hasBottomSpacing>Failed to load cloud services</Text>
-                <PrimaryButton label="Try again." />
-              </VStack>
-            </Box>
-          ) : loading ? (
-            <Container hasLeftSpacing hasTopSpacing>
-              <ActivityIndicator />
-            </Container>
-          ) : (
-            <Container hasLeftSpacing hasTopSpacing>
-              <Text>Empty</Text>
-            </Container>
-          )}
-        </Section>
         <div style={{ flex: '1', overflow: 'hidden' }}>
           <ComponentsPanel options={componentPanelOptions} />
         </div>
@@ -127,7 +93,8 @@ export function iENBLPanel() {
           </VStack>
         </Box>
       </Container>
-      <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} />
+      <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} firmware={ProjectModel.instance.firmware} />
+
     </BasePanel>
 
   );

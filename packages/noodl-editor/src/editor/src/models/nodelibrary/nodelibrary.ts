@@ -41,6 +41,18 @@ function evaluateDynamicPortsCondition(cond, node) {
       case '!=':
         res = '' + node.getParameter(paramName) !== value;
         break;
+      case '>' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+        res = +node.getParameter(paramName) > +value;
+        break;
+      case '>=' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+        res = +node.getParameter(paramName) >= +value;
+        break;
+      case '<' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+        res = +node.getParameter(paramName) < +value;
+        break;
+      case '<=' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+        res = +node.getParameter(paramName) <= +value;
+        break;
       case 'NOT':
         res = node.getParameter(paramName) === undefined;
         break;
@@ -122,7 +134,7 @@ export class NodeLibrary extends Model {
     };*/
     /*  for(var i in this.library.dynamicports) {
       var type = this.library.dynamicports[i].type;
-  
+
       if(type && dynamicPortManagerTypes[type])
         this.dynamicPortManagers.push(new dynamicPortManagerTypes[type](this.library.dynamicports[i]));
     }*/

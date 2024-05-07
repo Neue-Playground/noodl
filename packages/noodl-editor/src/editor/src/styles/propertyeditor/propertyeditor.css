@@ -41,6 +41,7 @@
   white-space: nowrap;
   width: 150px;
   position: absolute;
+  overflow: hidden;
 }
 
 .property-value {

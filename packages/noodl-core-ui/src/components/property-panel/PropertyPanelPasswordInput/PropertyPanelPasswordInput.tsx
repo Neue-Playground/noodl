@@ -40,7 +40,7 @@ export function PropertyPanelPasswordInput({
   return (
     <PropertyPanelBaseInput
       value={displayedInputValue}
-      type={focused ? 'text' : 'password'}
+      type={'password'}
       isChanged={isChanged}
       isConnected={isConnected}
       onChange={(value) => setDisplayedInputValue(String(value))}

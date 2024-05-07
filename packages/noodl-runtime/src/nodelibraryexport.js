@@ -657,7 +657,7 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: 'Sensors',
-          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'Hardware Clock']
+          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'acc', 'Hardware Clock', 'Simple Accelerometer', 'Temperature/Humidity Sensor']
         },
         {
           name: 'I/O',

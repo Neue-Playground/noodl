@@ -104,6 +104,8 @@ EditorConnection.prototype.connect = function (address) {
       }
     } else if (message.cmd === 'modelUpdate') {
       await self.emit('modelUpdate', message.content);
+    } else if (message.cmd === 'firmware') {
+      await self.emit('firmware', message.content)
     } else if (message.cmd === 'publish') {
       Services.pubsub.routeMessage(message); // Publish a message from the pubsub service
     } else if (message.cmd === 'noodlModules') {

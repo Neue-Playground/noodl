@@ -31,6 +31,7 @@ type ProjectItemScope = {
   project: ProjectItem;
   label: string;
   latestAccessedTimeAgo: string;
+  firmware: string;
   isCloud: boolean;
   cloudVersion: number;
 };
@@ -294,6 +295,7 @@ export class ProjectsView extends View {
         label: label,
         latestAccessedTimeAgo: timeSince(latestAccessed) + ' ago',
         isCloud: items[i].isCloud,
+        firmware: items[i].firmware,
         cloudVersion: items[i].cloudVersion
       };
 
@@ -587,9 +589,7 @@ export class ProjectsView extends View {
       //hack to make sure this isn't set to false before the click event
       //on the project item has had a chance to see this flag (blur comes before click)
       setTimeout(() => {
-        if (scope.project.isCloud) {
-          img.show();
-        }
+        img.show();
         this.isRenamingProject = false;
       }, 100);
 
@@ -769,11 +769,13 @@ export class ProjectsView extends View {
     ToastLayer.showActivity('Creating new project', activityId);
 
     const name = this.$('#create-new-project-from-feed-item-name').val() || 'Untitled';
+    const firmware = this.$('#create-new-project-from-feed-item-firmware').val() || 'Untitled';
 
     const path = filesystem.makeUniquePath(filesystem.join(direntry, name));
 
     const options = {
       name,
+      firmware,
       path,
       projectTemplate: projectTemplate.projectURL
     };

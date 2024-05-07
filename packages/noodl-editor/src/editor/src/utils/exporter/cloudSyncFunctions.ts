@@ -62,6 +62,7 @@ export async function uploadProjectZipToCloud(args) {
     latestAccessed: new Date(),
     thumbURI: ProjectModel.instance.getThumbnailURI(),
     retainedProjectDirectory: ProjectModel.instance._retainedProjectDirectory,
+    firmware: ProjectModel.instance.firmware,
     isCloud: true,
     cloudVersion: args.coludProjectVersion
   };

@@ -90,7 +90,7 @@ function NoodlRuntime(args) {
   this.frameNumber = 0;
   this.dontCreateRootComponent = !!args.dontCreateRootComponent;
   this.componentFilter = args.componentFilter;
-
+  this.nodeLibraryExtensions = args.nodeLibraryExtensions;
   this.runningInEditor = args.runDeployed ? false : true;
 
   this.platform = {
@@ -361,6 +361,7 @@ NoodlRuntime.prototype.getNodeLibrary = function () {
 
   var nodeLibrary = generateNodeLibrary(this.context.nodeRegister);
   nodeLibrary.projectsettings = projectSettings;
+  // nodeLibrary.context = this.context;
   return JSON.stringify(nodeLibrary, null, 3);
 };
 

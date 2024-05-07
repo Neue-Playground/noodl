@@ -187,6 +187,10 @@ export class NeueService extends Model {
     return this.performRequest('/devices/deploy', 'POST', { deviceid, flow });
   }
 
+  public pushFlow(deviceid: string, flow: string, firmware: string) {
+    return this.performRequest('/devices/push', 'POST', { deviceid, flow, firmware });
+  }
+
   public deleteFlow(id: string) {
     return this.performRequest('/flows/' + id, 'DELETE');
   }

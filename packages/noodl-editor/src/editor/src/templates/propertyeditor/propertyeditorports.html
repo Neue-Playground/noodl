@@ -172,6 +172,21 @@
     <span data-class="isDefault:hidden" class="property-changed-dot"></span>
   </div>
 
+  <!-- Slider property -->
+  <div data-template="slider" style="height:35px; position:relative;">
+    <label class="property-label" data-text="displayName" data-tooltip="path:tooltip"></label>
+
+    <div class="property-value">
+      <div style="position:absolute; left:0px; right:15px; top:0px; bottom:0px;">
+        <input type="range" style="position:relative; width:100%; height:100%; padding:0 0 0 0;" class="sidebar-panel-dark-input" data-class="isDefault:property-input-default,isConnected:property-input-connected" data-val="value" data-input="onPropertyChanged"></input>
+      </div>
+
+      <i class="property-input-value-display" style="position:absolute; width:15px; right:0px; top:10px; color:white"></i>
+    </div>
+
+    <span data-class="isDefault:hidden" class="property-changed-dot"></span>
+  </div>
+
   <!-- Boolean property template -->
   <div data-template="boolean" style="height:35px; position:relative;">
     <label class="property-label" data-text="displayName" data-tooltip="path:tooltip"></label>

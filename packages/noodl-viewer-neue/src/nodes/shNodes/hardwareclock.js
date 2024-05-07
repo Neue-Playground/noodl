@@ -15,6 +15,9 @@ const DeviceNode = {
     'On/Off': {
       type: 'boolean',
       displayName: 'On/Off',
+      set() {
+        this._internal['On/Off'] = false;
+      },
       get() {
         return this._internal['On/Off'];
       }
