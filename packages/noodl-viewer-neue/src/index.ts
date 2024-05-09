@@ -66,7 +66,9 @@ export class NeueRunner {
               });
           }
         };
-        this.runtime.registerNode({ node: nodeObj });
+        this.runtime.registerNode({
+          node: nodeObj
+        });
       }
       this.runtime.sendNodeLibrary();
     });

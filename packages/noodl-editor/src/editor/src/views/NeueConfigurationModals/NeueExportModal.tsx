@@ -67,7 +67,6 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
-                        console.log(selectedDevice, selectedConfiguration, props.firmware)
                         await NeueService.instance.pushFlow(selectedDevice, selectedConfiguration, props.firmware)
                         // const response = await NeueService.instance.deployFlow(selectedDevice, selectedConfiguration)
                         // if (response.status === 200) {

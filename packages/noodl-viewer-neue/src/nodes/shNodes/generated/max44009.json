@@ -433,7 +433,7 @@
         ],
         "commands": [
             {  "condition": "act == 0",                "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_POWER_DOWN" ], "comment" : "CONFIG"  },
-            {  "condition": "act > 0 and enMAN == 1 and enCNT == 0",  "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_MANUAL_EN + time + cdr" ], "comment" : "CONFIG"  },
+            {  "condition": "act > 0 and enMAN == 1 and enCNT == 0",  "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_MANUAL_EN + time" ], "comment" : "CONFIG"  },
             {  "condition": "act > 0 and enCNT == 1 and enMAN == 0 and time < 4",  "command": [ "0x00", "0x05", "0x00", "0x01", "0x00", "CONFIG_VAL_CONT_EN" ], "comment" : "CONFIG"  }
         ],
         "ports": [

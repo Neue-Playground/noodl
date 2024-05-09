@@ -12,8 +12,8 @@ const DeviceNode = {
   dynamicports:[
     {
         name:'conditionalports/extended',
-        condition:"pmode = low",
-        inputs:['Sensor update rate']
+        condition:"sens > 13",
+        inputs:['Accelerometer scale']
     }
   ],
   inputs: {
@@ -35,7 +35,7 @@ const DeviceNode = {
         return this._internal['Accelerometer off'];
       }
     },
-    'Sensor update rate': {
+    sens: {
       group: 'General',
       type: {
         name: 'enum',
@@ -57,7 +57,10 @@ const DeviceNode = {
       default: '13',
       displayName: 'Sensor update rate',
       get() {
-        return this._internal['Sensor update rate'];
+        return this._internal['sens'];
+      },
+      set: function(value) {
+        this._internal.sens = value;
       }
     },
     'Accelerometer scale': {
@@ -86,7 +89,7 @@ const DeviceNode = {
       default: '2',
       displayName: 'Accelerometer scale',
       get() {
-        return this._internal['Accelerometer scale'];
+        return this._internal['scale'];
       }
     },
     'Gyro max degrees per second': {

@@ -41,16 +41,16 @@ function evaluateDynamicPortsCondition(cond, node) {
       case '!=':
         res = '' + node.getParameter(paramName) !== value;
         break;
-      case '>' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+      case '>':
         res = +node.getParameter(paramName) > +value;
         break;
-      case '>=' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+      case '>=':
         res = +node.getParameter(paramName) >= +value;
         break;
-      case '<' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+      case '<':
         res = +node.getParameter(paramName) < +value;
         break;
-      case '<=' && !isNaN(+node.getParameter(paramName)) && !isNaN(+value):
+      case '<=':
         res = +node.getParameter(paramName) <= +value;
         break;
       case 'NOT':

@@ -2,7 +2,7 @@ import NoodlRuntime from '@noodl/runtime';
 
 export function registerNodes(runtime: NoodlRuntime) {
   [
-    require('./shNodes/accelerometer'),
+    // require('./shNodes/accelerometer'),
     // require('./shNodes/commandinput'),
     // require('./shNodes/hardwareclock'),
     // require('./shNodes/MQTT'),
