@@ -491,4 +491,16 @@ export class NodeLibrary extends Model {
 
     return _typename() === 'color' || _typename() === 'number' || _typename() === 'dimension';
   }
+
+  evalSliderStep(step, node) {
+    if (typeof step !== 'string' && !(step instanceof String)) return step;
+    const tokens = step.split(' ');
+    if (tokens.length === 1) return +step;
+    const paramName = tokens[0].replace(/'/g, ''); // Trim any quotes
+    const op = tokens[1];
+    const value = tokens[2].replace(/'/g, '');
+    if (op === '/') return +node.getParameter(paramName) / +value;
+    if (op === '*') return +node.getParameter(paramName) * +value;
+    return +step;
+  }
 }

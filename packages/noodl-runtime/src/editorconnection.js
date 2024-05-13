@@ -319,7 +319,6 @@ EditorConnection.prototype.sendDynamicPorts = function (id, ports, options) {
   }
 
   dynamicPortsHash[id] = hash;
-
   this.send({
     cmd: 'instanceports',
     type: 'viewer',

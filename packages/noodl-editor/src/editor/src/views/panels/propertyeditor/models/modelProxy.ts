@@ -58,8 +58,21 @@ export class ModelProxy {
     // Set the parameter for the specific interaction state
     target.setParameter(name, value, args);
 
+    const _newPorts = this.getPorts();
+
     // Check if the ports have changed for this specific interaction state
-    if (!isEqual(_oldPorts, this.getPorts())) this.model.notifyListeners('instancePortsChanged');
+    if (!isEqual(_oldPorts, _newPorts)) this.model.notifyListeners('instancePortsChanged');
+    else {
+      for (let i = 0; i < _newPorts.length; i++) {
+        if (
+          _newPorts[i].type.stepMultiplierVal &&
+          _newPorts[i].type.stepMultiplierVal !== _newPorts[i].type.stepMultiplierVal
+        ) {
+          this.model.notifyListeners('instancePortsChanged');
+          return;
+        }
+      }
+    }
   }
   isPortConnected(name) {
     if ((this.editMode !== 'variant' && this.visualState === undefined) || this.visualState === 'neutral') {
@@ -84,6 +97,15 @@ export class ModelProxy {
       const idx = ports.findIndex((p) => p.name === portname);
       if (idx !== -1) ports.splice(idx, 1);
     });
+
+    for (let i = 0; i < ports.length; i++) {
+      if (ports[i].type.stepMultiplier) {
+        const newVal = NodeLibrary.instance.evalSliderStep(ports[i].type.stepMultiplier, this);
+        if (newVal !== ports[i].type.stepMultiplierVal) {
+          ports[i].type.stepMultiplierVal = newVal;
+        }
+      }
+    }
 
     // Apply filter for allowVisualStates
     if (this.visualState !== undefined && this.visualState !== 'neutral') {

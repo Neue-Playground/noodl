@@ -439,7 +439,6 @@ export class Ports extends View {
       }
 
       const viewClass = this.viewClassForPort(p);
-      console.log('viewClass', viewClass);
       if (viewClass !== undefined) {
         v = viewClass.fromPort({ port: p, parent: this });
         if (v !== undefined) {

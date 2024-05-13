@@ -34,19 +34,23 @@ export class SliderType extends TypeView {
       event.preventDefault(); // make sure drop down doesn't blur input until after "onPropertyChanged" has been triggered
     });
 
+    const multi = this.type.stepMultiplierVal ? this.type.stepMultiplierVal : 1;
+    const unit = this.type.unit ? this.type.unit : '';
     this.$('input').prop('min', this.type.min);
     this.$('input').prop('max', this.type.max);
     this.$('input').prop('step', this.type.step);
     this.$('input').val(this.getCurrentValue().value);
-    this.$('i').text(this.getCurrentValue().value);
+    this.$('i').text(this.getCurrentValue().value * multi + unit);
     return this.el;
   }
   onPropertyChanged(scope, el) {
     this.parent.setParameter(this.name, this.$('input').val());
 
     // Update current value
+    const multi = this.type.stepMultiplierVal ? this.type.stepMultiplierVal : 1;
+    const unit = this.type.unit ? this.type.unit : '';
     const current = this.getCurrentValue();
-    this.$('i').text(current.value);
+    this.$('i').text(current.value * multi + unit);
     this.isDefault = current.isDefault;
   }
   resetToDefault() {
