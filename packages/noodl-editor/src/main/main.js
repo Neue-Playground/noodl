@@ -554,6 +554,8 @@ function launchApp() {
 
     closeRuntimeWhenWindowCloses(win);
 
+    closeNeueRuntimeWhenWindowCloses(win);
+
     DesignToolImportServer.start(projectGetInfo);
 
     try {
