@@ -254,7 +254,7 @@
                 "value": "0x01"
             }
         ],
-        "name": "Temperature/Humidity Sensor",
+        "name": "Ambient light Sensor",
         "examplePartNumber": "MAX44009",
         "driverId": [
             "0xF008"
