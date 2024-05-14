@@ -366,7 +366,7 @@ function launchApp() {
       label: 'About Application',
       click: () => {
         require('about-window').default({
-          icon_path: appPath + '/src/assets/images/icon.png',
+          icon_path: appPath + '/src/assets/images/neue.png',
           copyright: 'Copyright (c) 2023 Future Platforms AB',
           description: buildNumber ? 'Build ' + buildNumber : undefined
         });
