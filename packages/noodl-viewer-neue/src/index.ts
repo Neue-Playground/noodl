@@ -31,7 +31,8 @@ export class NeueRunner {
       },
       componentFilter: (c) => c.name.startsWith('/#__neue__/'),
       nodeLibraryExtensions: [],
-      dontCreateRootComponent: true
+      dontCreateRootComponent: true,
+      skipStdNodes: true
     });
 
     registerNodes(this.runtime);

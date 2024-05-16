@@ -131,7 +131,9 @@ function NoodlRuntime(args) {
 
   this.registerGraphModelListeners();
 
-  registerNodes(this);
+  if (!args.skipStdNodes) {
+    registerNodes(this);
+  }
 }
 
 NoodlRuntime.prototype.prefetchBundles = async function (bundleNames, numParallelFetches) {
