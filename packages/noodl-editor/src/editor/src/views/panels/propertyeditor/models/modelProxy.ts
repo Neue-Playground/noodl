@@ -64,10 +64,7 @@ export class ModelProxy {
     if (!isEqual(_oldPorts, _newPorts)) this.model.notifyListeners('instancePortsChanged');
     else {
       for (let i = 0; i < _newPorts.length; i++) {
-        if (
-          _newPorts[i].type.stepMultiplierVal &&
-          _newPorts[i].type.stepMultiplierVal !== _newPorts[i].type.stepMultiplierVal
-        ) {
+        if (_newPorts[i].type.stepMultiplierValChanged) {
           this.model.notifyListeners('instancePortsChanged');
           return;
         }
@@ -97,11 +94,11 @@ export class ModelProxy {
       const idx = ports.findIndex((p) => p.name === portname);
       if (idx !== -1) ports.splice(idx, 1);
     });
-
     for (let i = 0; i < ports.length; i++) {
       if (ports[i].type.stepMultiplier) {
         const newVal = NodeLibrary.instance.evalSliderStep(ports[i].type.stepMultiplier, this);
-        if (newVal !== ports[i].type.stepMultiplierVal) {
+        ports[i].type.stepMultiplierValChanged = newVal !== ports[i].type.stepMultiplierVal;
+        if (ports[i].type.stepMultiplierValChanged) {
           ports[i].type.stepMultiplierVal = newVal;
         }
       }
