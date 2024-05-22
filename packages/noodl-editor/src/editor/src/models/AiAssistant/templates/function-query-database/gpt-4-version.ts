@@ -41,7 +41,7 @@ export async function execute(
 
   const fullCodeText = await chatStream({
     provider: {
-      model: 'gpt-4',
+      model: 'gpt-4o',
       temperature: 0.0,
       max_tokens: 2048
     },
@@ -112,7 +112,7 @@ export async function execute(
       { role: 'user', content: codeText }
     ],
     provider: {
-      model: 'gpt-4',
+      model: 'gpt-4o',
       temperature: 0.0,
       max_tokens: 2048
     },

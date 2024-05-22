@@ -5,7 +5,7 @@ import { AiCopilotChatProviders, AiCopilotChatStreamArgs } from '@noodl-models/A
 
 function toChatProvider(provider: AiCopilotChatProviders | undefined) {
   return {
-    model: provider?.model || 'gpt-3.5-turbo',
+    model: provider?.model,
     temperature: provider?.temperature,
     max_tokens: provider?.max_tokens
   };
@@ -38,7 +38,8 @@ async function directChatOpenAi({ messages, provider, abortController, onEnd, on
       stream: true
     }),
     async onopen(response) {
-      if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
+      if (response.ok) {
+        //        if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
         return; // everything's good
       } else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
         // client-side errors are usually non-retriable:
@@ -96,7 +97,7 @@ export namespace Ai {
     let fullText = '';
 
     const version = OpenAiStore.getVersion();
-    if (['full-beta', 'enterprise'].includes(version)) {
+    if (['gpt-4o', 'enterprise'].includes(version)) {
       const result = await directChatOpenAi(args);
       fullText = result.fullText;
     } else {

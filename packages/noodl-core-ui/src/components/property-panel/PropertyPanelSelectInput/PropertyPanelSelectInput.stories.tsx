@@ -21,8 +21,7 @@ Common.args = {
   properties: {
     options: [
       { label: 'Disabled', value: 'disabled' },
-      { label: 'Limited Beta (gpt-3)', value: 'limited-beta' },
-      { label: 'Full Beta (gpt-4)', value: 'full-beta' }
+      { label: 'GPT-4o', value: 'gpt-4o' }
     ]
   }
 };
@@ -33,8 +32,7 @@ hasSmallText.args = {
   properties: {
     options: [
       { label: 'Disabled', value: 'disabled' },
-      { label: 'Limited Beta (gpt-3)', value: 'limited-beta' },
-      { label: 'Full Beta (gpt-4)', value: 'full-beta' }
+      { label: 'GPT-4o', value: 'gpt-4o' }
     ]
   },
   hasSmallText: true

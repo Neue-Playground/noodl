@@ -38,16 +38,10 @@ export namespace AiAssistantApi {
       version: '0.0.0',
       models: [
         {
-          name: 'gpt-4',
-          displayName: 'gpt-4 (8k context)',
+          name: 'gpt-4o',
+          displayName: 'gpt-4o',
           promptTokenCost: 0.03,
           completionTokenCost: 0.06
-        },
-        {
-          name: 'gpt-3.5-turbo',
-          displayName: 'gpt-3.5-turbo',
-          promptTokenCost: 0.002,
-          completionTokenCost: 0.03
         }
       ]
     };

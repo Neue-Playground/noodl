@@ -39,7 +39,7 @@ export abstract class ReActAgent<TParams = unknown> {
         ...history
       ],
       provider: {
-        model: 'gpt-4',
+        model: 'gpt-4o',
         temperature: 0
       },
       onStream: (_, text) => {

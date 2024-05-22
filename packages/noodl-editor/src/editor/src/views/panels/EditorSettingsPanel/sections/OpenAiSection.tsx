@@ -29,7 +29,7 @@ export function OpenAiSection() {
   async function onVerifyApiKey() {
     const models = await verifyOpenAiApiKey(apiKey);
     if (models) {
-      const haveGpt4 = !!models['gpt-4'];
+      const haveGpt4 = !!models['gpt-4o'];
       if (haveGpt4) {
         OpenAiStore.setIsAiApiKeyVerified(true);
         ToastLayer.showSuccess('OpenAI API Key is valid with GPT-4!');
@@ -44,7 +44,7 @@ export function OpenAiSection() {
   }
 
   return (
-    <CollapsableSection title="Noodl AI (Beta)">
+    <CollapsableSection title="AI (Beta)">
       <Box hasXSpacing>
         <VStack>
           <PropertyPanelRow label="Version" isChanged={false}>
@@ -53,7 +53,7 @@ export function OpenAiSection() {
               properties={{
                 options: [
                   { label: 'Disabled', value: 'disabled' },
-                  { label: 'OpenAI', value: 'full-beta' },
+                  { label: 'OpenAI', value: 'gpt-4o' },
                   { label: 'Custom', value: 'enterprise' }
                 ]
               }}
@@ -66,20 +66,17 @@ export function OpenAiSection() {
 
           {enabledState === 'disabled' && (
             <Box hasYSpacing>
-              <Text>Noodl AI is currently disabled.</Text>
+              <Text>AI is currently disabled.</Text>
             </Box>
           )}
 
-          {enabledState === 'full-beta' && (
+          {enabledState === 'gpt-4o' && (
             <>
               <PropertyPanelRow label="Model" isChanged={false}>
                 <PropertyPanelSelectInput
                   value={model}
                   properties={{
-                    options: [
-                      { label: 'gpt-3', value: 'gpt-3' },
-                      { label: 'gpt-4', value: 'gpt-4' }
-                    ]
+                    options: [{ label: 'gpt-4o', value: 'gpt-4o' }]
                   }}
                   onChange={(value: AiModel) => {
                     setModel(value);
@@ -119,10 +116,7 @@ export function OpenAiSection() {
                 <PropertyPanelSelectInput
                   value={model}
                   properties={{
-                    options: [
-                      { label: 'gpt-3', value: 'gpt-3' },
-                      { label: 'gpt-4', value: 'gpt-4' }
-                    ]
+                    options: [{ label: 'gpt-4o', value: 'gpt-4o' }]
                   }}
                   onChange={(value: AiModel) => {
                     setModel(value);
@@ -157,9 +151,9 @@ export function OpenAiSection() {
             UNSAFE_style={{ borderRadius: '2px', background: 'var(--theme-color-bg-3)' }}
           >
             <Title size={TitleSize.Medium} hasBottomSpacing>
-              Noodl AI docs
+              AI docs
             </Title>
-            <Text hasBottomSpacing>See setup instructions and guides for how to use Noodl AI on our docs.</Text>
+            <Text hasBottomSpacing>See setup instructions and guides for how to use AI on our docs.</Text>
             <PrimaryButton
               variant={PrimaryButtonVariant.Muted}
               size={PrimaryButtonSize.Small}

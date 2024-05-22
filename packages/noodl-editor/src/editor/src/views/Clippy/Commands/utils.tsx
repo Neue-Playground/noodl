@@ -70,8 +70,8 @@ export async function makeChatRequest(model: string, messages: unknown[]) {
     console.error(json.error);
     return null;
   } else {
-    const promptTokenCost = model === 'gpt-4' ? 0.03 : 0.002;
-    const completionTokenCost = model === 'gpt-4' ? 0.06 : 0.002;
+    const promptTokenCost = model === 'gpt-4o' ? 0.03 : 0.002;
+    const completionTokenCost = model === 'gpt-4o' ? 0.06 : 0.002;
     let cost =
       (json.usage.completion_tokens * completionTokenCost) / 1000 + (json.usage.prompt_tokens * promptTokenCost) / 1000;
 

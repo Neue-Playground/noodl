@@ -3,7 +3,6 @@ import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 import { extractDatabaseSchema } from '@noodl-models/AiAssistant/DatabaseSchemaExtractor';
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
 import * as QueryGPT4 from '@noodl-models/AiAssistant/templates/function-query-database/gpt-4-version';
-import * as QueryGPT3 from '@noodl-models/AiAssistant/templates/function-query-database/gpt-4-version';
 
 export const template: AiNodeTemplate = {
   type: 'green',
@@ -33,10 +32,8 @@ export const template: AiNodeTemplate = {
     // ---
     console.log('using version: ', version);
 
-    if (['full-beta', 'enterprise'].includes(version)) {
+    if (['gpt-4o', 'enterprise'].includes(version)) {
       await QueryGPT4.execute(context, dbCollectionsSource);
-    } else {
-      await QueryGPT3.execute(context, dbCollectionsSource);
     }
 
     context.chatHistory.removeActivity(activityCodeGenId);

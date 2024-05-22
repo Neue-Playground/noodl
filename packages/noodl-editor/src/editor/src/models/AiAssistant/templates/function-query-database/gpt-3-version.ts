@@ -39,7 +39,7 @@ export async function generate(
 
   const fullCodeText = await chatStream({
     provider: {
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o',
       temperature: 0.0,
       max_tokens: 2048
     },
@@ -113,7 +113,7 @@ export async function generate(
       { role: 'user', content: codeText }
     ],
     provider: {
-      model: 'gpt-3.5-turbo',
+      model: 'gpt-4o',
       temperature: 0.0,
       max_tokens: 2048
     },
