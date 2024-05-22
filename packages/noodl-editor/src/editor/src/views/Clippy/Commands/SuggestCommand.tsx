@@ -44,7 +44,7 @@ export async function handleSuggestionCommand(prompt: string, statusCallback: (s
     { role: 'user', content: p }
   ];
 
-  const response = await makeChatRequest('gpt-4', messages);
+  const response = await makeChatRequest('gpt-4o', messages);
   console.log(response);
 
   return JSON.parse(response.content);

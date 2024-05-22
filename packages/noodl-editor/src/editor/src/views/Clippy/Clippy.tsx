@@ -79,8 +79,8 @@ export default function Clippy() {
     const version = OpenAiStore.getVersion();
     if (version === 'enterprise') {
       setHasApiKey(true);
-      setHasGPT4(OpenAiStore.getModel() === 'gpt-4');
-    } else if (version === 'full-beta') {
+      setHasGPT4(OpenAiStore.getModel() === 'gpt-4o');
+    } else if (version === 'gpt-4o') {
       setHasApiKey(OpenAiStore.getIsAiApiKeyVerified());
     } else {
       setHasGPT4(false);
@@ -94,10 +94,10 @@ export default function Clippy() {
     async function doIt() {
       const version = OpenAiStore.getVersion();
       if (version === 'enterprise') {
-        setHasGPT4(OpenAiStore.getModel() === 'gpt-4');
+        setHasGPT4(OpenAiStore.getModel() === 'gpt-4o');
       } else {
         const models = await verifyOpenAiApiKey(OpenAiStore.getApiKey());
-        setHasGPT4(!!models['gpt-4']);
+        setHasGPT4(!!models['gpt-4o']);
       }
     }
 
@@ -213,7 +213,7 @@ export default function Clippy() {
 
   const initialPlaceholder = isInputOpen ? 'Select (or type) a command below' : 'Ask AI';
   const isPromptInWrongOrder = Boolean(!selectedOption) && Boolean(secondInputValue);
-  const isFullBeta = ['full-beta', 'enterprise'].includes(version);
+  const isFullBeta = ['gpt-4o', 'enterprise'].includes(version);
   const isLimitedBeta = false; // TODO: version === 'limited-beta';
 
   let isCommandsEnabled = isLimitedBeta;
@@ -230,10 +230,8 @@ export default function Clippy() {
   let versionLabel = '';
   if (version === 'enterprise') {
     versionLabel = `Enterprise (${OpenAiStore.getModel()})`;
-  } else if (isLimitedBeta) {
-    versionLabel = 'Limited Beta (gpt-3)';
   } else if (isFullBeta && hasApiKey && hasGPT4) {
-    versionLabel = 'Full beta (gpt-4)';
+    versionLabel = 'GPT-4o';
   }
 
   return (
@@ -409,7 +407,7 @@ export default function Clippy() {
               </Text>
               <Text>2. Make sure GPT-4 is enabled for your account</Text>
               <Text>3. Paste the key into the AI section in the Editor Settings panel</Text>
-              <Text hasBottomSpacing>4. Click the "Verify API Key" button</Text>
+              <Text hasBottomSpacing>4. Click the &quot;Verify API Key&quot; button</Text>
 
               <Text hasBottomSpacing>
                 If you dont have an API key with GPT-4 access, you can set the Noodl AI to use the Limited Beta in the
@@ -604,7 +602,7 @@ export default function Clippy() {
               <PrimaryButton
                 size={PrimaryButtonSize.Small}
                 variant={PrimaryButtonVariant.Muted}
-                label="Full beta setup instructions"
+                label="GPT-4o setup instructions"
                 href={getDocsEndpoint() + '/docs/getting-started/noodl-ai#full-beta'}
               />
             </div>
@@ -717,7 +715,7 @@ function ExamplePrompt({ prompt, onClick }) {
   return (
     <div className={css.ExamplePromptRoot}>
       <div className={css.ExamplePrompt} onClick={onClick}>
-        <Text size={TextSize.Default}>"{prompt}"</Text>
+        <Text size={TextSize.Default}>&quot;{prompt}&quot;</Text>
       </div>
     </div>
   );

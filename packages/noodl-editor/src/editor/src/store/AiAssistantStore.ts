@@ -2,38 +2,28 @@
 
 import { EditorSettings } from '@noodl-utils/editorsettings';
 
-// import { decryptString, encryptString } from './_internal/StorageApi';
-
-// const store = new Store<Record<string, string>>({
-//   name: 'AiAssistant',
-//   encryptionKey: 'b4a5d3b3-5e3e-477e-a978-9d347bc8b834',
-//   defaults: {
-//     defaultModel: 'gpt-4'
-//   }
-// });
-
 const AI_ASSISTANT_API_KEY = 'aiAssistant.temporaryApiKey';
 const AI_ASSISTANT_VERSION_KEY = 'aiAssistant.version';
 const AI_ASSISTANT_VERIFIED_KEY = 'aiAssistant.verified';
 const AI_ASSISTANT_ENDPOINT_KEY = 'aiAssistant.endpoint';
 const AI_ASSISTANT_MODEL_KEY = 'aiAssistant.model';
 
-export type AiVersion = 'disabled' | 'full-beta' | 'enterprise';
+export type AiVersion = 'disabled' | 'gpt-4o' | 'enterprise';
 
-export type AiModel = 'gpt-3' | 'gpt-4';
+export type AiModel = 'gpt-4o';
 
 export const OpenAiStore = {
   isEnabled(): boolean {
     const version = EditorSettings.instance.get(AI_ASSISTANT_VERSION_KEY);
-    return version === 'full-beta';
+    return version === 'gpt-4o';
   },
   getVersion(): AiVersion {
-    return EditorSettings.instance.get(AI_ASSISTANT_VERSION_KEY) || 'full-beta';
+    return EditorSettings.instance.get(AI_ASSISTANT_VERSION_KEY) || 'gpt-4o';
   },
   getPrettyVersion(): string {
     switch (this.getVersion()) {
-      case 'full-beta':
-        return 'Full Beta';
+      case 'gpt-4o':
+        return 'GPT-4o';
       case 'enterprise':
         return 'Enterprise';
     }
@@ -65,6 +55,6 @@ export const OpenAiStore = {
     EditorSettings.instance.set(AI_ASSISTANT_MODEL_KEY, value);
   },
   getModel(): AiModel {
-    return EditorSettings.instance.get(AI_ASSISTANT_MODEL_KEY) || 'gpt-3';
+    return EditorSettings.instance.get(AI_ASSISTANT_MODEL_KEY);
   }
 };

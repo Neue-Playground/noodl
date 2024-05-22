@@ -1,7 +1,6 @@
 import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
-import * as GPT3 from '@noodl-models/AiAssistant/templates/function/gpt-3-version';
 import * as GPT4 from '@noodl-models/AiAssistant/templates/function/gpt-4-version';
 
 import { ToastLayer } from '../../../views/ToastLayer/ToastLayer';
@@ -23,10 +22,8 @@ export const template: AiNodeTemplate = {
     console.log('using version: ', version);
 
     try {
-      if ((version === 'enterprise' && OpenAiStore.getModel() === 'gpt-4') || version === 'full-beta') {
+      if ((version === 'enterprise' && OpenAiStore.getModel() === 'gpt-4o') || version === 'gpt-4o') {
         await GPT4.execute(context);
-      } else {
-        await GPT3.execute(context);
       }
 
       context.chatHistory.removeActivity(activityId);
