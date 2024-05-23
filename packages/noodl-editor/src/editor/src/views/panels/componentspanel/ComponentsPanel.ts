@@ -1137,7 +1137,7 @@ export class ComponentsPanelView extends View {
 
   onAddComponentWithTemplateClicked(scope, el, evt?) {
     const _this = this;
-
+    console.log(scope);
     const popup = scope.template.createPopup({
       onCreate: (localName, options) => {
         const parentPath = scope.comp
@@ -1151,7 +1151,9 @@ export class ComponentsPanelView extends View {
           template: scope.template,
           parentPath: parentPath,
           name: localName,
-          templateOptions: options
+          templateOptions: scope.currentSheet
+            ? { ...options, componentsMetadata: scope.currentSheet.components.map((c) => c.metadata) }
+            : options
         });
         if (!result.success) ToastLayer.showError(result.message);
       },
@@ -1273,6 +1275,7 @@ export class ComponentsPanelView extends View {
             id: guid()
           });
         }
+        if (component === undefined) return;
 
         tracker.track('Component Created', {
           template: args.template ? args.template.label : undefined

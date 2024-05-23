@@ -43,85 +43,85 @@ export class NeueRunner {
       this.runtime.connectToEditor(options.editorAddress);
     }
 
-    this.runtime.editorConnection.on('firmware', async (content: any) => {
-      const firmware = content.firmware;
-      const response = await fetch(
-        'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2/project/nodes/' + firmware
-      );
-      const nodes = await response.json();
-      for (const node of nodes) {
-        if (!node) continue;
-        const nodeObj = JSON.parse(node);
-        nodeObj.methods = {
-          setResponseParameter: function (name, value) {
-            this._internal.responseParameters[name] = value;
-          },
-          registerInputIfNeeded: function (name) {
-            if (this.hasInput(name)) {
-              return;
-            }
+    // this.runtime.editorConnection.on('firmware', async (content: any) => {
+    //   const firmware = content.firmware;
+    //   const response = await fetch(
+    //     'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2/project/nodes/' + firmware
+    //   );
+    //   const nodes = await response.json();
+    //   for (const node of nodes) {
+    //     if (!node) continue;
+    //     const nodeObj = JSON.parse(node);
+    //     nodeObj.methods = {
+    //       setResponseParameter: function (name, value) {
+    //         this._internal.responseParameters[name] = value;
+    //       },
+    //       registerInputIfNeeded: function (name) {
+    //         if (this.hasInput(name)) {
+    //           return;
+    //         }
 
-            if (name.startsWith('pm-'))
-              this.registerInput(name, {
-                set: this.setResponseParameter.bind(this, name.substring('pm-'.length))
-              });
-          }
-        };
-        this.runtime.registerNode({
-          node: nodeObj,
-          setup: function (context, graphModel) {
-            if (!context.editorConnection || !context.editorConnection.isRunningLocally()) {
-              return;
-            }
+    //         if (name.startsWith('pm-'))
+    //           this.registerInput(name, {
+    //             set: this.setResponseParameter.bind(this, name.substring('pm-'.length))
+    //           });
+    //       }
+    //     };
+    //     this.runtime.registerNode({
+    //       node: nodeObj,
+    //       setup: function (context, graphModel) {
+    //         if (!context.editorConnection || !context.editorConnection.isRunningLocally()) {
+    //           return;
+    //         }
 
-            function _managePortsForNode(node) {
-              function _updatePorts() {
-                var ports = [];
+    //         function _managePortsForNode(node) {
+    //           function _updatePorts() {
+    //             var ports = [];
 
-                // Add params outputs
-                if (node.parameters.status === 'success' || node.parameters.status === undefined) {
-                  var params = node.parameters.params;
-                  if (params !== undefined) {
-                    params = params.split(',');
-                    for (var i in params) {
-                      var p = params[i];
+    //             // Add params outputs
+    //             if (node.parameters.status === 'success' || node.parameters.status === undefined) {
+    //               var params = node.parameters.params;
+    //               if (params !== undefined) {
+    //                 params = params.split(',');
+    //                 for (var i in params) {
+    //                   var p = params[i];
 
-                      ports.push({
-                        type: '*',
-                        plug: 'input',
-                        group: 'Parameters',
-                        name: 'pm-' + p,
-                        displayName: p
-                      });
-                    }
-                  }
-                }
+    //                   ports.push({
+    //                     type: '*',
+    //                     plug: 'input',
+    //                     group: 'Parameters',
+    //                     name: 'pm-' + p,
+    //                     displayName: p
+    //                   });
+    //                 }
+    //               }
+    //             }
 
-                context.editorConnection.sendDynamicPorts(node.id, ports);
-              }
+    //             context.editorConnection.sendDynamicPorts(node.id, ports);
+    //           }
 
-              _updatePorts();
-              node.on('parameterUpdated', function (event) {
-                if (event.name === 'params') {
-                  _updatePorts();
-                }
-              });
-            }
+    //           _updatePorts();
+    //           node.on('parameterUpdated', function (event) {
+    //             if (event.name === 'params') {
+    //               _updatePorts();
+    //             }
+    //           });
+    //         }
 
-            graphModel.on('editorImportComplete', () => {
-              graphModel.on('nodeAdded.acc', function (node) {
-                _managePortsForNode(node);
-              });
+    //         graphModel.on('editorImportComplete', () => {
+    //           graphModel.on('nodeAdded.acc', function (node) {
+    //             _managePortsForNode(node);
+    //           });
 
-              for (const node of graphModel.getNodesWithType('noodl.acc')) {
-                _managePortsForNode(node);
-              }
-            });
-          }
-        });
-      }
-      this.runtime.sendNodeLibrary();
-    });
+    //           for (const node of graphModel.getNodesWithType('noodl.acc')) {
+    //             _managePortsForNode(node);
+    //           }
+    //         });
+    //       }
+    //     });
+    //   }
+    //   this.runtime.sendNodeLibrary();
+    // });
   }
 
   public async load(exportData: any, projectSettings?: any) {

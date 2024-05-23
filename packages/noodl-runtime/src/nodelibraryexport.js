@@ -637,7 +637,7 @@ function generateNodeLibrary(nodeRegister) {
         {
           // Neue
           name: 'General',
-          items: ['Compare', 'Range', 'Stepper', 'Threshold', 'Toggle']
+          items: ['Compare', 'Range', 'Stepper', 'Threshold', 'Toggle', 'Time', 'Convert to json']
         },
         {
           name: 'Events',
@@ -673,7 +673,7 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: '',
-          items: ['MQTT', 'Save Telemetry', 'Commands Input', 'Register event']
+          items: ['MQTT', 'Save Telemetry', 'Commands Input', 'Register event', 'HTTP']
         }
       ]
     }

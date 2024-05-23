@@ -99,19 +99,19 @@ const DeviceNode = {
         enums: [
           {
             label: '250 DPS',
-            value: '250 DPS'
+            value: '250'
           },
           {
             label: '500 DPS',
-            value: '500 DPS'
+            value: '500'
           },
           {
             label: '1000 DPS',
-            value: '1000 DPS'
+            value: '1000'
           },
           {
             label: '2000 DPS',
-            value: '2000 DPS'
+            value: '2000'
           }
         ]
       },
@@ -180,7 +180,7 @@ const DeviceNode = {
           }
         ]
       },
-      default: 'none',
+      default: 'None',
       displayName: 'Event type',
       get() {
         return this._internal['Event type'];
@@ -214,7 +214,7 @@ const DeviceNode = {
     },
     'Acc event': {
       group: 'Sensor Data',
-      type: 'number',
+      type: 'signal',
       displayName: 'Acc event',
       get() {
         return this._internal['Acc event'];

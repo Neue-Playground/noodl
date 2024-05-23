@@ -43,7 +43,7 @@ export default function NeueExportModal(props: ModalProps) {
                         padding: '32px'
                     }}
                 >
-                    {Boolean(props.jsonData.length) && (
+                    {/* {Boolean(props.jsonData.length) && (
                         <Select
                             options={props.jsonData.map((comp) => { return { label: comp.name.split("/#__neue__/").pop(), value: comp, isDisabled: false } })}
                             onChange={(value: string) => setSetSelectedConfiguration(value)}
@@ -52,7 +52,7 @@ export default function NeueExportModal(props: ModalProps) {
                             label="Device flow"
                             hasBottomSpacing
                         />
-                    )}
+                    )} */}
                     {Boolean(props.devices.length) && (
                         <Select
                             options={props.devices.map((device) => { return { label: device, value: device, isDisabled: false } })}
@@ -67,13 +67,15 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
-                        const response = await NeueService.instance.pushFlow(selectedDevice, selectedConfiguration, props.firmware)
-                        if (response.status === 200) {
-                            props.onClose()
-                        } else {
-                            const body = await response.json()
-                            setError('Failed to push to device: ' + body)
-                        }
+                        console.log(JSON.stringify(JSON.stringify(props.jsonData)))
+                        console.log(props.jsonData)
+                        // const response = await NeueService.instance.pushFlow(selectedDevice, selectedConfiguration, props.firmware)
+                        // if (response.status === 200) {
+                        //     props.onClose()
+                        // } else {
+                        //     const body = await response.json()
+                        //     setError('Failed to push to device: ' + body)
+                        // }
                     }} />
                 </div>
             </div>

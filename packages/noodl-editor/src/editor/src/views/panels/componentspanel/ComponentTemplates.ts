@@ -177,7 +177,7 @@ class DeviceComponentTemplate extends ComponentTemplate {
       roots: [
         {
           id: 'A',
-          type: 'noodl.cloud.request',
+          type: 'Component Inputs',
           x: 0,
           y: 0,
           parameters: {},
@@ -187,7 +187,7 @@ class DeviceComponentTemplate extends ComponentTemplate {
         },
         {
           id: 'B',
-          type: 'noodl.cloud.response',
+          type: 'Component Outputs',
           x: 300,
           y: 0,
           parameters: {},
@@ -197,6 +197,27 @@ class DeviceComponentTemplate extends ComponentTemplate {
         }
       ]
     };
+  }
+
+  createComponent(componentName, options, undoGroup) {
+    // Create component from template
+    const hasDevice =
+      options && options.componentsMetadata
+        ? options.componentsMetadata.findIndex((data) => data.device) !== -1
+        : false;
+    if (hasDevice) return;
+    const component = new ComponentModel({
+      name: componentName,
+      graph: NodeGraphModel.fromJSON(JSON.parse(JSON.stringify(this.template))),
+      id: Utils.guid(),
+      metadata: {
+        device: true
+      }
+    });
+
+    component.rekeyAllIds();
+
+    return component;
   }
 }
 
@@ -224,6 +245,24 @@ class NeueComponentTemplate extends ComponentTemplate {
         }
       ]
     };
+  }
+
+  createComponent(componentName, options, undoGroup) {
+    // Create component from template
+    const hasRoot =
+      options && options.componentsMetadata ? options.componentsMetadata.findIndex((data) => data.root) !== -1 : false;
+    const component = new ComponentModel({
+      name: componentName,
+      graph: NodeGraphModel.fromJSON(JSON.parse(JSON.stringify(this.template))),
+      id: Utils.guid(),
+      metadata: {
+        root: !hasRoot
+      }
+    });
+
+    component.rekeyAllIds();
+
+    return component;
   }
 }
 
@@ -309,7 +348,8 @@ export class ComponentTemplates {
       new VisualComponentTemplate(),
       new LogicComponentTemplate(),
       new CloudFunctionComponentTemplate(),
-      new NeueComponentTemplate()
+      new NeueComponentTemplate(),
+      new DeviceComponentTemplate()
     ];
   }
 

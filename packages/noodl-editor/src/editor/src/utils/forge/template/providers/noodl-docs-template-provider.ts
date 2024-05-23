@@ -14,6 +14,7 @@ export class NoodlDocsTemplateProvider implements ITemplateProvider {
   async list(_options: TemplateListFilter): Promise<readonly TemplateItem[]> {
     const endpoint = this.getDocsEndpoint();
     const templates = await this.makeRequest(endpoint);
+    console.log(templates);
     templates.forEach((t) => {
       t.iconURL = endpoint + '/projecttemplates/' + t.iconURL;
       t.projectURL = endpoint + '/projecttemplates/' + t.projectURL;
