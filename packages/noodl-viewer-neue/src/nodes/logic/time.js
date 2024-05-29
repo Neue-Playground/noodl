@@ -43,9 +43,9 @@ const DeviceNode = {
       type: 'number',
       displayName: 'Unix time out'
     },
-    'String time': {
+    'String time out': {
       type: 'string',
-      displayName: 'String time'
+      displayName: 'String time out'
     }
   }
 };
