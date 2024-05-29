@@ -27,7 +27,10 @@ const DeviceNode = {
       displayName: 'Repeat every x seconds'
     },
     'Trig in': {
-      type: 'signal',
+      type: {
+        name: '*',
+        allowConnectionsOnly: true
+      },
       displayName: 'Trig in'
     },
   },

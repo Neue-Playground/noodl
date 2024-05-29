@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'acc',
+  name: 'Accelerometer/Gyroscope',
   displayNodeName: 'Accelerometer/Gyroscope',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',

@@ -203,7 +203,7 @@ class DeviceComponentTemplate extends ComponentTemplate {
     // Create component from template
     const hasDevice =
       options && options.componentsMetadata
-        ? options.componentsMetadata.findIndex((data) => data.device) !== -1
+        ? options.componentsMetadata.findIndex((data) => data && data.device) !== -1
         : false;
     if (hasDevice) return;
     const component = new ComponentModel({
@@ -235,7 +235,7 @@ class NeueComponentTemplate extends ComponentTemplate {
       roots: [
         {
           id: 'A',
-          type: 'MQTT',
+          type: 'HTTP',
           x: 0,
           y: 0,
           parameters: {},
@@ -250,7 +250,9 @@ class NeueComponentTemplate extends ComponentTemplate {
   createComponent(componentName, options, undoGroup) {
     // Create component from template
     const hasRoot =
-      options && options.componentsMetadata ? options.componentsMetadata.findIndex((data) => data.root) !== -1 : false;
+      options && options.componentsMetadata
+        ? options.componentsMetadata.findIndex((data) => data && data.root) !== -1
+        : false;
     const component = new ComponentModel({
       name: componentName,
       graph: NodeGraphModel.fromJSON(JSON.parse(JSON.stringify(this.template))),

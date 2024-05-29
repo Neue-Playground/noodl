@@ -72,7 +72,10 @@ const DeviceNode = {
       displayName: 'Basic auth password'
     },
     'Request trigger': {
-      type: 'signal',
+      type: {
+        name: '*',
+        allowConnectionsOnly: true
+      },
       displayName: 'Request trigger'
     },
   },
