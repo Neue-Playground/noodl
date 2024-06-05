@@ -30,6 +30,7 @@ Common.args = {
         <SideNavigationButton icon={IconName.StructureCircle} label={'Version control'} notification={{ count: 2 }} />
         <SideNavigationButton icon={IconName.StructureCircle} label={'Version control'} notification={{ count: 100 }} />
         <SideNavigationButton icon={IconName.CloudData} label={'Cloud Services'} />
+        <SideNavigationButton icon={IconName.Neue} label={'Neue Playground'} />
         <SideNavigationButton icon={IconName.CloudFunction} label={'Cloud functions'} />
         <SideNavigationButton icon={IconName.Setting} label={'Project settings'} />
       </Container>

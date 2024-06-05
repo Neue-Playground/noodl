@@ -15,7 +15,7 @@ export function useSetupSettings() {
     const savedPanelId = projectEditorSettings['editor-sidebar-panel'];
     const panelExists = savedPanelId && SidebarModel.instance.getItems().find((p) => p.id === savedPanelId);
 
-    const panelId = panelExists ? savedPanelId : 'components';
+    const panelId = panelExists ? savedPanelId : 'neuePanel';
     SidebarModel.instance.switch(panelId);
 
     // Save changes to side panel

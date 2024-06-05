@@ -155,7 +155,7 @@ export enum IconName {
   SlidersFilled = 'sliders_filled',
   Navigate = 'navigate',
   NeueLogo = 'neue',
-  Neue = 'plauyground',
+  Neue = 'playground',
   Link = 'link',
   SEO = 'seo'
 }

@@ -195,6 +195,9 @@ TODO: review this icon
 .components-panel-core-ui-icon.is-cloud-function-icon {
   content: url('../assets/icons/core-ui-temp/cloud_function.svg') !important;
 }
+.components-panel-core-ui-icon.is-neue-icon {
+  content: url('../assets/icons/core-ui-temp/playground.svg') !important;
+}
 
 .components-panel-core-ui-icon.is-page-icon.is-folder-component:after {
   top: 0;

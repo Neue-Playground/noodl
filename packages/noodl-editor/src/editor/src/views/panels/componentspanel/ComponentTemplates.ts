@@ -206,7 +206,7 @@ class NeueComponentTemplate extends ComponentTemplate {
   constructor() {
     super('Neue Component', IconName.Neue);
 
-    this.parentTypes = ['folder', 'component'];
+    this.parentTypes = ['folder'];
     this.runtimeTypes = ['neue'];
 
     this.template = {
@@ -307,9 +307,9 @@ export class ComponentTemplates {
     this.templates = [
       new PageComponentTemplate(),
       new VisualComponentTemplate(),
+      new NeueComponentTemplate(),
       new LogicComponentTemplate(),
-      new CloudFunctionComponentTemplate(),
-      new NeueComponentTemplate()
+      new CloudFunctionComponentTemplate()
     ];
   }
 

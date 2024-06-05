@@ -8,6 +8,7 @@ import { ProjectModel } from '@noodl-models/projectmodel';
 import { getDefaultComponent } from '@noodl-models/projectmodel.utils';
 import { UndoQueue, UndoActionGroup } from '@noodl-models/undo-queue-model';
 import { WarningsModel } from '@noodl-models/warningsmodel';
+import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
 import { tracker } from '@noodl-utils/tracker';
 import { guid } from '@noodl-utils/utils';
 
@@ -62,6 +63,7 @@ export class ComponentsPanelView extends View {
     [key: string]: {
       folder?: ComponentsPanelFolder;
       isRoot?: boolean;
+      isNeueRoot?: boolean;
       hasWarnings?: boolean;
       comp?: TSFixme;
       canBecomeRoot?: TSFixme;
@@ -81,6 +83,7 @@ export class ComponentsPanelView extends View {
       isCloudFunction: boolean;
       isNeue: boolean;
       isRoot: boolean;
+      isNeueRoot: boolean;
       isVisual: boolean;
       isComponentFolder: boolean;
       canBecomeRoot: boolean;
@@ -117,6 +120,16 @@ export class ComponentsPanelView extends View {
 
     this.componentScopes = {}; // A place to store component scopes (view models) so we can find them later by component name
     this.folderScopes = {};
+
+    const main = ProjectModel.instance.getComponentWithName('/#__neue__/Main');
+    const neueRoot = ProjectModel.instance.getNeueRootComponent();
+    if (!main && !neueRoot) {
+      const neueRoot = ComponentTemplates.instance
+        .getTemplates({ forRuntimeType: 'neue' })[0]
+        .createComponent('/#__neue__/Main', {}, {});
+      ProjectModel.instance.addComponent(neueRoot);
+      ProjectModel.instance.setNeueRootComponent(neueRoot);
+    }
   }
 
   private getRuntimeType() {
@@ -332,7 +345,14 @@ export class ComponentsPanelView extends View {
       s.isRoot = false;
     });
   }
-
+  private resetIsNeueRoot() {
+    _.each(this.componentScopes, function (s) {
+      s.isNeueRoot = false;
+    });
+    _.each(this.folderScopes, function (s) {
+      s.isNeueRoot = false;
+    });
+  }
   bindModels() {
     const _this = this;
 
@@ -577,7 +597,7 @@ export class ComponentsPanelView extends View {
           })
         );
       }
-    } else if (targetComponent) {
+    } else if (targetComponent && !isComponentModel_NeueRuntime(component)) {
       // We are dropping on a component
 
       // Move component as a subcomponent
@@ -700,6 +720,7 @@ export class ComponentsPanelView extends View {
         isCloudFunction: iconType === ComponentIconType.CloudFunction,
         isNeue: iconType === ComponentIconType.Neue,
         isRoot: ProjectModel.instance.getRootNode() && ProjectModel.instance.getRootNode().owner.owner == c,
+        isNeueRoot: ProjectModel.instance.getNeueRootComponent() && ProjectModel.instance.getNeueRootComponent() == c,
         isVisual: iconType === ComponentIconType.Visual,
         isComponentFolder: false,
         canBecomeRoot: c.allowAsExportRoot,
@@ -732,6 +753,10 @@ export class ComponentsPanelView extends View {
           Boolean(f.component) &&
           ProjectModel.instance.getRootNode() &&
           ProjectModel.instance.getRootNode().owner.owner == f.component,
+        isNeueRoot:
+          Boolean(f.component) &&
+          ProjectModel.instance.getNeueRootComponent() &&
+          ProjectModel.instance.getNeueRootComponent() == f.component,
         isComponentFolder: Boolean(f.component),
         canBecomeRoot: Boolean(f.component) && f.component.allowAsExportRoot,
         hasWarnings: Boolean(f.component) && WarningsModel.instance.hasComponentWarnings(f.component)
@@ -986,6 +1011,20 @@ export class ComponentsPanelView extends View {
 
           ProjectModel.instance.setRootComponent(scope.comp);
           scope.isRoot = true;
+
+          evt.stopPropagation();
+        }
+      });
+    }
+
+    if (isComponentModel_NeueRuntime(scope.comp) && scope.comp !== ProjectModel.instance.getNeueRootComponent()) {
+      items.push({
+        icon: IconName.Home,
+        label: 'Make Main',
+        onClick: () => {
+          this.resetIsNeueRoot();
+          ProjectModel.instance.setNeueRootComponent(scope.comp);
+          scope.isNeueRoot = true;
 
           evt.stopPropagation();
         }

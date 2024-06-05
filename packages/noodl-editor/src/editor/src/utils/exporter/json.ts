@@ -37,6 +37,7 @@ export function exportComponentsToJSON(
   json.componentIndex = {};
 
   json.metadata = project ? project.metadata : undefined;
+  json.rootNeueComponent = project ? project.rootNeueComponent : undefined;
 
   // Take a copy of metadata so that it can be modified without affecting the original
   json.metadata = project?.metadata ? JSON.parse(JSON.stringify(project.metadata)) : {};
@@ -114,7 +115,7 @@ export function exportToJSON(projectModel: ProjectModel, args?: ExportToJSONOpti
 
   json.rootComponent = rootComponent.name;
   json.rootNode = root.id;
-
+  json.rootNeueComponent = projectModel.getNeueRootComponent()
   json.metadata = project ? project.metadata : undefined;
 
   // Take a copy of metadata so that it can be modified without affecting the original

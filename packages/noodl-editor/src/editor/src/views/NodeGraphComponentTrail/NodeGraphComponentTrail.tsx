@@ -11,6 +11,7 @@ import { Label } from '@noodl-core-ui/components/typography/Label';
 import { TextType } from '@noodl-core-ui/components/typography/Text';
 
 import css from './NodeGraphComponentTrail.module.scss';
+import { ProjectModel } from '@noodl-models/projectmodel';
 
 export interface ComponentTrailItem {
   id?: string;
@@ -125,9 +126,13 @@ function Item({ item, onSwitchToComponent }: ItemProps) {
       isSheet = true;
     }
   }
-
+  let isNeueRoot = false;
+  const neueRoot = ProjectModel.instance.getNeueRootComponent();
+  if (neueRoot.id) {
+    isNeueRoot = neueRoot.name === item.fullName;
+  }
   if (name === '#__cloud__') return null;
-  if (name === '#__neue__') return null;
+  if (name === '#__neue__' && neueRoot.name !== item.fullName) return null;
 
   const rootComponent = getDefaultComponent();
   let isRootComponent = false;
@@ -153,6 +158,9 @@ function Item({ item, onSwitchToComponent }: ItemProps) {
     >
       {icon && !isSheet && (
         <Icon icon={isRootComponent ? IconName.Home : icon} size={IconSize.Tiny} UNSAFE_className={css['Icon']} />
+      )}
+      {isNeueRoot && (
+        <Icon icon={IconName.Home} size={IconSize.Tiny} UNSAFE_className={css['Icon']} />
       )}
       <Label variant={item.component ? TextType.Default : TextType.Shy} UNSAFE_className={css['Label']}>
         {name}

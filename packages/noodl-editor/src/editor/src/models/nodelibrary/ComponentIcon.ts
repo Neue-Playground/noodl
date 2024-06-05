@@ -11,8 +11,8 @@ export enum ComponentIconType {
 
 const typenames: { [key: string]: ComponentIconType } = {
   Page: ComponentIconType.Page,
-  'MQTT': ComponentIconType.Neue,
-  'noodl.cloud.request': ComponentIconType.CloudFunction,
+  MQTT: ComponentIconType.Neue,
+  'noodl.cloud.request': ComponentIconType.CloudFunction
 };
 
 export function getComponentIconType(component: ComponentModel): ComponentIconType {
