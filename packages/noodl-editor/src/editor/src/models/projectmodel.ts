@@ -3,6 +3,7 @@ import { filesystem } from '@noodl/platform';
 
 import { UndoQueue, UndoActionGroup } from '@noodl-models/undo-queue-model';
 import { WarningsModel } from '@noodl-models/warningsmodel';
+import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
 import { verifyJsonFile } from '@noodl-utils/verifyJson';
 
 import Model from '../../../shared/model';
@@ -106,6 +107,7 @@ export class ProjectModel extends Model {
   public modules: ProjectModule[] = [];
   public lesson: TSFixme;
   public rootNode: NodeGraphNode;
+  public rootNeueComponent: ComponentModel;
   public evaluatehealthScheduled: TSFixme;
   public componentAnnotations: TSFixme;
   public previews: TSFixme;
@@ -173,6 +175,7 @@ export class ProjectModel extends Model {
     if (json.variants !== undefined) _this.variants = json.variants.map((v) => VariantModel.fromJSON(v));
 
     if (json.rootNodeId) _this.rootNode = _this.findNodeWithId(json.rootNodeId);
+    if (json.rootNeueComponent) _this.rootNeueComponent = _this.getComponentWithName(json.rootNeueComponent.name);
 
     if (json.id) _this.id = json.id;
     if (json.isCloud) _this.isCloud = json.isCloud;
@@ -223,6 +226,13 @@ export class ProjectModel extends Model {
     if (root) this.setRootNode(root);
   }
 
+  setNeueRootComponent(component: ComponentModel) {
+    if (isComponentModel_NeueRuntime(component)) {
+      this.rootNeueComponent = component;
+      this.notifyListeners('neueRootComponent');
+    }
+  }
+
   // Returns root
   getRootNode() {
     return this.rootNode;
@@ -235,6 +245,16 @@ export class ProjectModel extends Model {
     }
 
     return root.owner?.owner;
+  }
+
+  public getNeueRootComponent(): ComponentModel {
+    const root = this.rootNeueComponent;
+
+    if (!root) {
+      return;
+    }
+
+    return root;
   }
 
   // Returns all components of the project
@@ -826,11 +846,11 @@ export class ProjectModel extends Model {
     }
 
     const isRootComponent = this.getRootComponent() === component;
-
-    if (isRootComponent) {
+    const isNeueRootComponent = this.getNeueRootComponent() === component;
+    if (isRootComponent || isNeueRootComponent) {
       return {
         canBeDelete: false,
-        reason: "Home component can't be deleted"
+        reason: "Main component can't be deleted"
       };
     }
 
@@ -1097,6 +1117,7 @@ export class ProjectModel extends Model {
       components: [],
       settings: this.settings,
       rootNodeId: this.rootNode ? this.rootNode.id : undefined,
+      rootNeueComponent: this.rootNeueComponent ? this.rootNeueComponent : undefined,
       thumbnailURI: this.thumbnailURI,
       version: this.version,
       lesson: this.lesson ? this.lesson.toJSON() : undefined,

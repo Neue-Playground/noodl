@@ -15,9 +15,10 @@ import { Text } from '@noodl-core-ui/components/typography/Text';
 import { ActivityIndicator } from '@noodl-core-ui/components/common/ActivityIndicator';
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
-import { exportComponentsToJSON } from '@noodl-utils/exporter';
+import { exportComponent, exportComponentsToJSON } from '@noodl-utils/exporter';
 import NeueExportModal from '../../NeueConfigurationModals/NeueExportModal';
 import { App } from '@noodl-models/app';
+import { filesystem } from '@noodl/platform';
 
 export function iENBLPanel() {
   const environment = useActiveEnvironment(ProjectModel.instance);
@@ -26,8 +27,8 @@ export function iENBLPanel() {
 
   const [devices, setDevices] = useState([]);
 
-  const [jsonData, setJsonData] = useState([]);
-  const [isExportModalOpen, setIsExportModalOpen] = useState(false)
+  const [jsonData, setJsonData] = useState({});
+  const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   useEffect(() => {
     NeueService.instance.load().then((result) => {
@@ -53,7 +54,7 @@ export function iENBLPanel() {
     NeueService.instance.fetchDevices().then((response) => {
       setDevices(response);
     }).catch((err) => {
-      console.log(err)
+      console.log(err);
     }).finally(() => {
       setLoading(false);
     });
@@ -61,18 +62,74 @@ export function iENBLPanel() {
 
   function handleCloseModal() {
     setJsonData([]);
-    setIsExportModalOpen(false)
+    setIsExportModalOpen(false);
   }
 
+  const findAndExpandNodes = (nodes, allComponents) => {
+    const stack = [...nodes];
+    const expandedNodes = [];
+    const visitedNodes = new Set();
+
+    while (stack.length > 0) {
+      const node = stack.pop();
+
+      if (visitedNodes.has(node)) {
+        continue;
+      }
+
+      visitedNodes.add(node);
+
+      let expandedNode = { ...node.toJSON() };
+
+      if (node.typename.includes('/#__neue__/')) {
+        const matchingComponent = allComponents.find(comp => comp.fullName === node.typename);
+
+        if (matchingComponent) {
+          const componentNodes = matchingComponent.graph?.getNodeSetWithNodes(matchingComponent.getNodes()).nodes;
+
+          if (componentNodes) {
+            const shouldRecurse = componentNodes.some(childNode => childNode.typename.includes('/#__neue__/'));
+
+            let expandedChildren = [];
+
+            if (shouldRecurse) {
+              stack.push(...componentNodes);
+            }
+
+            expandedChildren = componentNodes.map(childNode => childNode.toJSON());
+
+            expandedNode = {
+              ...node.toJSON(),
+              nodes: expandedChildren
+            };
+          }
+        }
+      }
+
+      expandedNodes.push(expandedNode);
+    }
+
+    return expandedNodes;
+  };
 
   async function getJsonConfiguration() {
+    const neueRoot = ProjectModel.instance.getNeueRootComponent();
     const allComponents = ProjectModel.instance.components.filter(comp => isComponentModel_NeueRuntime(comp));
 
-    const json = await exportComponentsToJSON(ProjectModel.instance, allComponents, { useBundleHashes: false, useBundles: true }).components
-    //await filesystem.writeJson(__dirname + 'exportTest.json', json);
+    if (neueRoot) {
+      setLoading(true);
+      const rootNodes = neueRoot?.graph?.getNodeSetWithNodes(neueRoot.getNodes());
+      const expandedNodes = findAndExpandNodes(rootNodes.nodes, allComponents);
 
-    setJsonData(json)
-    setIsExportModalOpen(!isExportModalOpen)
+      const root = {
+        ...neueRoot.toJSON(),
+        nodes: expandedNodes
+      };
+      setJsonData(root);
+    }
+    setLoading(false);
+
+    setIsExportModalOpen(!isExportModalOpen);
   }
 
 
@@ -81,7 +138,7 @@ export function iENBLPanel() {
       <Container direction={ContainerDirection.Vertical} isFill>
         <Box hasXSpacing hasYSpacing>
           <VStack>
-            <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} />
+            <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} isDisabled={loading} />
           </VStack>
         </Box>
         <div style={{ flex: '1', overflow: 'hidden' }}>

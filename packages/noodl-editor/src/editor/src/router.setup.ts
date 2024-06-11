@@ -89,13 +89,6 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
     name: 'Neue Playground',
     order: 3,
     icon: IconName.Neue,
-
-    panelProps: {
-      options: {
-        showSheetList: true,
-        hideSheets: ['__cloud__']
-      }
-    },
     panel: iENBLPanel
   });
 

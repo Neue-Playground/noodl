@@ -32,6 +32,7 @@ export const Preview = () => (
             <SideNavigationButton icon={IconName.StructureCircle} label={'Version control'} />
             <SideNavigationButton icon={IconName.CloudData} label={'Cloud Services'} />
             <SideNavigationButton icon={IconName.CloudFunction} label={'Cloud functions'} />
+            <SideNavigationButton icon={IconName.Neue} label={'Neue playground'} />
             <SideNavigationButton icon={IconName.Setting} label={'Project settings'} />
           </Container>
           <Container direction={ContainerDirection.Vertical}>

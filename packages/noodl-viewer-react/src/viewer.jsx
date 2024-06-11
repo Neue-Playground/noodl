@@ -169,6 +169,12 @@ export default class Viewer extends React.Component {
       requestAnimationFrame(() => this.forceUpdate());
     });
 
+    noodlRuntime.eventEmitter.on('neueRootComponent', () => {
+      //wait until next frame to trigger a react update, so inputs etc have a chance to settle
+      //(forceUpdate is synchronous)
+      requestAnimationFrame(() => this.forceUpdate());
+    });
+
     noodlRuntime.graphModel.on('projectSettingsChanged', (settings) => {
       // Suppport SSR
       if (typeof document === 'undefined') return;

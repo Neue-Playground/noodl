@@ -1434,7 +1434,8 @@ export class NodeGraphNode extends Model {
       dynamicports: this.dynamicports ? JSON.parse(JSON.stringify(this.dynamicports)) : undefined,
       conflicts: this.conflicts ? JSON.parse(JSON.stringify(this.conflicts)) : undefined,
       children: [],
-      metadata: this.metadata
+      metadata: this.metadata,
+      connections: this.getConnectionsOnThisNode()
     };
 
     for (const parameterName in json.parameters) {

@@ -45,9 +45,8 @@ export function canAcceptDrop(editor: NodeGraphEditor, dragItem: DragItem) {
     const newComponent = getDragItemComponent(dragItem);
     if (newComponent) {
       const newBackend = isComponentModel_CloudRuntime(newComponent);
-      const newNeue= isComponentModel_NeueRuntime(newComponent);
+      const newNeue = isComponentModel_NeueRuntime(newComponent);
       const newIcon = getComponentIconType(newComponent);
-      
 
       // (Cloud Function) Backend to backend
       if (activeBackend && newBackend && newIcon === ComponentIconType.CloudFunction) {
