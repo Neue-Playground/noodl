@@ -4,7 +4,7 @@ const ButtonNode = {
   name: 'Button',
   docs: 'https://docs.noodl.net/nodes/neue/button',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueSensor',
   initialize: function () {
     this._internal.inputs = [];
   },
