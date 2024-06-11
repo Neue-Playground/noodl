@@ -4,9 +4,9 @@ const WaveformRandomNode = {
   name: 'Waveform/random',
   docs: 'https://docs.noodl.net/nodes/neue/waveform-random',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {},
   outputs: {

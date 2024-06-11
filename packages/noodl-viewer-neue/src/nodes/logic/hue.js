@@ -4,9 +4,9 @@ const PhilipsHUENode = {
   name: 'Philips HUE',
   docs: 'https://docs.noodl.net/nodes/neue/philips-hue',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Light On': {

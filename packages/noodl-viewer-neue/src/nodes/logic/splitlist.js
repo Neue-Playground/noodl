@@ -4,9 +4,9 @@ const SplitListNode = {
   name: 'Split list',
   docs: 'https://docs.noodl.net/nodes/neue/split-list',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'List in': {

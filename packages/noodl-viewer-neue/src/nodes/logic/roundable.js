@@ -3,10 +3,10 @@
 const RoundableObjectNode = {
   name: 'Roundable object',
   docs: 'https://docs.noodl.net/nodes/core/roundable-object',
-  category: 'Core',
-  color: 'core',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Content mode': {

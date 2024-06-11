@@ -3,10 +3,10 @@
 const StringNumberNode = {
   name: 'String/Number',
   docs: 'https://docs.noodl.net/nodes/core/string-number',
-  category: 'Core',
-  color: 'core',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Trigger in': {

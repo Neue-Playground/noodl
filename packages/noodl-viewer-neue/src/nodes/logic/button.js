@@ -6,7 +6,7 @@ const ButtonNode = {
   category: 'Neue',
   color: 'neueData',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {},
   outputs: {

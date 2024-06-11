@@ -4,9 +4,9 @@ const MotionActivityNode = {
   name: 'Motion activity',
   docs: 'https://docs.noodl.net/nodes/neue/motion-activity',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {},
   outputs: {

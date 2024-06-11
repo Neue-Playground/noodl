@@ -4,9 +4,9 @@ const FlowStartStopNode = {
   name: 'Flow start/stop',
   docs: 'https://docs.noodl.net/nodes/neue/flow-start-stop',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {},
   outputs: {

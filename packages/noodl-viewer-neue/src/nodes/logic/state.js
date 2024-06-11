@@ -3,8 +3,8 @@
 const DeviceNode = {
   name: 'State',
   docs: '',  // Placeholder, no information given about docs URL
-  category: 'Neue',  // Assuming 'Neue' as the category based on the example
-  color: 'neueData',  // Assuming color based on the example
+  category: 'Neue',
+  color: 'neueLogic',  // Assuming color based on the example
   initialize: function () {
     this._internal.inputs = [];
   },

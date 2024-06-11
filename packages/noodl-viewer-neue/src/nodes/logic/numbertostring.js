@@ -3,10 +3,10 @@
 const NumberToStringNode = {
   name: 'Number to string',
   docs: 'https://docs.noodl.net/nodes/core/number-to-string',
-  category: 'Core',
-  color: 'core',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Number in': {

@@ -3,10 +3,10 @@
 const CalibrateGyroNode = {
   name: 'Calibrate gyro',
   docs: 'https://docs.noodl.net/nodes/core/calibrate-gyro',
-  category: 'Core',
-  color: 'core',
+  category: 'Neue',
+  color: 'neueSensor',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Gyro list in': {

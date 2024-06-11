@@ -3,10 +3,10 @@
 const MathNode = {
   name: 'Math',
   docs: 'https://docs.noodl.net/nodes/core/math',
-  category: 'Core',
-  color: 'core',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Math in': {

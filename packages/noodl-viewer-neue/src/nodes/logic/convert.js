@@ -4,9 +4,9 @@ const ConvertFromJSONNode = {
   name: 'Convert from json',
   docs: 'https://docs.noodl.net/nodes/neue/convert-from-json',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'JSON in': {

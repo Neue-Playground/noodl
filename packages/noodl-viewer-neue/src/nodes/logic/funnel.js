@@ -3,10 +3,10 @@
 const FunnelNode = {
   name: 'Funnel',
   docs: 'https://docs.noodl.net/nodes/core/funnel',
-  category: 'Core',
-  color: 'core',
+  category: 'Neue',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {},
   outputs: {

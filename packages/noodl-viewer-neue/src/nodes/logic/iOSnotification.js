@@ -4,9 +4,9 @@ const iOSNotificationNode = {
   name: 'iOS Notification',
   docs: 'https://docs.noodl.net/nodes/neue/ios-notification',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Trigger notification in': {

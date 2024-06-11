@@ -4,9 +4,9 @@ const ListBuilderNode = {
   name: 'List builder',
   docs: 'https://docs.noodl.net/nodes/neue/list-builder',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Value in': {

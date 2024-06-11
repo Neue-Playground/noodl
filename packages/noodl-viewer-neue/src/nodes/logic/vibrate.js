@@ -4,9 +4,9 @@ const VibrateNode = {
   name: 'Vibrate',
   docs: 'https://docs.noodl.net/nodes/neue/vibrate',
   category: 'Neue',
-  color: 'neueData',
+  color: 'neueLogic',
   initialize: function () {
-    // Initialization code if needed
+    this._internal.inputs = [];
   },
   inputs: {
     'Vibrate trig in': {

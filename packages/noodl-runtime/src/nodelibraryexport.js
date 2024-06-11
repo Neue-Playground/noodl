@@ -637,7 +637,34 @@ function generateNodeLibrary(nodeRegister) {
         {
           // Neue
           name: 'General',
-          items: ['Compare', 'Range', 'Stepper', 'Threshold', 'Toggle', 'Time', 'Convert to json']
+          items: [
+            'Compare',
+            'Range',
+            'Stepper',
+            'Threshold',
+            'Toggle',
+            'Time',
+            'Convert to json',
+            'Convert from json',
+            'Flag',
+            'Flow start/stop',
+            'Funnel',
+            'Philips HUE',
+            'iOS Notification',
+            'List builder',
+            'Location',
+            'Math',
+            'Motion activity',
+            'Number to string',
+            'Roundable object',
+            'Split list',
+            'State',
+            'String/Number',
+            'String operations',
+            'Switch',
+            'Vibrate',
+            'Waveform/random'
+          ]
         },
         {
           name: 'Events',
@@ -657,7 +684,19 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: 'Sensors',
-          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'acc', 'Hardware Clock', 'Simple Accelerometer', 'Simple Accelerometer2', 'Temperature/Humidity Sensor', 'Temperature/Pressure Sensor', 'Ambient light Sensor']
+          items: [
+            'Temperature/Humidity',
+            'Accelerometer/Gyroscope',
+            'acc',
+            'Hardware Clock',
+            'Simple Accelerometer',
+            'Simple Accelerometer2',
+            'Temperature/Humidity Sensor',
+            'Temperature/Pressure Sensor',
+            'Ambient light Sensor',
+            'Button',
+            'Calibrate gyro'
+          ]
         },
         {
           name: 'I/O',
