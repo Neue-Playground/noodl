@@ -1,16 +1,16 @@
-import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton'
-import { Select } from '@noodl-core-ui/components/inputs/Select'
-import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog'
-import { NeueService } from '@noodl-models/NeueServices/NeueService'
-import React, { useEffect, useState } from 'react'
+import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
+import { Select } from '@noodl-core-ui/components/inputs/Select';
+import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog';
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
+import React, { useEffect, useState } from 'react';
 
 type ModalProps = {
     isVisible: boolean,
     onClose: () => void,
-    jsonData: any[],
+    jsonData: any,
     devices: any[],
-    firmware: string
-}
+    firmware: string;
+};
 
 export default function NeueExportModal(props: ModalProps) {
     const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
@@ -19,11 +19,11 @@ export default function NeueExportModal(props: ModalProps) {
 
     useEffect(() => {
         if (props.isVisible) {
-            setSetSelectedConfiguration(null)
-            setSetSelectedDevice(null)
-            setError(null)
+            setSetSelectedConfiguration(null);
+            setSetSelectedDevice(null);
+            setError(null);
         }
-    }, [props.isVisible])
+    }, [props.isVisible]);
 
     return (
         <BaseDialog
@@ -43,19 +43,9 @@ export default function NeueExportModal(props: ModalProps) {
                         padding: '32px'
                     }}
                 >
-                    {Boolean(props.jsonData.length) && (
-                        <Select
-                            options={props.jsonData.map((comp) => { return { label: comp.name.split("/#__neue__/").pop(), value: comp, isDisabled: false } })}
-                            onChange={(value: string) => setSetSelectedConfiguration(value)}
-                            placeholder="Select device configuration"
-                            value={selectedConfiguration}
-                            label="Device flow"
-                            hasBottomSpacing
-                        />
-                    )}
                     {Boolean(props.devices.length) && (
                         <Select
-                            options={props.devices.map((device) => { return { label: device, value: device, isDisabled: false } })}
+                            options={props.devices.map((device) => { return { label: device, value: device, isDisabled: false }; })}
                             onChange={(value: string) => setSetSelectedDevice(value)}
                             placeholder="Select device"
                             value={selectedDevice}
@@ -67,17 +57,17 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
-                        const response = await NeueService.instance.pushFlow(selectedDevice, selectedConfiguration, props.firmware)
+                        const response = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
                         if (response.status === 200) {
-                            props.onClose()
+                            props.onClose();
                         } else {
-                            const body = await response.json()
-                            setError('Failed to push to device: ' + body)
+                            const body = await response.json();
+                            setError('Failed to push to device: ' + body);
                         }
                     }} />
                 </div>
             </div>
 
         </BaseDialog>
-    )
+    );
 }
