@@ -11,11 +11,15 @@ import { ErrorBoundary } from '@noodl-core-ui/components/common/ErrorBoundary';
 import { Container, ContainerDirection } from '@noodl-core-ui/components/layout/Container';
 
 import css from './SidePanel.model.scss';
+import { ProjectModel } from '@noodl-models/projectmodel';
+import { useNodeGraphContext } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
+import { isComponentModel_CloudRuntime } from '@noodl-utils/NodeGraph';
 
 export function SidePanel() {
   const [group] = useState({});
 
   const sidebar = useModernModel(SidebarModel.instance, [SidebarModelEvent.itemsChanged]);
+  const { nodeGraph } = useNodeGraphContext();
 
   // Get all the visible toolbar icons
   const items = sidebar.getVisibleItems();
@@ -87,6 +91,16 @@ export function SidePanel() {
 
   function onItemClick(item: SidebarItem) {
     sidebar.switch(item.id);
+    if (item.id === 'neuePanel') {
+      const component = ProjectModel.instance.getNeueRootComponent();
+      nodeGraph.switchToComponent(component);
+    } else if (item.id === 'cloud-functions') {
+      const component = ProjectModel.instance.getComponents().filter(comp => isComponentModel_CloudRuntime(comp))[0];
+      nodeGraph.switchToComponent(component);
+    } else {
+      const component = ProjectModel.instance.getRootComponent();
+      nodeGraph.switchToComponent(component);
+    }
     item.onClick && item.onClick();
   }
 
