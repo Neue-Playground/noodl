@@ -73,6 +73,15 @@ function registerNodes(noodlRuntime) {
   ].forEach((node) => noodlRuntime.registerNode(node));
 }
 
+function registerNodesNeue(noodlRuntime) {
+  [
+    require('./src/nodes/componentinputs'),
+    require('./src/nodes/componentoutputs'),
+
+  ].forEach((node) => noodlRuntime.registerNode(node));
+}
+
+
 function NoodlRuntime(args) {
   args = args || {};
   args.platform = args.platform || {};
@@ -133,6 +142,8 @@ function NoodlRuntime(args) {
 
   if (!args.skipStdNodes) {
     registerNodes(this);
+  } else {
+    registerNodesNeue(this);
   }
 }
 
