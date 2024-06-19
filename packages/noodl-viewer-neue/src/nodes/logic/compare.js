@@ -14,70 +14,23 @@ const DeviceNode = {
       type: 'number',
       displayName: 'Value in'
     },
-    'Threshold 1': {
+    'is': {
       type: {
-        name: 'number',
+        displayName: 'is',
+        type: 'enum',
+        options: ['=', '>', '<', '>=', '<=', '!='],
+        default: '=',
         allowEditOnly: true
       },
-      displayName: 'Threshold 1',
-      group: 'Threshold'
+      displayName: 'is'
     },
-    'Threshold 2': {
+    'Condition value': {
       type: {
         name: 'number',
         allowEditOnly: true
       },
-      displayName: 'Threshold 2',
-      group: 'Threshold'
+      displayName: 'Condition value'
     },
-    'Threshold 3': {
-      type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Threshold 3',
-      group: 'Threshold'
-    },
-    'Threshold 4': {
-      type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Threshold 4',
-      group: 'Threshold'
-    },
-    'Threshold 5': {
-      type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Threshold 5',
-      group: 'Threshold'
-    },
-    'Threshold 6': {
-      type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Threshold 6',
-      group: 'Threshold'
-    },
-    'Threshold 7': {
-      type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Threshold 7',
-      group: 'Threshold'
-    },
-    'Threshold 8': {
-      type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Threshold 8',
-      group: 'Threshold'
-    }
   },
   outputs: {
     'Equal out': {

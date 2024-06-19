@@ -49,7 +49,7 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
 
   SidebarModel.instance.register({
     id: 'components',
-    name: 'Components',
+    name: 'Web Components',
     order: 1,
     icon: IconName.Components,
     onOpen: () => {

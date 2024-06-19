@@ -116,6 +116,7 @@ export class NeueService extends Model {
   }
 
   private performRequest(url: string, method: string, body: any = {}): Promise<Response> {
+    console.log('performRequest', url, method, JSON.stringify(body));
     const token = this.session ? this.session.token : '';
     const promise = fetch(api.invokeUrl + url, {
       method,
@@ -183,7 +184,7 @@ export class NeueService extends Model {
     });
   }
 
-  public deployFlow(deviceid: string, flow: string) {
+  public deployFlow(deviceid: string, flow: any) {
     return this.performRequest('/devices/deploy', 'POST', { deviceid, flow });
   }
 

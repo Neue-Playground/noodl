@@ -8,10 +8,35 @@ const FunnelNode = {
   initialize: function () {
     this._internal.inputs = [];
   },
-  inputs: {},
+  inputs: {
+    'In 1': {
+      type: '*',
+      displayName: 'In 1',
+    },
+    'In 2': {
+      type: '*',
+      displayName: 'In 2',
+    },
+    'In 3': {
+      type: '*',
+      displayName: 'In 3',
+    },
+    'In 4': {
+      type: '*',
+      displayName: 'In 4',
+    },
+    'In 5': {
+      type: '*',
+      displayName: 'In 5',
+    },
+    'In 6': {
+      type: '*',
+      displayName: 'In 6',
+    },
+  },
   outputs: {
     'Funnel out': {
-      type: 'signal',
+      type: '*',
       displayName: 'Funnel out'
     }
   },

@@ -11,25 +11,7 @@ const StringNumberNode = {
   inputs: {
     'Trigger in': {
       displayName: 'Trigger in',
-      type: 'signal'
-    }
-  },
-  outputs: {
-    'String/Number out': {
-      displayName: 'String/Number out',
-      type: 'any'
-    }
-  },
-  settings: {
-    'Name': {
-      displayName: 'Name',
-      type: 'string',
-      default: 'String/Number'
-    },
-    'requiredAppVersion': {
-      displayName: '',
-      type: 'number',
-      default: 1
+      type: '*'
     },
     'String or number': {
       displayName: 'String or number',
@@ -44,9 +26,21 @@ const StringNumberNode = {
     },
     'Notes': {
       displayName: 'Notes',
-      type: 'string',
+      type: {
+        name: 'string',
+        allowEditOnly: true
+      },
       default: ''
     }
+  },
+  outputs: {
+    'String/Number out': {
+      displayName: 'String/Number out',
+      type: 'any'
+    }
+  },
+  settings: {
+
   }
 };
 
