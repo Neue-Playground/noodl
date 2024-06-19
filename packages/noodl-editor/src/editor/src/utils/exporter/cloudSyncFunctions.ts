@@ -88,3 +88,18 @@ export async function uploadProjectZipToCloud(args) {
       throw new Error(err);
     });
 }
+
+export async function fetchTemplateFromCloud(direntry: string, id: string, name: string) {
+  const arrayBuffer = await NeueService.instance.fetchProject(id);
+  const copiedBuffer = Buffer.from(arrayBuffer[0]);
+
+  const zip = new AdmZip(copiedBuffer);
+  await zip.extractAllTo(`${direntry}`, true);
+
+  const res = await LocalProjectsModel.instance.openProjectFromFolder(`${direntry}`);
+  res.setCloudVersionChange(0);
+  res.rename(name);
+  res.setIsCloud(false);
+  res.setNewId();
+  return res;
+}

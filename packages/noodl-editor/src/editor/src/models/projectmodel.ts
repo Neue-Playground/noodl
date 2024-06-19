@@ -8,7 +8,7 @@ import { verifyJsonFile } from '@noodl-utils/verifyJson';
 
 import Model from '../../../shared/model';
 import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
-import Utils from '../utils/utils';
+import Utils, { guid } from '../utils/utils';
 import { ComponentModel } from './componentmodel';
 import LessonModel from './lessonmodel';
 import { NodeGraphModel, NodeGraphNode } from './nodegraphmodel';
@@ -616,7 +616,9 @@ export class ProjectModel extends Model {
     this.cloudVersion = version;
     this.notifyListeners('cloudVersionChanged');
   }
-
+  setNewId() {
+    this.notifyListeners('idChanged');
+  }
   // Save to directory
   toDirectory(retainedProjectDirectory, callback) {
     // This function stores the project in project json

@@ -142,6 +142,20 @@ export class LocalProjectsModel extends Model {
         this
       )
       .on(
+        'idChanged',
+        () => {
+          const id = guid();
+          const projectdir = this.getProjectEntryWithId(project.id);
+
+          if (projectdir) {
+            projectdir.id = id;
+            project.id = id;
+            this.store();
+          }
+        },
+        this
+      )
+      .on(
         'thumbnailChanged',
         () => {
           const projectdir = this.getProjectEntryWithId(project.id);
