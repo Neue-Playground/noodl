@@ -103,3 +103,32 @@ export async function fetchTemplateFromCloud(direntry: string, id: string, name:
   res.setNewId();
   return res;
 }
+
+export async function exportTemplateToCloud(setShowSpinner: (x: boolean) => void) {
+  setShowSpinner(true);
+  const projectItem: any = {
+    iconURL: ProjectModel.instance.getThumbnailURI(),
+    title: ProjectModel.instance.name,
+    desc: 'A simple application template for Neue playground',
+    category: 'Neue',
+    projectURL: ProjectModel.instance.id,
+    useCloudServices: false
+  };
+
+  //This is not needed for templates
+  const jsonLocal = await filesystem.readJson(`${ProjectModel.instance._retainedProjectDirectory}/project.json`);
+
+  const zip = new AdmZip();
+  zip.addLocalFolder(ProjectModel.instance._retainedProjectDirectory);
+  const zipBuffer = zip.toBuffer();
+
+  await NeueService.instance
+    .saveProject(new Uint8Array(zipBuffer).buffer, projectItem, JSON.stringify(jsonLocal))
+    .then(() => {
+      ProjectModel.instance.setIsCloud(true);
+      setShowSpinner(false);
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+}
