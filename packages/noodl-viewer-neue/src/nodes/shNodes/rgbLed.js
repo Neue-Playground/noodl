@@ -13,28 +13,25 @@ const DeviceNode = {
   },
   inputs: {
     'Red in': {
-      type: 'color',
-      default: '#FF0000',
+      type: 'number',
+      default: '0',
       displayName: 'Red',
-      allowVisualStates: true,
       get() {
         return this._internal['Red in'];
       }
     },
     'Green in': {
-      type: 'color',
-      default: '#00FF00',
+      type: 'number',
+      default: '0',
       displayName: 'Green',
-      allowVisualStates: true,
       get() {
         return this._internal['Green in'];
       }
     },
     'Blue in': {
-      type: 'color',
-      default: '#0000FF',
+      type: 'number',
+      default: '0',
       displayName: 'Blue',
-      allowVisualStates: true,
       get() {
         return this._internal['Blue in'];
       }
