@@ -964,7 +964,6 @@ export class ViewerConnection extends Model {
       'ProjectModel.metadataChanged',
       ({ key, data }) => {
         if (_this.watchModelChangesDisabled) return;
-        console.log('metadata changed', key, data);
         _this.send({
           cmd: 'modelUpdate',
           content: {
