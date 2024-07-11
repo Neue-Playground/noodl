@@ -48,7 +48,11 @@ export class NeueRunner {
       const response = await fetch(
         'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2/project/nodes/' + firmware
       );
-      const nodes = await response.json();
+      const json = await response.json();
+      const nodes = json.nodes;
+      const categories = json.categories;
+      console.log('####################################', categories);
+      this.runtime.coreNodes = JSON.parse(categories);
       for (const node of nodes) {
         if (!node) continue;
         const nodeObj = JSON.parse(node);
@@ -76,15 +80,15 @@ export class NeueRunner {
 
             function _managePortsForNode(node) {
               function _updatePorts() {
-                var ports = [];
+                const ports = [];
 
                 // Add params outputs
                 if (node.parameters.status === 'success' || node.parameters.status === undefined) {
-                  var params = node.parameters.params;
+                  let params = node.parameters.params;
                   if (params !== undefined) {
                     params = params.split(',');
-                    for (var i in params) {
-                      var p = params[i];
+                    for (const i in params) {
+                      const p = params[i];
 
                       ports.push({
                         type: '*',

@@ -101,6 +101,7 @@ function NoodlRuntime(args) {
   this.componentFilter = args.componentFilter;
   this.nodeLibraryExtensions = args.nodeLibraryExtensions;
   this.runningInEditor = args.runDeployed ? false : true;
+  this.coreNodes = args.coreNodes || [];
 
   this.platform = {
     requestUpdate: args.platform.requestUpdate,
@@ -373,6 +374,8 @@ NoodlRuntime.prototype.getNodeLibrary = function () {
   }
 
   var nodeLibrary = generateNodeLibrary(this.context.nodeRegister);
+  nodeLibrary.nodeIndex.coreNodes = nodeLibrary.nodeIndex.coreNodes.concat(this.coreNodes || []);
+  console.log(nodeLibrary.nodeIndex.coreNodes)
   nodeLibrary.projectsettings = projectSettings;
   // nodeLibrary.context = this.context;
   return JSON.stringify(nodeLibrary, null, 3);

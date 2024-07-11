@@ -650,21 +650,7 @@ function generateNodeLibrary(nodeRegister) {
       ]
     },
     // Neue
-    {
-      name: 'Device nodes',
-      description: 'Sensors, inputs, outputs',
-      type: 'neueSensor',
-      subCategories: [
-        {
-          name: 'Sensors',
-          items: ['Temperature/Humidity', 'Accelerometer/Gyroscope', 'acc', 'Hardware Clock', 'Simple Accelerometer', 'Simple Accelerometer2', 'Temperature/Humidity Sensor', 'Temperature/Pressure Sensor', 'Ambient light Sensor']
-        },
-        {
-          name: 'I/O',
-          items: ['A2.1 RGB LED', 'I/O']
-        }
-      ]
-    },
+
     // Neue
     {
       name: 'Cloud communication',
