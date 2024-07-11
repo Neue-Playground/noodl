@@ -51,7 +51,6 @@ export class NeueRunner {
       const json = await response.json();
       const nodes = json.nodes;
       const categories = json.categories;
-      console.log('####################################', categories);
       this.runtime.coreNodes = JSON.parse(categories);
       for (const node of nodes) {
         if (!node) continue;
