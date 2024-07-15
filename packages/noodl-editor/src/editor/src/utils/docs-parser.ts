@@ -47,6 +47,8 @@ export class DocsParser {
       if (url.startsWith('https://docs.noodl.net')) {
         //add version number
         url.replace('https://docs.noodl.net', endpoint);
+      } else if (url.startsWith('http://localhost:3000/')) {
+        url = url + '.md';
       } else {
         url = endpoint + url;
       }

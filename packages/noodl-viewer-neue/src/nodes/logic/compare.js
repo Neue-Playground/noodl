@@ -2,7 +2,7 @@
 
 const DeviceNode = {
   name: 'Compare',
-  docs: 'https://docs.noodl.net/nodes/utilities/logic/condition',
+  docs: 'http://localhost:3000/docs/hello',
   category: 'Neue',
   color: 'neueLogic',
   initialize: function () {
