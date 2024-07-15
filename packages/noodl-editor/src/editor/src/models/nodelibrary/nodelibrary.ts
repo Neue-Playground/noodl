@@ -36,10 +36,10 @@ function evaluateDynamicPortsCondition(cond, node) {
     let res;
     switch (op) {
       case '=':
-        res = '' + node.getParameter(paramName) === value;
+        res = '' + node.getParameter(paramName) === value || +node.getParameter(paramName) === +value;
         break;
       case '!=':
-        res = '' + node.getParameter(paramName) !== value;
+        res = '' + node.getParameter(paramName) !== value || +node.getParameter(paramName) === +value;
         break;
       case '>':
         res = +node.getParameter(paramName) > +value;
