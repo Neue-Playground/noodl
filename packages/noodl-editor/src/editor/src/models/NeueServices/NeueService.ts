@@ -254,4 +254,14 @@ export class NeueService extends Model {
       );
     });
   }
+
+  public fetchProjectTemplates() {
+    return new Promise<[string]>((resolve) => {
+      this.performRequest('/project/templates', 'GET').then((response) =>
+        response.json().then(async (data) => {
+          resolve(data);
+        })
+      );
+    });
+  }
 }
