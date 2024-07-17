@@ -2,7 +2,7 @@
 
 const DeviceNode = {
   name: 'Compare',
-  docs: 'http://localhost:3000/docs/hello',
+  docs: 'http://localhost:3000/docs/compare',
   category: 'Neue',
   color: 'neueLogic',
   initialize: function () {
