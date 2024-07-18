@@ -254,4 +254,29 @@ export class NeueService extends Model {
       );
     });
   }
+
+  public fetchProjectTemplates() {
+    return new Promise<[any]>((resolve) => {
+      this.performRequest('/project/templates', 'GET').then((response) =>
+        response.json().then(async (data) => {
+          resolve(data);
+        })
+      );
+    });
+  }
+
+  public fetchProjectTemplate(id: string) {
+    return new Promise<[ArrayBuffer, string]>((resolve, reject) => {
+      this.performRequest('/project/templates' + id, 'GET').then((response) => {
+        if (response.status !== 200) reject();
+        response.json().then(async (data) => {
+          fetch(data.url, { method: 'GET' }).then((response) => {
+            response.arrayBuffer().then((buffer) => {
+              resolve([buffer, data.config]);
+            });
+          });
+        });
+      });
+    });
+  }
 }
