@@ -17,7 +17,7 @@ class LessonTemplatesModel extends Model {
         var json;
         try {
           json = JSON.parse(xhr.response);
-        } catch (e) {}
+        } catch (e) { }
 
         if (xhr.status === 200 || xhr.status === 201) {
           options.success(json);
@@ -49,6 +49,7 @@ class LessonTemplatesModel extends Model {
           }
 
           if (!t.name) t.name = t.url.replace(/:/g, '-').replace(/\//g, '-').replace(/\./g, '-');
+          t.title = t.title.replaceAll('Noodl', 'Neue Playground');
         });
 
         fn(lessons);
