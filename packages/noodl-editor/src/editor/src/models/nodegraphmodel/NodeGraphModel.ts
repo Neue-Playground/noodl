@@ -484,7 +484,7 @@ export class NodeGraphModel extends Model {
     setTimeout(function () {
       _this.evaluatehealthScheduled && _this.evaluateHealth();
       _this.evaluatehealthScheduled = false;
-    }, 2000);
+    }, 4000);
   }
 
   evaluateHealth() {
@@ -496,14 +496,16 @@ export class NodeGraphModel extends Model {
     if (!NodeLibrary.instance.isModuleRegistered(this.owner.owner)) return; // This module is not registered in the node library, no need to eval health
 
     // Nodes
-    this.forEachNode(function (n) {
-      n.evaluateHealth();
-    });
+    if (NodeLibrary.instance.isLoaded() && NodeLibrary.instance.isModuleRegistered(this.owner.owner)) {
+      this.forEachNode(function (n) {
+        n.evaluateHealth();
+      });
 
-    // Connections
-    this.forEachConnection(function (c) {
-      _this.evaluateConnectionHealth(c);
-    });
+      // Connections
+      this.forEachConnection(function (c) {
+        _this.evaluateConnectionHealth(c);
+      });
+    }
   }
 
   evaluateConnectionHealth(c) {
