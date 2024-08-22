@@ -258,12 +258,12 @@ export class NeueService extends Model {
     return new Promise<[any]>((resolve) => {
       this.performRequest('/project/templates', 'GET').then((response) =>
         response.json().then(async (data) => {
-          const templates = data.map((element: ProjectItem) => {
+          const templates = data.map((element: any) => {
             return {
               iconURL: element.thumbURI,
-              title: element.name,
-              desc: 'A simple application template for Neue playground',
-              category: 'Neue',
+              title: element.title,
+              desc: element.desc,
+              category: element.category,
               projectURL: element.id,
               useCloudServices: false,
               cloudServicesTemplateURL:
