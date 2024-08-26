@@ -255,6 +255,33 @@ export class NeueService extends Model {
     });
   }
 
+  // PROJECT TEMPLATES
+  public saveTemplate(
+    fileData: ArrayBuffer | Blob,
+    projectItem: { id?: string; title: string; desc: string; category: string; thumbURI?: string }
+  ) {
+    return new Promise<ProjectItem>((resolve) => {
+      this.performRequest('/templates', 'POST', { ...projectItem }).then((response) =>
+        response.json().then(async (presignedInfo) => {
+          const form = new FormData();
+          Object.entries(presignedInfo.fields).forEach(([field, value]) => {
+            const str = value as string;
+            form.append(field, str);
+          });
+
+          if (fileData instanceof ArrayBuffer) form.append('file', new Blob([fileData], { type: 'application/zip' }));
+          else form.append('file', fileData);
+
+          const result = await fetch(presignedInfo.url, {
+            method: 'POST',
+            body: form
+          });
+          resolve(presignedInfo.item);
+        })
+      );
+    });
+  }
+
   public fetchProjectTemplates() {
     return new Promise<[any]>((resolve) => {
       this.performRequest('/project/templates', 'GET').then((response) =>
