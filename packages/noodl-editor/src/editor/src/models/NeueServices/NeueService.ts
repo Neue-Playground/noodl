@@ -261,7 +261,7 @@ export class NeueService extends Model {
     projectItem: { id?: string; title: string; desc: string; category: string; thumbURI?: string }
   ) {
     return new Promise<ProjectItem>((resolve) => {
-      this.performRequest('/templates', 'POST', { ...projectItem }).then((response) =>
+      this.performRequest('/project/templates', 'POST', { ...projectItem }).then((response) =>
         response.json().then(async (presignedInfo) => {
           const form = new FormData();
           Object.entries(presignedInfo.fields).forEach(([field, value]) => {
