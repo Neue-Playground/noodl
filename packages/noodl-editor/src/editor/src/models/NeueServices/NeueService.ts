@@ -305,7 +305,7 @@ export class NeueService extends Model {
 
   public fetchProjectTemplate(id: string) {
     return new Promise<[ArrayBuffer, string]>((resolve, reject) => {
-      this.performRequest('/project/templates' + id, 'GET').then((response) => {
+      this.performRequest('/project/templates/' + id, 'GET').then((response) => {
         if (response.status !== 200) reject();
         response.json().then(async (data) => {
           fetch(data.url, { method: 'GET' }).then((response) => {
