@@ -74,6 +74,8 @@ export interface TextInputProps extends UnsafeStyleProps {
   isDisabled?: boolean;
   isAutoFocus?: boolean;
 
+  acceptedFileTypes?: string; // Neue
+
   forwardedInputRef?: any;
 
   slotBeforeInput?: SingleSlot;
@@ -115,6 +117,8 @@ export function TextInput({
 
   slotBeforeInput,
   slotAfterInput,
+
+  acceptedFileTypes,
 
   forwardedInputRef,
 
@@ -301,15 +305,16 @@ export function TextInput({
                 style={
                   sizerRef.current
                     ? {
-                        maxWidth: valueWidth,
-                        flexBasis: valueWidth,
-                        ...UNSAFE_textStyle
-                      }
+                      maxWidth: valueWidth,
+                      flexBasis: valueWidth,
+                      ...UNSAFE_textStyle
+                    }
                     : UNSAFE_textStyle
                 }
                 ref={inputRef}
                 data-test={testId}
                 autoFocus={isAutoFocus}
+                accept={type === 'file' && acceptedFileTypes ? acceptedFileTypes : undefined}
               />
             )}
 
@@ -324,9 +329,9 @@ export function TextInput({
                 style={
                   sizerRef.current
                     ? {
-                        minWidth: valueWidth,
-                        flexBasis: valueWidth
-                      }
+                      minWidth: valueWidth,
+                      flexBasis: valueWidth
+                    }
                     : null
                 }
                 data-test={testId}

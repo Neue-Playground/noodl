@@ -35,6 +35,7 @@ import {
 } from './ScreenSizes';
 import { ToastLayer } from '../ToastLayer';
 import { exportProjectZipToCloud } from '../../utils/exporter/cloudSyncFunctions';
+import NeueSaveTemplateToCloud from '../NeueConfigurationModals/NeueSaveTemplateToCloud';
 export interface EditorTopbarProps {
   instance: TitleBar;
   routes: string[];
@@ -78,6 +79,7 @@ export function EditorTopbar({
 }: EditorTopbarProps) {
   const urlBarRef = useRef<HTMLInputElement>(null);
   const deployButtonRef = useRef();
+  const saveTemplateButtonRef = useRef();
   const warningButtonRef = useRef();
   const urlInputRef = useRef();
   const zoomLevelTrigger = useRef();
@@ -92,7 +94,7 @@ export function EditorTopbar({
   const [isRouteListVisible, setIsRouteListVisible] = useState(false);
   const currentScreenSize = getScreenSizeObjectFromMeasurements(previewSize.width, previewSize.height);
   const [routeTextInputValue, setRouteTextInputValue] = useState('');
-
+  const [isSaveTemplateToCloudModalVisible, setIsSaveTemplateToCloudModalVisible] = useState(false);
   const zoomLevelOptions = [
     {
       label: '100%',
@@ -206,9 +208,7 @@ export function EditorTopbar({
   //Neue
   async function saveTemplateToNeueCloud() {
     try {
-      await exportProjectZipToCloud(setShowSpinner);
-      ToastLayer.showSuccess('Project successfully saved to cloud');
-
+      setIsSaveTemplateToCloudModalVisible(true);
     } catch (error) {
       setShowSpinner(false);
       ToastLayer.showError(error);
@@ -236,14 +236,17 @@ export function EditorTopbar({
             UNSAFE_className={css['SaveButton']}
             testId="save-popup-button"
           />
-          <PrimaryButton
-            label={'Save template'}
-            icon={IconName.File}
-            variant={PrimaryButtonVariant.MutedOnLowBg}
-            onClick={() => saveTemplateToNeueCloud()}
-            UNSAFE_className={css['SaveTmplateButton']}
-            testId="save-popup-button"
-          />
+          <span ref={saveTemplateButtonRef}>
+            <PrimaryButton
+              label={'Save template'}
+              icon={IconName.File}
+              variant={PrimaryButtonVariant.MutedOnLowBg}
+              onClick={() => saveTemplateToNeueCloud()}
+              UNSAFE_className={css['SaveTmplateButton']}
+              testId="save-popup-button"
+            />
+          </span>
+          <NeueSaveTemplateToCloud isVisible={isSaveTemplateToCloudModalVisible} onClose={() => setIsSaveTemplateToCloudModalVisible(false)} triggerRef={saveTemplateButtonRef} toastActivity={ToastLayer} />
         </div>
 
         {!isNeuePanelOpen && <>

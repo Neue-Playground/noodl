@@ -257,7 +257,7 @@ export class NeueService extends Model {
   // PROJECT TEMPLATES
   public saveTemplate(
     fileData: ArrayBuffer | Blob,
-    projectItem: { id?: string; title: string; desc: string; category: string; thumbURI?: string }
+    projectItem: { id?: string; title: string; desc: string; category: string; iconURL?: string }
   ) {
     return new Promise<ProjectItem>((resolve) => {
       this.performRequest('/project/templates', 'POST', { ...projectItem }).then((response) =>
@@ -287,7 +287,7 @@ export class NeueService extends Model {
         response.json().then(async (data) => {
           const templates = data.map((element: any) => {
             return {
-              iconURL: element.thumbURI,
+              iconURL: element.iconURL,
               title: element.title,
               desc: element.desc,
               category: element.category,
