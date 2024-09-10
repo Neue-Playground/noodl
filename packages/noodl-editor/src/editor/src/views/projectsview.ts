@@ -5,6 +5,7 @@ import { LessonsProjectsModel } from '@noodl-models/LessonsProjectModel';
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { CloudServiceMetadata } from '@noodl-models/projectmodel';
 import { setCloudServices } from '@noodl-models/projectmodel.editor';
+import { fetchTemplateFromCloud } from '@noodl-utils/exporter/cloudSyncFunctions';
 import { LocalProjectsModel, ProjectItem } from '@noodl-utils/LocalProjectsModel';
 
 import { EventDispatcher } from '../../../shared/utils/EventDispatcher';
@@ -35,7 +36,6 @@ type ProjectItemScope = {
   isCloud: boolean;
   cloudVersion: number;
 };
-
 export class ProjectsView extends View {
   _popupLayerElem = null;
   lessonTemplatesModel: LessonTemplatesModel;
@@ -207,14 +207,11 @@ export class ProjectsView extends View {
     this.$('#no-projects').css({
       display: localProjects.length == 0 ? 'initial' : 'none'
     });
-
-    // Render project template items (basic)
-    templateRegistry.list({}).then((templates) => {
-      this.$('.projects-create-from-template').html('');
-      if (templates) {
-        // Sort templates into categories
+    this.$('.projects-create-from-template').html('');
+    NeueService.instance.fetchProjectTemplates().then((neueTemplates) => {
+      if (neueTemplates) {
         const categories = [];
-        templates.forEach((t) => {
+        neueTemplates.forEach((t) => {
           let c = categories.find((c) => c.label === t.category);
           if (c === undefined) {
             c = { label: t.category, templates: [] };
@@ -241,7 +238,42 @@ export class ProjectsView extends View {
           });
         });
       }
+      // Render project template items (basic)
+      templateRegistry.list({}).then((templates) => {
+        if (templates) {
+          // Sort templates into categories
+          const categories = [];
+          templates.forEach((t) => {
+            let c = categories.find((c) => c.label === t.category);
+            if (c === undefined) {
+              c = { label: t.category, templates: [] };
+              categories.push(c);
+            }
+            c.templates.push(t);
+          });
+
+          categories.forEach((c) => {
+            const cel = this.bindView(this.cloneTemplate('projects-template-category'), c);
+            this.$('.projects-create-from-template').append(cel);
+
+            c.templates.forEach((i) => {
+              if (i.type !== undefined) return; // Only basic types
+
+              const el = this.bindView(this.cloneTemplate('projects-template-item'), i);
+
+              i.iconURL &&
+                this._downloadImageAsURI(i.iconURL, function (uri) {
+                  el.find('.feed-item-image').css('background-image', 'url(' + uri + ')');
+                });
+
+              View.$(cel, '.templates').append(el);
+            });
+          });
+        }
+      });
     });
+
+    //  const cel = this.bindView(this.cloneTemplate('projects-template-category'), c);
 
     // Always start at lessons
     this.selectedTutorialCategory = 'Lessons';
@@ -757,7 +789,6 @@ export class ProjectsView extends View {
     if (!projectTemplate.projectURL) return;
 
     let direntry;
-
     try {
       direntry = await filesystem.openDialog({
         allowCreateDirectory: true
@@ -777,7 +808,8 @@ export class ProjectsView extends View {
       name,
       firmware,
       path,
-      projectTemplate: projectTemplate.projectURL
+      projectTemplate: projectTemplate.projectURL,
+      isNeue: projectTemplate.category === 'Neue'
     };
 
     async function _prepareCloudServices(): Promise<CloudServiceMetadata> {
@@ -797,44 +829,49 @@ export class ProjectsView extends View {
         });
       });
     }
-
-    this.projectsModel.newProject(async (project) => {
-      if (!project) {
-        ToastLayer.hideActivity(activityId);
-        ToastLayer.showError('Could not create new project.');
-        this.$('#start-pane-feed-item-big-create-new-project').hide();
-        this.$('#start-pane-feed-big').hide();
-        return;
-      }
-
-      // Project is create, now setup cloud services
-      if (projectTemplate.useCloudServices) {
-        try {
-          // Refresh the cloud services acccess token so it's ready for the cloud formation
-          const cloudServices = await _prepareCloudServices();
-          ToastLayer.hideActivity(activityId);
-          if (projectTemplate.useCloudServices && cloudServices === undefined) {
-            ToastLayer.showError('Failed to setup cloud services.');
-            return;
-          }
-
-          setCloudServices(project, cloudServices);
-          this.notifyListeners('projectLoaded', project);
-        } catch (e) {
-          ToastLayer.hideActivity(activityId);
-          ToastLayer.showError('Failed to create cloud services for project.');
-        }
-      }
-
+    if (projectTemplate.category === 'Neue') {
+      const res = await fetchTemplateFromCloud(path, projectTemplate.projectURL, name);
       ToastLayer.hideActivity(activityId);
+      this.notifyListeners('projectLoaded', res);
+    } else {
+      this.projectsModel.newProject(async (project) => {
+        if (!project) {
+          ToastLayer.hideActivity(activityId);
+          ToastLayer.showError('Could not create new project.');
+          this.$('#start-pane-feed-item-big-create-new-project').hide();
+          this.$('#start-pane-feed-big').hide();
+          return;
+        }
 
-      tracker.track('Create New Project', {
-        templateLabel: projectTemplate.title,
-        templateUrl: projectTemplate.projectURL
-      });
+        // Project is create, now setup cloud services
+        if (projectTemplate.useCloudServices) {
+          try {
+            // Refresh the cloud services acccess token so it's ready for the cloud formation
+            const cloudServices = await _prepareCloudServices();
+            ToastLayer.hideActivity(activityId);
+            if (projectTemplate.useCloudServices && cloudServices === undefined) {
+              ToastLayer.showError('Failed to setup cloud services.');
+              return;
+            }
 
-      this.notifyListeners('projectLoaded', project);
-    }, options);
+            setCloudServices(project, cloudServices);
+            this.notifyListeners('projectLoaded', project);
+          } catch (e) {
+            ToastLayer.hideActivity(activityId);
+            ToastLayer.showError('Failed to create cloud services for project.');
+          }
+        }
+
+        ToastLayer.hideActivity(activityId);
+
+        tracker.track('Create New Project', {
+          templateLabel: projectTemplate.title,
+          templateUrl: projectTemplate.projectURL
+        });
+
+        this.notifyListeners('projectLoaded', project);
+      }, options);
+    }
   }
 
   showSpinner() {

@@ -1,5 +1,4 @@
 import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
-import { reject } from 'underscore';
 import { JSONStorage } from '@noodl/platform';
 
 import { api, cognito } from '@noodl-constants/NeueBackend';
@@ -258,7 +257,7 @@ export class NeueService extends Model {
   // PROJECT TEMPLATES
   public saveTemplate(
     fileData: ArrayBuffer | Blob,
-    projectItem: { id?: string; title: string; desc: string; category: string; thumbURI?: string }
+    projectItem: { id?: string; title: string; desc: string; category: string; iconURL?: string }
   ) {
     return new Promise<ProjectItem>((resolve) => {
       this.performRequest('/project/templates', 'POST', { ...projectItem }).then((response) =>
@@ -286,7 +285,19 @@ export class NeueService extends Model {
     return new Promise<[any]>((resolve) => {
       this.performRequest('/project/templates', 'GET').then((response) =>
         response.json().then(async (data) => {
-          resolve(data);
+          const templates = data.map((element: any) => {
+            return {
+              iconURL: element.iconURL,
+              title: element.title,
+              desc: element.desc,
+              category: element.category,
+              projectURL: element.id,
+              useCloudServices: false,
+              cloudServicesTemplateURL:
+                'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2/project/20c77d05-8092-8da0-ccf9-6a16367f2e36'
+            };
+          });
+          resolve(templates);
         })
       );
     });

@@ -1,5 +1,4 @@
 import AdmZip from 'adm-zip';
-import { ipcRenderer } from 'electron';
 import { filesystem } from '@noodl/platform';
 
 import { App } from '@noodl-models/app';
@@ -87,4 +86,44 @@ export async function uploadProjectZipToCloud(args) {
     .catch((err) => {
       throw new Error(err);
     });
+}
+
+export async function fetchTemplateFromCloud(direntry: string, id: string, name: string) {
+  const arrayBuffer = await NeueService.instance.fetchProjectTemplate(id);
+  const copiedBuffer = Buffer.from(arrayBuffer[0]);
+
+  const zip = new AdmZip(copiedBuffer);
+  await zip.extractAllTo(`${direntry}`, true);
+
+  const res = await LocalProjectsModel.instance.openProjectFromFolder(`${direntry}`);
+  res.setCloudVersionChange(0);
+  res.rename(name);
+  res.setIsCloud(false);
+  res.setNewId();
+  return res;
+}
+
+export async function exportTemplateToCloud(desc: string, imageURI: string) {
+  const projectItem: any = {
+    iconURL: imageURI ? imageURI : ProjectModel.instance.getThumbnailURI(),
+    title: ProjectModel.instance.name,
+    desc: desc,
+    category: 'Neue',
+    projectURL: ProjectModel.instance.id,
+    useCloudServices: false
+  };
+
+  const zip = new AdmZip();
+  zip.addLocalFolder(ProjectModel.instance._retainedProjectDirectory);
+  const zipBuffer = zip.toBuffer();
+
+  const res = await NeueService.instance
+    .saveTemplate(new Uint8Array(zipBuffer).buffer, projectItem)
+    .then((res) => {
+      return res;
+    })
+    .catch((err) => {
+      throw new Error(err);
+    });
+  return res;
 }

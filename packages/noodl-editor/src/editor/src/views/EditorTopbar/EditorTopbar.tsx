@@ -11,7 +11,7 @@ import { KeyCode, KeyMod } from '@noodl-utils/keyboard/KeyCode';
 
 import { Icon, IconName, IconSize } from '@noodl-core-ui/components/common/Icon';
 import { IconButton, IconButtonState, IconButtonVariant } from '@noodl-core-ui/components/inputs/IconButton';
-import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
+import { PrimaryButton, PrimaryButtonVariant } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { TextInput, TextInputVariant } from '@noodl-core-ui/components/inputs/TextInput';
 import { ToggleSwitch } from '@noodl-core-ui/components/inputs/ToggleSwitch';
 import { MenuDialog, MenuDialogWidth } from '@noodl-core-ui/components/popups/MenuDialog';
@@ -34,7 +34,8 @@ import {
   getIconFromScreenSizeGroupName
 } from './ScreenSizes';
 import { ToastLayer } from '../ToastLayer';
-import { exportProjectZipToCloud } from '../../utils/exporter/cloudSyncFunctions'
+import { exportProjectZipToCloud } from '../../utils/exporter/cloudSyncFunctions';
+import NeueSaveTemplateToCloud from '../NeueConfigurationModals/NeueSaveTemplateToCloud';
 export interface EditorTopbarProps {
   instance: TitleBar;
   routes: string[];
@@ -45,9 +46,9 @@ export interface EditorTopbarProps {
   setZoomFactor: (factor: number) => void;
   onUrlNavigateBack: () => void;
   onUrlNavigateForward: () => void;
-  navigationState: { canGoBack: boolean; canGoForward: boolean; route: string };
+  navigationState: { canGoBack: boolean; canGoForward: boolean; route: string; };
   onPreviewSizeChanged: (width: number, height: number, deviceName: string) => void;
-  previewSize: { width: number; height: number };
+  previewSize: { width: number; height: number; };
   previewMode: boolean;
   onPreviewModeChanged: (previewMode: boolean) => void;
   nodeGraph: NodeGraphEditor;
@@ -78,6 +79,7 @@ export function EditorTopbar({
 }: EditorTopbarProps) {
   const urlBarRef = useRef<HTMLInputElement>(null);
   const deployButtonRef = useRef();
+  const saveTemplateButtonRef = useRef();
   const warningButtonRef = useRef();
   const urlInputRef = useRef();
   const zoomLevelTrigger = useRef();
@@ -92,7 +94,7 @@ export function EditorTopbar({
   const [isRouteListVisible, setIsRouteListVisible] = useState(false);
   const currentScreenSize = getScreenSizeObjectFromMeasurements(previewSize.width, previewSize.height);
   const [routeTextInputValue, setRouteTextInputValue] = useState('');
-
+  const [isSaveTemplateToCloudModalVisible, setIsSaveTemplateToCloudModalVisible] = useState(false);
   const zoomLevelOptions = [
     {
       label: '100%',
@@ -194,9 +196,19 @@ export function EditorTopbar({
   //Neue
   async function saveProjectToNeueCloud() {
     try {
-      await exportProjectZipToCloud(setShowSpinner)
+      await exportProjectZipToCloud(setShowSpinner);
       ToastLayer.showSuccess('Project successfully saved to cloud');
 
+    } catch (error) {
+      setShowSpinner(false);
+      ToastLayer.showError(error);
+    }
+  }
+
+  //Neue
+  async function saveTemplateToNeueCloud() {
+    try {
+      setIsSaveTemplateToCloudModalVisible(true);
     } catch (error) {
       setShowSpinner(false);
       ToastLayer.showError(error);
@@ -224,6 +236,17 @@ export function EditorTopbar({
             UNSAFE_className={css['SaveButton']}
             testId="save-popup-button"
           />
+          <span ref={saveTemplateButtonRef}>
+            <PrimaryButton
+              label={'Save template'}
+              icon={IconName.File}
+              variant={PrimaryButtonVariant.MutedOnLowBg}
+              onClick={() => saveTemplateToNeueCloud()}
+              UNSAFE_className={css['SaveTmplateButton']}
+              testId="save-popup-button"
+            />
+          </span>
+          <NeueSaveTemplateToCloud isVisible={isSaveTemplateToCloudModalVisible} onClose={() => setIsSaveTemplateToCloudModalVisible(false)} triggerRef={saveTemplateButtonRef} toastActivity={ToastLayer} />
         </div>
 
         {!isNeuePanelOpen && <>

@@ -16,6 +16,7 @@ export default function NeueExportModal(props: ModalProps) {
     const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
     const [selectedDevice, setSetSelectedDevice] = useState(null);
     const [error, setError] = useState(null);
+    const [isLoading, setIsLoading] = useState(false);
 
     useEffect(() => {
         if (props.isVisible) {
@@ -57,6 +58,7 @@ export default function NeueExportModal(props: ModalProps) {
                     {error && <div style={{ color: 'red' }}>{error}</div>}
 
                     <PrimaryButton label="Push to device" onClick={async () => {
+                        setIsLoading(true);
                         const response = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
                         if (response.status === 200) {
                             props.onClose();
@@ -64,7 +66,11 @@ export default function NeueExportModal(props: ModalProps) {
                             const body = await response.json();
                             setError('Failed to push to device: ' + body);
                         }
-                    }} />
+                        setIsLoading(false);
+
+                    }}
+                        isLoading={isLoading}
+                        isDisabled={isLoading} />
                 </div>
             </div>
 
