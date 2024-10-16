@@ -1,14 +1,35 @@
 import { filesystem } from '@noodl/platform';
 
 import { Environment } from '@noodl-models/CloudServices';
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { ProjectModel } from '@noodl-models/projectmodel';
 
 import * as Exporter from '../../exporter';
-import { copyProjectFilesToFolder } from './copy';
-import { loadDeployIndex, copyDeployFilesToFolder, getExternalFolderPath } from './deploy-index';
+import { copyProjectFilesToBlob, copyProjectFilesToFolder } from './copy';
+import { loadDeployIndex, copyDeployFilesToFolder, getExternalFolderPath, getDeployFiles } from './deploy-index';
 import { HtmlProcessor, HtmlProcessorParameters } from './processors/html-processor';
 
 export type DeployToFolderOptions = {
+  project: ProjectModel;
+
+  /**
+   * The folder that we will publish the files to.
+   */
+  direntry: string;
+
+  /**
+   * The environment we want to publish with.
+   */
+  environment: Environment | undefined;
+
+  baseUrl: string;
+
+  runtimeType?: string;
+  envVariables?: Record<string, string>;
+};
+
+export type DeployToSandboxOptions = {
+  id: string;
   project: ProjectModel;
 
   /**
@@ -101,6 +122,81 @@ export async function deployToFolder({
       await filesystem.writeFile(dir + bundleId + '.json', json);
     }
   }
+}
+
+export async function deployToSandbox({
+  id,
+  project,
+  direntry,
+  environment,
+  baseUrl,
+  envVariables,
+  runtimeType = 'deploy'
+}: DeployToSandboxOptions) {
+  // Check if this is a project folder
+  try {
+    const projectContent = await filesystem.readJson(direntry + '/project.json');
+    if (projectContent) {
+      return Promise.reject({ result: 'failure', message: 'Cannot deploy to a project folder.' });
+    }
+
+    // There is no project.json, this is not a project folder, good continue with the deploy
+  } catch (error) {
+    // noop; file doesn't exist
+  }
+  const files: File[] = [];
+  // Start by copying all files from the project folder to the deploy directory
+  files.push(...(await copyProjectFilesToBlob(project._retainedProjectDirectory)));
+
+  // Export project
+  const exportJson = Exporter.exportToJSON(project, {
+    useBundles: true,
+    useBundleHashes: true,
+    environment,
+    // Remove all the cloud function components
+    ignoreComponentFilter: (component) => !component.name.startsWith('/#__cloud__/')
+  });
+
+  if (!exportJson) {
+    return Promise.reject({ result: 'failure', message: 'Failed to export project.' });
+  }
+
+  // Remove all keys from config that require master key
+  const configSchema = exportJson.metadata['dbConfigSchema'];
+  for (const key in configSchema) {
+    if (configSchema[key].masterKeyOnly) delete configSchema[key];
+  }
+
+  // Read deploy description
+  const index = await loadDeployIndex(`${runtimeType}/index.json`);
+
+  // Copy all deploy files
+  files.push(
+    ...(await getDeployFiles({
+      project,
+      direntry,
+      files: index,
+      exportJson,
+      baseUrl,
+      envVariables,
+      runtimeType
+    }))
+  );
+
+  //then the export component bundles
+  const dir = direntry + '\\noodl_bundles\\';
+  for (const bundleId in exportJson.componentIndex) {
+    if (bundleId !== 'root') {
+      const json = JSON.stringify(Exporter.exportComponentBundle(project, bundleId, exportJson.componentIndex));
+      if (!filesystem.exists(dir)) {
+        await filesystem.makeDirectory(dir);
+      }
+
+      files.push(new File([json], '\\noodl_bundles\\' + bundleId + '.json'));
+    }
+  }
+  console.log(project);
+  NeueService.instance.deployToSandbox(id, files);
 }
 
 export async function createIndexPage(project: ProjectModel, parameters: HtmlProcessorParameters) {

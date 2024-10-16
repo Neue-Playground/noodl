@@ -38,7 +38,6 @@ export function ModuleCard({ label, desc, icon, project, docs, tags }: ModuleCar
     setCardState(CardState.Downloading);
 
     const fullUrl = url.startsWith('http') ? url : endpoint + '/' + url;
-
     const installFunc = isPrefab
       ? ModuleLibraryModel.instance.installPrefab.bind(ModuleLibraryModel.instance)
       : ModuleLibraryModel.instance.installModule.bind(ModuleLibraryModel.instance);

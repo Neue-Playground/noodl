@@ -243,7 +243,7 @@ export class NodeGraphNode extends Model {
   }
 
   getConnectionsOnThisNode(): { fromId: string; fromProperty: string; toId: string; toProperty: string }[] {
-    return this.owner.connections.filter((c) => c.fromId === this.id || c.toId === this.id);
+    return [];
   }
 
   // A node may have instance ports
@@ -353,7 +353,7 @@ export class NodeGraphNode extends Model {
       for(var i = 0; i < list.length; i++)
         if(list[i].name === name) return true;
     }
-  
+
     if(before && after) {
       for(var i = 0; i < before.length; i++) {
         var oldPortname = before[i].name;

@@ -10,7 +10,7 @@ import { NodeGraphTraverser } from '@noodl-utils/node-graph-traverser';
 
 import Model from '../../../../shared/model';
 import { BuildScript, CoreContext, NotifyType } from './build-context';
-import { createIndexPage, deployToFolder } from './build/deployer';
+import { createIndexPage, deployToFolder, deployToSandbox } from './build/deployer';
 import { getIndexedPages } from './context/pages';
 import { deployCloudFunctionBuildScript } from './passes/deploy-cloud-functions';
 
@@ -214,6 +214,66 @@ export class Compilation {
 
     try {
       await deployToFolder({
+        project: coreContext.project,
+        direntry: filePath,
+        environment: options.environment,
+        baseUrl: coreContext.getHostname(),
+        runtimeType: options.runtimeType,
+        envVariables
+      });
+
+      await this.callBuildScripts('onPostBuild', { ...common, status: 'success' });
+    } catch (error) {
+      await this.callBuildScripts('onPostBuild', { ...common, status: 'failure' });
+      throw error;
+    }
+  }
+
+  /**
+   * Deploy the project to a folder.
+   *
+   * @param filePath
+   * @param options
+   * @returns
+   */
+  deployToSandbox(filePath: string, options: DeployOptions): Promise<void> {
+    return this.deployToSandboxWithContext(filePath, options, this.createCoreContext(options.environment));
+  }
+
+  /**
+   * Reuse the same core context when building.
+   *
+   * @param filePath
+   * @param options
+   * @param coreContext
+   */
+  private async deployToSandboxWithContext(filePath: string, options: DeployOptions, coreContext: CoreContext) {
+    await this.loadProjectBuildScripts();
+
+    const projectSettings = this.project.getSettings();
+
+    const common = {
+      ...coreContext,
+      outputPath: filePath
+    };
+
+    await this.callBuildScripts('onPreBuild', common);
+
+    const envVariables: Record<string, string> = {};
+
+    if (projectSettings.deployEnvDate) {
+      envVariables['DeployedAt'] = new Date().toUTCString();
+    }
+
+    if (projectSettings.deployEnvGitStats) {
+      const stats = await getGitStats();
+      envVariables['GitBranch'] = stats.gitBranch;
+      envVariables['GitSha'] = stats.gitSha;
+    }
+    console.log(projectSettings, envVariables, common, this.project);
+    try {
+      await deployToSandbox({
+        id: this.project.id,
         project: coreContext.project,
         direntry: filePath,
         environment: options.environment,

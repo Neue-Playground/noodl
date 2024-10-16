@@ -17,7 +17,7 @@ export function useCaptureThumbnailNeue(canvasView: CanvasView, viewerDetached: 
     const timer = setInterval(async () => {
       if (isNeue) {
         const win = BrowserWindow.getFocusedWindow();
-
+        if (win === null) return;
         win.webContents
           .capturePage({
             x: 350,

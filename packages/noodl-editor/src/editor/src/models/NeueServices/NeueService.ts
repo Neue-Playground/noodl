@@ -317,4 +317,26 @@ export class NeueService extends Model {
       });
     });
   }
+
+  public deployToSandbox(projectID: string, files: File[]) {
+    return new Promise<ProjectItem>((resolve) => {
+      files.forEach((file) => {
+        const form = new FormData();
+        form.append('content', file);
+        let filename = file.name;
+        filename = filename.replace(/\\/g, '/');
+        if (filename[0] === '-') filename = filename.slice(1);
+        if (filename[0] === '/') filename = filename.slice(1);
+        console.log(`${filename}`);
+        fetch(`${api.invokeUrl}/project/sandbox/${filename}`, {
+          method: 'PUT',
+          headers: {
+            Authorization: this.session ? this.session.token : ''
+          },
+          body: file
+        });
+      });
+      // this.performRequest('/project/templates', 'POST', form);
+    });
+  }
 }

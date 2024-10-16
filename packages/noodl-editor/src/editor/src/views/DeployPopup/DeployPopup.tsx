@@ -7,6 +7,7 @@ import { PopupSection } from '@noodl-core-ui/components/popups/PopupSection';
 
 import { DeployContextProvider, useDeployContext } from './DeployPopup.context';
 import { DeployToFolderTab } from './tabs/DeployToFolderTab';
+import { DeployToSandboxTab } from './tabs/DeployToSandboxTab';
 
 function DeployPopupChild() {
   const { hasActivity } = useDeployContext();
@@ -25,7 +26,10 @@ function DeployPopupChild() {
       >
         <PopupSection title="Deploy options" />
 
-        <Tabs tabs={[{ label: 'Self Hosting', content: <DeployToFolderTab />, testId: 'self-hosting-tab-button' }]} />
+        <Tabs tabs={[
+          { label: 'Self Hosting', content: <DeployToFolderTab />, testId: 'self-hosting-tab-button' },
+          { label: 'Neue Sandbox', content: <DeployToSandboxTab />, testId: 'self-hosting-tab-button' }
+        ]} />
 
         {hasActivity && <ActivityIndicator isOverlay />}
       </div>

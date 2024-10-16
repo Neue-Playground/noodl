@@ -89,7 +89,7 @@ async function _writeFileToFolder({
       envVariables
     });
   }
-
+  console.trace('Writing file to folder:', direntry + '/' + filename);
   await filesystem.writeFileOverride(direntry + '/' + filename, content);
   return filename;
 }
@@ -185,5 +185,92 @@ export async function copyDeployFilesToFolder({
       runtimeType
     })
   ]);
+  // reject({ result: 'failure', message: 'Failed to copy deploy files.' });
+}
+
+async function _getFile({
+  project,
+  direntry,
+  url,
+  exportJson,
+  injectHTML,
+  indexJsPath,
+  baseUrl,
+  enableHash = true,
+  envVariables,
+  runtimeType
+}: WriteFileToFolderArgs) {
+  const fullPath = filesystem.join(getExternalFolderPath(), runtimeType, url);
+  let content = await filesystem.readFile(fullPath);
+  let filename = url;
+
+  // Apply export if needed
+  if (exportJson) {
+    content = content.replace(/{{#export#}}/g, JSON.stringify(exportJson));
+
+    if (enableHash) {
+      const hash = createHash();
+      hash.update(content, 'utf8');
+      const hex = hash.digest('hex');
+
+      filename = addSuffix(url, '-' + hex);
+    }
+  } else if (injectHTML) {
+    const htmlProcessor = new HtmlProcessor(project);
+    content = await htmlProcessor.process(content, {
+      indexJsPath,
+      baseUrl,
+      envVariables
+    });
+  }
+
+  // await filesystem.writeFileOverride(direntry + '/' + filename, content);
+  return new File([content], filename);
+}
+
+export async function getDeployFiles({
+  project,
+  direntry,
+  files,
+  exportJson,
+  baseUrl,
+  envVariables,
+  runtimeType
+}: CopyDeployFilesToFolderArgs) {
+  const indexJsFile = files.find((file) => file.injectExport);
+  const indexHtmlFile = files.find((file) => file.injectHTML);
+  const otherFiles = files.filter((f) => f !== indexJsFile && f !== indexHtmlFile);
+  const otherFilesPromises = otherFiles.map((file) =>
+    _getFile({ project, direntry, url: file.url, envVariables, runtimeType })
+  );
+  const formFiles: File[] = [];
+  const indexJsFileObj = await _getFile({
+    project,
+    direntry,
+    url: indexJsFile.url,
+    exportJson,
+    enableHash: runtimeType === 'deploy',
+    runtimeType
+  });
+  formFiles.push(indexJsFileObj);
+
+  if (indexHtmlFile) {
+    //and write the index.html file with the correct path
+    const indexHtmlFileObj = await _getFile({
+      project,
+      direntry,
+      url: indexHtmlFile.url,
+      exportJson: undefined,
+      injectHTML: true,
+      indexJsPath: indexJsFileObj.name,
+      baseUrl,
+      enableHash: runtimeType === 'deploy',
+      runtimeType
+    });
+    formFiles.push(indexHtmlFileObj);
+  }
+
+  formFiles.push(...(await Promise.all([...otherFilesPromises])));
+  return formFiles;
   // reject({ result: 'failure', message: 'Failed to copy deploy files.' });
 }
