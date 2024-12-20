@@ -15,7 +15,27 @@ type EnvironmentDataFormat = {
 
 export class ExternalCloudService {
   async list(): Promise<EnvironmentDataFormat[]> {
-    const local = await JSONStorage.get('externalBrokers');
+    let local = await JSONStorage.get('externalBrokers');
+    if (local.brokers.length == 0) {
+      this.create({
+        name: 'Neue Server',
+        description: '',
+        masterKey: '717273',
+        appId: '676970',
+        url: 'http://noodl-backend-1828735383.eu-west-1.elb.amazonaws.com:3000'
+      });
+      return [
+        {
+          enabled: true,
+          id: 'http://noodl-backend-1828735383.eu-west-1.elb.amazonaws.com:3000-676970',
+          name: 'Neue Server',
+          description: '',
+          masterKey: '717273',
+          appId: '676970',
+          endpoint: 'http://noodl-backend-1828735383.eu-west-1.elb.amazonaws.com:3000'
+        }
+      ];
+    }
     return local.brokers || [];
   }
 
