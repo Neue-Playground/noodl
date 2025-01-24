@@ -16,7 +16,6 @@ import PopupLayer from '../../../popuplayer';
 import { ToastLayer } from '../../../ToastLayer/ToastLayer';
 import { NO_ENVIRONMENT_VALUE } from '../../DeployPopup.constants';
 import { useEnvironmentsAsOptions } from '../../DeployPopup.hooks';
-import { time } from 'console';
 
 export function DeployToSandboxTab() {
   const cloudService = useModernModel(CloudService.instance);

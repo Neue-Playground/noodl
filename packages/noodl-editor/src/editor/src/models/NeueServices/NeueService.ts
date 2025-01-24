@@ -324,19 +324,45 @@ export class NeueService extends Model {
         const form = new FormData();
         form.append('content', file);
         let filename = file.name;
+        const fileEnding = filename.split('.').pop();
+        let contentType = 'text/javascript';
+        switch (fileEnding) {
+          case 'js':
+            contentType = 'text/javascript';
+            break;
+          case 'html':
+            contentType = 'text/html';
+            break;
+          case 'css':
+            contentType = 'text/css';
+            break;
+          case 'json':
+            contentType = 'application/json';
+            break;
+          case 'ttf':
+            contentType = 'font/ttf';
+            break;
+          case 'png':
+            contentType = 'image/png';
+            break;
+          default:
+            contentType = 'text/text';
+        }
         filename = filename.replace(/\\/g, '/');
         if (filename[0] === '-') filename = filename.slice(1);
         if (filename[0] === '/') filename = filename.slice(1);
-        console.log(`${filename}`);
+        // filename = projectID + '/' + filename;
         fetch(`${api.invokeUrl}/project/sandbox/${filename}`, {
           method: 'PUT',
           headers: {
-            Authorization: this.session ? this.session.token : ''
+            Authorization: this.session ? this.session.token : '',
+            'Content-Type': contentType
           },
           body: file
+        }).then((response) => {
+          console.log(response);
         });
       });
-      // this.performRequest('/project/templates', 'POST', form);
     });
   }
 }

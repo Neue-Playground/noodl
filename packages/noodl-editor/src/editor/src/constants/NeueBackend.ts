@@ -10,5 +10,5 @@ export const cognito = {
 };
 
 export const api = {
-  invokeUrl: 'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/dev2'
+  invokeUrl: 'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/noodl-dev1'
 };
