@@ -211,6 +211,29 @@ function launchApp() {
         reopenWindow = true;
       }
     });
+    win.webContents.session.setPermissionCheckHandler((webContents, permission, requestingOrigin, details) => {
+      if (permission === 'serial') {
+        // Add logic here to determine if permission should be given to allow serial selection
+        return true
+      }
+      return true
+    })
+
+    win.webContents.session.setDevicePermissionHandler((details) => {
+      console.log('Device permission request:', details)
+      return true
+    })
+
+    win.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
+      event.preventDefault()
+      const selectedPort = portList[1]
+      console.log('Selected port:', portList)
+      if (!selectedPort) {
+        callback('')
+      } else {
+        callback(selectedPort.portId)
+      }
+    })
 
     process.env.noodlURI && win.webContents.send('open-noodl-uri', process.env.noodlURI);
 
