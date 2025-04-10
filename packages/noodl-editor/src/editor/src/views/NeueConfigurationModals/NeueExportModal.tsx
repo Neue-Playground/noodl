@@ -2,6 +2,7 @@ import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { Select } from '@noodl-core-ui/components/inputs/Select';
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog';
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
+import { SerialPort } from 'electron/main';
 import React, { useEffect, useState } from 'react';
 
 type ModalProps = {
@@ -9,7 +10,14 @@ type ModalProps = {
     onClose: () => void,
     jsonData: any,
     devices: any[],
-    firmware: string;
+    firmware: string,
+    log: any[],
+    setLog: (log: any[]) => void,
+    writer: WritableStreamDefaultWriter,
+    reader: ReadableStreamDefaultReader,
+    port: SerialPort,
+    setSerial: (serial: any) => void,
+    readStreamer: (reader: any, log: any) => void
 };
 
 export default function NeueExportModal(props: ModalProps) {
@@ -24,7 +32,48 @@ export default function NeueExportModal(props: ModalProps) {
             setSetSelectedDevice(null);
             setError(null);
         }
-    }, [props.isVisible]);
+        console.log(props.reader, props.writer)
+    }, [props]);
+
+    async function writeCommand(group, reader) {
+        new Promise((resolve) => {
+            // Assuming `cmd` is an array of hex strings like ["0x00", "0x01", "0x02", ...] \xff\x01\x00\x00
+            // const cmd = ["0xff", "0x01", "0x00", "0x00"];  // Example cmd array
+            const cmds = group.cmd.split(" ");
+            console.log("cmds", cmds)
+            // Step 1: Convert the cmd array to an array of integers
+            const command = cmds.map(hexStr => parseInt(hexStr, 16));
+            // Step 2: Create the transfer buffer
+            const transfer = new Uint8Array([0xAA, 0xBB, 0x01, 0x00]);
+
+            // Step 3: Append the command array to the transfer buffer
+            const combined = new Uint8Array(transfer.length + command.length);
+            combined.set(transfer);
+            combined.set(command, transfer.length);
+
+            // Step 4: Update the length at the 4th position
+            combined[3] = command.length;
+
+            // Step 5: Send the data via port (assuming `port` is defined and open)
+            // port.write(combined);
+            console.log("writing message", combined)
+            props.writer.write(combined).then(() => {
+                setTimeout(() => {
+                    console.log("message written")
+                    resolve(true)
+                }, 1000)
+            });
+        // const id = setTimeout(() => {
+        //     console.log("Message response timeout")
+        //     reader.cancel()
+        //     writeCommand(group, writer, reader)
+        // }, 5000);
+        // const { done, value } = await reader.read()
+        // console.log("Message response: ", value, done)
+        // props.setLog([...props.log, value])
+        // clearTimeout(id)
+        })
+    }
 
     return (
         <BaseDialog
@@ -59,84 +108,45 @@ export default function NeueExportModal(props: ModalProps) {
 
                     <PrimaryButton label="Push to device" onClick={async () => {
                         setIsLoading(true);
-                        // ignore webpack error
-                        // if ("serial" in navigator) {
-                        //     // @ts-ignore
-                        //     const ports = await navigator.serial.getPorts();
-                        //     // @ts-ignore
-                        //     const port = await navigator.serial.requestPort();
-                        //     let writer
-                        //     let reader
-                        //     try {
-                        //         console.log(ports)
-                        //         // @ts-ignore
-                        //         console.log(port)
-                        //         await port.open({baudRate: 115200});
-                        //         console.log("port opened")
-                        //         reader = port.readable.getReader();
-                        //         console.log("reader created")
-                        //         writer = port.writable.getWriter();
-                        //         console.log("writer created")
-                        //         // Assuming `cmd` is an array of hex strings like ["0x00", "0x01", "0x02", ...] \xff\x01\x00\x00
-                        //         const cmd = ["0xff", "0x01", "0x00", "0x00"];  // Example cmd array
+                        try {
+                            const response = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
+                            const commands = (await response.json()).flat()
+                            console.log("commands", commands)
 
-                        //         // Step 1: Convert the cmd array to an array of integers
-                        //         const command = cmd.map(hexStr => parseInt(hexStr, 16));
-
-                        //         // Step 2: Create the transfer buffer
-                        //         const transfer = new Uint8Array([0xAA, 0xBB, 0x01, 0x00]);
-
-                        //         // Step 3: Append the command array to the transfer buffer
-                        //         const combined = new Uint8Array(transfer.length + command.length);
-                        //         combined.set(transfer);
-                        //         combined.set(command, transfer.length);
-
-                        //         // Step 4: Update the length at the 4th position
-                        //         combined[3] = command.length;
-
-                        //         // Step 5: Send the data via port (assuming `port` is defined and open)
-                        //         // port.write(combined);
-                        //         console.log("writing message", combined)
-                        //         await writer.write(combined);
-                        //         console.log("message written")
-
-                        //         // while (true) {
-                        //         const id = setTimeout(() => {
-                        //             console.log("aborting")
-                        //             writer.abort()
-                        //             reader.cancel()
-                        //             writer.releaseLock()
-                        //             reader.releaseLock()
-                        //             // port.close()
-                        //         }, 10000)
-                        //         const { value, done } = await reader.read();
-                        //         clearTimeout(id)
-                        //         console.log("Response:", value, done)
-                        //         if (done) {
-                        //             // |reader| has been canceled.
-                        //             // break;
-                        //         }
-                        //         // Do something with |value|…
-                        //         // }
-                        //     } catch (error) {
-                        //         console.log(error)
-                        //     } finally {
-                        //         writer.releaseLock();
-                        //         reader.releaseLock();
-                        //         port.close()
-                        //         setIsLoading(false);
-                        //     }
-                        // }
-                        // console.log(JSON.stringify(JSON.stringify(props.jsonData)))
-                        const response = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
-                        if (response.status === 200) {
-                            props.onClose();
-                        } else {
-                            const body = await response.json();
-                            setError('Failed to push to device: ' + body);
+                            // props.reader.cancel()
+                            // await props.reader.closed
+                            // @ts-ignore
+                            // const reader = props.port.readable.getReader()'
+                            // await writeCommand(commands[0], props.reader)
+                            // console.log("Message response: ", await props.reader.read())
+                            // return
+                            // console.log("Message response2: ", value, done)
+                            if (selectedDevice === 'USB') {
+                                for (const group of commands) {
+                                    await writeCommand(group, props.reader)
+                                }
+                                // props.reader.read()
+                                // @ts-ignore
+                                // props.setSerial({port: props.port, reader: props.reader, writer: props.writer})
+                                props.readStreamer(props.reader, [])
+                            }
+                        } catch (error) {
+                            console.log(error)
+                        } finally {
+                            // props.reader.releaseLock()
+                            props.writer.releaseLock()
+                            // @ts-ignore
+                            props.port.close()
+                            setIsLoading(false);
                         }
+                        // const response = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
+                        // if (response.status === 200) {
+                        //     props.onClose();
+                        // } else {
+                        //     const body = await response.json();
+                        //     setError('Failed to push to device: ' + JSON.stringify(body));
+                        // }
                         setIsLoading(false);
-
                     }}
                         isLoading={isLoading}
                         isDisabled={isLoading} />

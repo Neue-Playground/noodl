@@ -506,7 +506,7 @@ function generateNodeLibrary(nodeRegister) {
         },
         {
           name: 'System',
-          items: ['Screen Resolution', 'Open File Picker']
+          items: ['Screen Resolution', 'Open File Picker', 'USB Device']
         },
         {
           name: 'Variables',
@@ -637,7 +637,7 @@ function generateNodeLibrary(nodeRegister) {
         {
           // Neue
           name: 'General',
-          items: ['Compare', 'Range', 'Stepper', 'Threshold', 'Toggle']
+          items: ['Compare', 'Range', 'Stepper', 'Threshold', 'Toggle', 'Signal gate', 'Signal inverter']
         },
         {
           name: 'Events',
@@ -659,7 +659,19 @@ function generateNodeLibrary(nodeRegister) {
       subCategories: [
         {
           name: '',
-          items: ['MQTT', 'Save Telemetry', 'Commands Input', 'Register event']
+          items: ['Transmit', 'Commands Input', 'Register event']
+        }
+      ]
+    },
+    // Neue
+    {
+      name: 'System',
+      description: 'System nodes',
+      type: 'neueData',
+      subCategories: [
+        {
+          name: '',
+          items: ['USB']
         }
       ]
     }

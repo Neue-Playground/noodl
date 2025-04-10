@@ -3,133 +3,119 @@ const UsbDefinition = {
   docs: 'https://docs.noodl.net/nodes/string-manipulation/string-format',
   category: 'String Manipulation',
   initialize() {
-    const internal = this._internal;
-    internal.format = '';
-    internal.cachedResult = '';
-    internal.resultDirty = false;
-    internal.inputValues = {};
+    this._internal.reader = undefined
+    this._internal.port = undefined
+    this._internal.stop = true
+    this._internal.dones = false
   },
   getInspectInfo() {
-    return this.formatValue();
+    return {
+      "Data": this.data,
+      "Debug": "Debug info"
+    };
   },
   inputs: {
-    format: {
-      type: { name: 'string', multiline: true },
-      displayName: 'Format',
-      set(value) {
-        if (this._internal.format === value) return;
+    read: {
+      displayName: 'Start',
+      valueChangedToTrue: async function () {
+        this._internal.dones = false
+        this._internal.stop = false
+        console.log("Start reading")
+        if (!this._internal.reader) {
+          this._internal.port = await navigator.serial.requestPort()
+          // @ts-ignore
+          console.log(this._internal.port.connected)
+          console.log("port.connected")
+          try {
+            await this._internal.port.open({baudRate: 115200})
+          } catch (e) {
+            console.log(e)
+          }
+          this._internal.reader = this._internal.port.readable.getReader()
+        }
+        // this.reader = port;
+        // this.flagOutputDirty('reader');
 
-        this._internal.format = value;
-        this._internal.resultDirty = true;
-        this.scheduleFormat();
+        this.read()
+      }
+    },
+    stop: {
+      displayName: 'Stop',
+      valueChangedToTrue: function () {
+        this._internal.stop = true
+        if (this._internal.reader) {
+          this._internal.reader.releaseLock()
+          this._internal.reader = undefined
+        }
+        if (this._internal.port) {
+          this._internal.port.close()
+          this._internal.port = undefined
+        }
+        console.log("Stop reading")
       }
     }
   },
   outputs: {
-    formatted: {
-      type: 'string',
-      displayName: 'Formatted',
-      get() {
-        return this.formatValue();
+    data: {
+      displayName: 'Data',
+      type: '*',
+      getter: function () {
+        return this.data;
       }
+    },
+    serialRead: {
+      displayName: 'Read completed',
+      type: 'signal'
+    },
+    iterate: {
+      displayName: 'Read',
+      type: 'signal',
     }
   },
   methods: {
-    formatValue() {
-      var internal = this._internal;
-
-      if (internal.resultDirty) {
-        var formatted = internal.format;
-
-        var matches = internal.format.match(/\{[A-Za-z0-9_]*\}/g);
-        var inputs = [];
-        if (matches) {
-          inputs = matches.map(function (name) {
-            return name.replace('{', '').replace('}', '');
-          });
+    read: async function (message = []) {
+      console.log("Reading...")
+      const {value, done} = await this._internal.reader.read()
+      if (value == undefined) {
+        console.log("Undefined values in read stream", value, done)
+        return
+      }
+      let values = value
+      console.log("Read value: ", values)
+      if (message.length < 4) {
+        message = [...message, ...Array.from(values)]
+        console.log("Message1: ", message)
+        this.read(message)
+        return
+      } else {
+        if (message[0] == 0xAA && message[1] == 0xBB) {
+          const length = message[3] + 4
+          if (message.length < length) {
+            message = [...message, ...Array.from(values)]
+            console.log("Message2: ", message)
+            this.read(message)
+            return
+          } else if (message.length >= length) {
+            message = message.slice(4, length);
+            console.log("Message3: ", message)
+            values = values.slice(length)
+          }
         }
-
-        inputs.forEach(function (name) {
-          var v = internal.inputValues[name];
-          formatted = formatted.replace('{' + name + '}', v !== undefined ? v : '');
-        });
-
-        internal.cachedResult = formatted;
-        internal.resultDirty = false;
       }
-
-      return internal.cachedResult;
-    },
-    registerInputIfNeeded(name) {
-      if (this.hasInput(name)) {
-        return;
+      this._internal.dones = done
+      this.data = message.slice(5);
+      this.flagOutputDirty('data')
+      this.sendSignalOnOutput('iterate')
+      console.log(done, stop)
+      if (!this._internal.done && !this._internal.stop) {
+        this.read(Array.from(value))
+      } else {
+        this.sendSignalOnOutput('serialRead')
       }
-
-      this.registerInput(name, {
-        set: userInputSetter.bind(this, name)
-      });
-    },
-    scheduleFormat() {
-      if (this.formatScheduled) return;
-
-      this.formatScheduled = true;
-      this.scheduleAfterInputsHaveUpdated(() => {
-        this.formatValue();
-        this.flagOutputDirty('formatted');
-        this.formatScheduled = false;
-      });
     }
   }
 };
 
-function userInputSetter(name, value) {
-  /* jshint validthis:true */
-  if (this._internal.inputValues[name] === value) return;
-
-  this._internal.inputValues[name] = value;
-  this._internal.resultDirty = true;
-  this.scheduleFormat();
-}
-
-function updatePorts(id, format, editorConnection) {
-  var inputs = format.match(/\{[A-Za-z0-9_]*\}/g) || [];
-  var portsNames = inputs.map(function (def) {
-    return def.replace('{', '').replace('}', '');
-  });
-
-  var ports = portsNames
-    //get unique names
-    .filter(function (value, index, self) {
-      return self.indexOf(value) === index;
-    })
-    //and map names to ports
-    .map(function (name) {
-      return {
-        name: name,
-        type: 'string',
-        plug: 'input'
-      };
-    });
-
-  editorConnection.sendDynamicPorts(id, ports);
-}
-
 module.exports = {
-  node: StringFormatDefinition,
-  setup: function (context, graphModel) {
-    if (!context.editorConnection || !context.editorConnection.isRunningLocally()) {
-      return;
-    }
-
-    graphModel.on('nodeAdded.String Format', function (node) {
-      if (node.parameters.format) {
-        updatePorts(node.id, node.parameters.format, context.editorConnection);
-      }
-      node.on('parameterUpdated', function (event) {
-        if (event.name === 'format') {
-          updatePorts(node.id, node.parameters.format, context.editorConnection);
-        }
-      });
-    });
-  }
+  node: UsbDefinition
 };

@@ -6,6 +6,7 @@ export function registerNodes(runtime: NoodlRuntime) {
     // require('./shNodes/commandinput'),
     // require('./shNodes/hardwareclock'),
     // require('./shNodes/MQTT'),
+    require('./shNodes/usb')
     // require('./shNodes/savetelemetry'),
     // require('./shNodes/tempsensor'),
     // require('./shNodes/sendevent'),
