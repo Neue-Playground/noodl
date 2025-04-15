@@ -48,8 +48,8 @@ export default function NeueExportModal(props: ModalProps) {
         }
 }
 
-    async function writeCommand(group, writer) {
-        new Promise((resolve) => {
+    function writeCommand(group, writer) {
+        return new Promise((resolve) => {
             // Assuming `cmd` is an array of hex strings like ["0x00", "0x01", "0x02", ...] \xff\x01\x00\x00
             // const cmd = ["0xff", "0x01", "0x00", "0x00"];  // Example cmd array
             const cmds = group.cmd.split(" ");
@@ -100,7 +100,7 @@ export default function NeueExportModal(props: ModalProps) {
         }
         const w = p.writable.getWriter()
         // r = p.readable.getReader()
-        writerCommands(commands, p, w)
+        await writerCommands(commands, p, w)
         setIsLoading(false);
     }
 
