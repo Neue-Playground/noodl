@@ -32,7 +32,7 @@ export default function NeueExportModal(props: ModalProps) {
     async function writerCommands (cmds, port, writer) {
         try {
             if (selectedDevice === 'USB') {
-                const commands = (await cmds.json()).flat()
+                const commands = cmds instanceof Response ? (await cmds.json()).flat() : cmds
                 console.log("commands", commands)
                 for (const group of commands) {
                     await writeCommand(group, writer)
@@ -86,7 +86,6 @@ export default function NeueExportModal(props: ModalProps) {
             commands = props.commands
             props.setCommands([])
         } else {
-            console.log(props.jsonData)
             commands = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
         }
         if (selectedDevice !== 'USB') return
