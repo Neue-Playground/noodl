@@ -74,7 +74,7 @@ const UsbDefinition = {
   },
   methods: {
     read: async function (message = []) {
-      console.log("Reading... Carry over:", message)
+      // console.log("Reading... Carry over:", message)
       const {value, done} = await this._internal.reader.read()
       if (value == undefined) {
         console.log("Undefined values in read stream", value, done)
@@ -94,14 +94,14 @@ const UsbDefinition = {
           const length = message[3] + 4
 
           if (message.length < length) {
-            console.log("Message2: ", message)
+            // console.log("Message2: ", message)
             this.read(message)
             return
           } else if (message.length >= length) {
-            console.log("Message3.1: ", message)
+            // console.log("Message3.1: ", message)
             message = message.slice(0, length);
             carryover = message.slice(length);
-            console.log("Message3.2: ", message)
+            // console.log("Message3.2: ", message)
           }
         } else {
           for (let i = 0; i < message.length; i++) {
@@ -116,7 +116,7 @@ const UsbDefinition = {
         }
       }
       this._internal.dones = done
-      console.log("Message:", message.map((v) => v.toString(16).padStart(2, '0')).join(' '))
+      // console.log("Message:", message.map((v) => v.toString(16).padStart(2, '0')).join(' '))
       this.data = message.slice(9);
       this.flagOutputDirty('data')
       this.sendSignalOnOutput('iterate')
