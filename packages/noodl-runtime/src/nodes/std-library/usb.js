@@ -74,41 +74,55 @@ const UsbDefinition = {
   },
   methods: {
     read: async function (message = []) {
-      console.log("Reading...")
+      console.log("Reading... Carry over:", message)
       const {value, done} = await this._internal.reader.read()
       if (value == undefined) {
         console.log("Undefined values in read stream", value, done)
         return
       }
-      let values = value
-      console.log("Read value: ", values)
+      message = [...message, ...Array.from(value)]
+      let carryover = []
+      console.log("Handling:", message)
       if (message.length < 4) {
-        message = [...message, ...Array.from(values)]
-        console.log("Message1: ", message)
         this.read(message)
+        return
+      } else if (message.length === 255) {
+        this.read()
         return
       } else {
         if (message[0] == 0xAA && message[1] == 0xBB) {
           const length = message[3] + 4
+
           if (message.length < length) {
-            message = [...message, ...Array.from(values)]
             console.log("Message2: ", message)
             this.read(message)
             return
           } else if (message.length >= length) {
-            message = message.slice(4, length);
-            console.log("Message3: ", message)
-            values = values.slice(length)
+            console.log("Message3.1: ", message)
+            message = message.slice(0, length);
+            carryover = message.slice(length);
+            console.log("Message3.2: ", message)
           }
+        } else {
+          for (let i = 0; i < message.length; i++) {
+            if (message[i] == 0xAA && message[i + 1] == 0xBB) {
+              message = message.slice(i);
+              this.read(message)
+              return
+            }
+          }
+          this.read()
+          return
         }
       }
       this._internal.dones = done
-      this.data = message.slice(5);
+      console.log("Message:", message.map((v) => v.toString(16).padStart(2, '0')).join(' '))
+      this.data = message.slice(9);
       this.flagOutputDirty('data')
       this.sendSignalOnOutput('iterate')
-      console.log(done, stop)
+      console.log(done, this.data)
       if (!this._internal.done && !this._internal.stop) {
-        this.read(Array.from(value))
+        this.read(Array.from(carryover))
       } else {
         this.sendSignalOnOutput('serialRead')
       }

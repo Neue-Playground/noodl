@@ -29,13 +29,52 @@ export default function NeueExportModal(props: ModalProps) {
         }
     }, [props]);
 
-    async function writerCommands (cmds, port, writer) {
+    async function read (message = []) {
+        console.log("Reading... Carry over:", message)
+        const {value, done} = await this._internal.reader.read()
+        if (value == undefined) {
+            console.log("Undefined values in read stream", value, done)
+            return
+        }
+        message = [...message, ...Array.from(value)]
+        if (message.length < 4) {
+            this.read(message)
+            return
+        } else {
+            if (message[0] == 0xAA && message[1] == 0xBB) {
+                const length = message[3] + 4
+
+                if (message.length < length) {
+                    console.log("Message2: ", message)
+                    this.read(message)
+                    return
+                } else if (message.length >= length) {
+                    console.log("Message3.1: ", message)
+                    message = message.slice(4, length);
+                    console.log("Message3.2: ", message)
+                }
+            }
+        }
+        this._internal.dones = done
+        this.data = message.slice(5);
+        this.flagOutputDirty('data')
+        this.sendSignalOnOutput('iterate')
+        console.log(done, this.data)
+        if (!this._internal.done && !this._internal.stop) {
+            this.read(Array.from(message))
+        } else {
+            this.sendSignalOnOutput('serialRead')
+        }
+    }
+
+    async function writerCommands (cmds, port, writer, reader) {
         try {
             if (selectedDevice === 'USB') {
                 const commands = cmds instanceof Response ? (await cmds.json()).flat() : cmds
                 console.log("commands", commands)
                 for (const group of commands) {
                     await writeCommand(group, writer)
+                    console.log("Command response:", await reader.read())
                 }
             }
         } catch (error) {
@@ -43,6 +82,7 @@ export default function NeueExportModal(props: ModalProps) {
         } finally {
             if (selectedDevice === 'USB') {
                 if (writer) writer.releaseLock()
+                if (reader) reader.releaseLock()
                 if (port) port.close()
             }
         }
@@ -74,34 +114,35 @@ export default function NeueExportModal(props: ModalProps) {
                 setTimeout(() => {
                     console.log("message written")
                     resolve(true)
-                }, 1000)
+                }, 1)
             });
         })
     }
 
     async function onClick() {
         setIsLoading(true);
-        let commands: Response | string[] = []
-        if (props.commands.length > 0) {
-            commands = props.commands
-            props.setCommands([])
-        } else {
-            commands = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
-        }
-        if (selectedDevice !== 'USB') return
-        // @ts-ignore
-        const p = await navigator.serial.requestPort()
-
         try {
+            let commands: Response | string[] = []
+            if (props.commands.length > 0) {
+                commands = props.commands
+                props.setCommands([])
+            } else {
+                commands = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
+            }
+            if (selectedDevice !== 'USB') return
+
+            // @ts-ignore
+            const p = await navigator.serial.requestPort()
             await p.open({baudRate: 115200, bufferSize: 255});
-        }
-        catch (error) {
+
+            const w = p.writable.getWriter()
+            const r = p.readable.getReader()
+            await writerCommands(commands, p, w, r)
+        } catch (error) {
             console.log("Error opening port: ", error)
+        } finally {
+            setIsLoading(false);
         }
-        const w = p.writable.getWriter()
-        // r = p.readable.getReader()
-        await writerCommands(commands, p, w)
-        setIsLoading(false);
     }
 
     return (
