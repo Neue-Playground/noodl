@@ -56,11 +56,32 @@ const UsbDefinition = {
     }
   },
   outputs: {
-    data: {
-      displayName: 'Data',
+    port1: {
+      displayName: 'Port 1',
       type: '*',
       getter: function () {
-        return this.data;
+        return this.port1;
+      }
+    },
+    port2: {
+      displayName: 'Port 2',
+      type: '*',
+      getter: function () {
+        return this.port2;
+      }
+    },
+    port3: {
+      displayName: 'Port 3',
+      type: '*',
+      getter: function () {
+        return this.port3;
+      }
+    },
+    port4: {
+      displayName: 'Port 4',
+      type: '*',
+      getter: function () {
+        return this.port4;
       }
     },
     serialRead: {
@@ -117,10 +138,31 @@ const UsbDefinition = {
       }
       this._internal.dones = done
       // console.log("Message:", message.map((v) => v.toString(16).padStart(2, '0')).join(' '))
+      const type = message[2] >> 4
       this.data = message.slice(9);
-      this.flagOutputDirty('data')
+      switch (type) {
+        case 1:
+          this.port1 = this.data
+          this.flagOutputDirty('port1')
+          break;
+        case 2:
+          this.port2 = this.data
+          this.flagOutputDirty('port2')
+          break;
+        case 3:
+          this.port3 = this.data
+          this.flagOutputDirty('port3')
+          break;
+        case 4:
+          this.port4 = this.data
+          this.flagOutputDirty('port4')
+          break;
+        default:
+          console.log("Unknown type:", type)
+      }
+      // this.flagOutputDirty('data')
       this.sendSignalOnOutput('iterate')
-      console.log(done, this.data)
+      console.log(type)
       if (!this._internal.done && !this._internal.stop) {
         this.read(Array.from(carryover))
       } else {

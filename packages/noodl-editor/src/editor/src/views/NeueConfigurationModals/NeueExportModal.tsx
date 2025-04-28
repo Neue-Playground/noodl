@@ -121,25 +121,39 @@ export default function NeueExportModal(props: ModalProps) {
 
     async function onClick() {
         setIsLoading(true);
-        try {
-            let commands: Response | string[] = []
-            if (props.commands.length > 0) {
-                commands = props.commands
-                props.setCommands([])
-            } else {
-                commands = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
+        let p: any
+        if (selectedDevice === 'USB') {
+            try {
+                // @ts-ignore
+                p = await navigator.serial.requestPort()
+                await p.open({baudRate: 115200, bufferSize: 255});
+            } catch (error) {
+                console.log("Error opening port: ", error)
+                setError("Error opening port: " + error)
+                setIsLoading(false);
+                return
             }
-            if (selectedDevice !== 'USB') return
+        }
+        let commands: Response | string[] = []
+        if (props.commands.length > 0) {
+            commands = props.commands
+            props.setCommands([])
+        } else {
+            commands = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
+        }
 
-            // @ts-ignore
-            const p = await navigator.serial.requestPort()
-            await p.open({baudRate: 115200, bufferSize: 255});
+        if (selectedDevice !== 'USB') return
 
+        // @ts-ignore
+        // const p = await navigator.serial.requestPort()
+        // await p.open({baudRate: 115200, bufferSize: 255});
+        try {
             const w = p.writable.getWriter()
             const r = p.readable.getReader()
             await writerCommands(commands, p, w, r)
         } catch (error) {
             console.log("Error opening port: ", error)
+            setError("Error opening port: " + error)
         } finally {
             setIsLoading(false);
         }
