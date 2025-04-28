@@ -64,6 +64,7 @@ function registerNodes(noodlRuntime) {
     require('./src/nodes/std-library/stringformat'),
     require('./src/nodes/std-library/counter'),
     require('./src/nodes/std-library/uniqueid'),
+    require('./src/nodes/std-library/usb'),
     //require('./src/nodes/std-library/compare'),
 
     // User

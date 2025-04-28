@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'Timer',
+  name: 'Signal inverter',
   docs: 'https://docs.noodl.net/nodes/utilities/logic/condition',
   category: 'Neue',
   color: 'neueLogic',
@@ -10,27 +10,20 @@ const DeviceNode = {
   },
 
   inputs: {
-    'Time': {
+    "Signal in": {
+      displayName: "Signal in",
       type: {
-        name: 'number',
-        allowEditOnly: true
-      },
-      displayName: 'Time (s)'
-    },
-    'Start/Reset': {
-      type: {
-        name: '*',
+        name: "*",
         allowConnectionOnly: true
-      },
-      displayName: 'Start/Reset'
+      }
     },
   },
   outputs: {
-    'Finished': {
-      type: 'signal',
-      displayName: 'Finished'
+    "Signal out": {
+      displayName: "Signal out",
+      type: "*"
     },
-  }
+  },
 };
 
 module.exports = {

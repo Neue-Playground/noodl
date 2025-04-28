@@ -1,5 +1,5 @@
 import { useActiveEnvironment } from '@noodl-hooks/useActiveEnvironment';
-import React, { useEffect, useState } from 'react';
+import React, { useEffect, useReducer, useState } from 'react';
 
 import { ProjectModel } from '@noodl-models/projectmodel';
 
@@ -10,18 +10,16 @@ import { BasePanel } from '@noodl-core-ui/components/sidebar/BasePanel';
 
 import { ComponentsPanel } from '../componentspanel';
 import { VStack } from '@noodl-core-ui/components/layout/Stack';
-import { Section, SectionVariant } from '@noodl-core-ui/components/sidebar/Section';
-import { Text } from '@noodl-core-ui/components/typography/Text';
-import { ActivityIndicator } from '@noodl-core-ui/components/common/ActivityIndicator';
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
-import { exportComponent, exportComponentsToJSON } from '@noodl-utils/exporter';
 import NeueExportModal from '../../NeueConfigurationModals/NeueExportModal';
 import { App } from '@noodl-models/app';
-import { filesystem } from '@noodl/platform';
+import { CollapsableSection } from '@noodl-core-ui/components/sidebar/CollapsableSection';
+import { SectionVariant } from '@noodl-core-ui/components/sidebar/Section';
 
 export function iENBLPanel() {
   const environment = useActiveEnvironment(ProjectModel.instance);
+  const [, forceUpdate] = useReducer(x => x + 1, 0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
@@ -30,12 +28,16 @@ export function iENBLPanel() {
   const [jsonData, setJsonData] = useState({});
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
+  const [commands, setCommands] = useState([]);
+
+  const [exportModalTitle, setExportModalTitle] = useState("");
+
   useEffect(() => {
     NeueService.instance.load().then((result) => {
       fetchDevices();
     });
   }, [setLoading]);
-
+  // useMemo(readStream, [serial])
   const componentPanelOptions = {
     showSheetList: false,
     lockCurrentSheetName: '__neue__',
@@ -52,7 +54,7 @@ export function iENBLPanel() {
   function fetchDevices() {
     setLoading(true);
     NeueService.instance.fetchDevices().then((response) => {
-      setDevices(response);
+      setDevices([...response, {id: 'USB'}]);
     }).catch((err) => {
       console.log(err);
     }).finally(() => {
@@ -63,6 +65,7 @@ export function iENBLPanel() {
   function handleCloseModal() {
     setJsonData([]);
     setIsExportModalOpen(false);
+    // readStream()
   }
 
   const findAndExpandNodes = (nodes, allComponents) => {
@@ -125,13 +128,19 @@ export function iENBLPanel() {
         ...neueRoot.toJSON(),
         nodes: expandedNodes
       };
+      console.log(root)
       setJsonData(root);
     }
     setLoading(false);
-
+    setExportModalTitle("Push Flow to Device")
     setIsExportModalOpen(!isExportModalOpen);
   }
 
+  async function sendRestartCommand() {
+    setExportModalTitle("Restart device")
+    setCommands([{cmd: '07 90 00 01 00', index: 0, comment: 'Restart device'}])
+    setIsExportModalOpen(!isExportModalOpen);
+  }
 
   return (
     <BasePanel title="Neue Playground" isFill>
@@ -141,16 +150,22 @@ export function iENBLPanel() {
             <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} isDisabled={loading} />
           </VStack>
         </Box>
+        <CollapsableSection title="Device Commands" variant={SectionVariant.Panel} hasTopDivider hasBottomSpacing hasGutter isClosed={true}>
+            <VStack>
+              <PrimaryButton label="Restart" onClick={sendRestartCommand} isDisabled={loading} />
+            </VStack>
+        </CollapsableSection>
         <div style={{ flex: '1', overflow: 'hidden' }}>
           <ComponentsPanel options={componentPanelOptions} />
         </div>
+
         <Box hasXSpacing hasYSpacing>
           <VStack>
             <PrimaryButton label="Logout" onClick={logoutClick} />
           </VStack>
         </Box>
       </Container>
-      <NeueExportModal onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} firmware={ProjectModel.instance.firmware} />
+      <NeueExportModal title={exportModalTitle} commands={commands} setCommands={setCommands} onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} firmware={ProjectModel.instance.firmware} />
 
     </BasePanel>
 

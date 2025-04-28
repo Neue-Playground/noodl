@@ -241,9 +241,8 @@ export class LocalProjectsModel extends Model {
     }
   ) {
     tracker.track('New Local Project');
-
     const name = options?.name || 'Untitled';
-    const firmware = options?.firmware || '1.0.1';
+    const firmware = options?.firmware;
     const dirEntry = options?.path || filesystem.makeUniquePath(platform.getDocumentsPath() + name);
 
     await filesystem.makeDirectory(dirEntry);

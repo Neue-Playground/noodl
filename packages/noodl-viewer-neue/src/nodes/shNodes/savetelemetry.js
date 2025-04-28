@@ -1,7 +1,7 @@
 'use strict';
 
 const DeviceNode = {
-  name: 'Save Telemetry',
+  name: 'Transmit',
   docs: 'https://www.neue.se/support-documentation/building-an-app/patches-the-building-blocks/',
   category: 'Neue',
   color: 'neueData',
@@ -33,6 +33,13 @@ const DeviceNode = {
       displayName: 'Response',
       get() {
         return this._internal.result;
+      }
+    },
+    Transmitting: {
+      type: 'boolean',
+      displayName: 'Transmitting',
+      get() {
+        return this._internal.transmitting;
       }
     }
   }
