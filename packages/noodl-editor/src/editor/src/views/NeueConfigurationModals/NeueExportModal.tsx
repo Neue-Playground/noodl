@@ -67,6 +67,12 @@ export default function NeueExportModal(props: ModalProps) {
         }
     }
 
+    function toHexString(byteArray) {
+        return Array.from(byteArray, function(byte: number) {
+            return ('0' + (byte & 0xFF).toString(16)).slice(-2);
+        }).join('')
+    }
+
     async function writerCommands (cmds, port, writer, reader) {
         try {
             if (selectedDevice === 'USB') {
@@ -75,7 +81,7 @@ export default function NeueExportModal(props: ModalProps) {
                 for (const group of commands) {
                     await writeCommand(group, writer)
                     const response = await reads(reader)
-                    console.log("Command response:", response)
+                    console.log("Command response:", toHexString(response))
                 }
             }
         } catch (error) {
@@ -130,7 +136,7 @@ export default function NeueExportModal(props: ModalProps) {
                 setTimeout(() => {
                     console.log("message written")
                     resolve(true)
-                }, 1)
+                }, 100)
             });
         })
     }
