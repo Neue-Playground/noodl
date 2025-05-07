@@ -36,25 +36,36 @@ export class SliderType extends TypeView {
 
     const multi = this.type.stepMultiplierVal ? this.type.stepMultiplierVal : 1;
     const unit = this.type.unit ? this.type.unit : '';
-    this.$('input').prop('min', this.type.min);
-    this.$('input').prop('max', this.type.max);
-    this.$('input').prop('step', this.type.step);
-    this.$('input').val(this.getCurrentValue().value);
-    this.$('i').text(this.getCurrentValue().value * multi + unit);
+    this.$('.input-slider').prop('min', this.type.min);
+    this.$('.input-slider').prop('max', this.type.max);
+    this.$('.input-slider').prop('step', this.type.step);
+    this.$('.input-slider').val(this.getCurrentValue().value);
+    this.$('.input-slider-text').val(this.getCurrentValue().value * multi);
     return this.el;
   }
   onPropertyChanged(scope, el) {
-    this.parent.setParameter(this.name, this.$('input').val());
+    this.parent.setParameter(this.name, this.$('.input-slider').val());
 
     // Update current value
     const multi = this.type.stepMultiplierVal ? this.type.stepMultiplierVal : 1;
     const unit = this.type.unit ? this.type.unit : '';
     const current = this.getCurrentValue();
-    this.$('i').text(current.value * multi + unit);
+    this.$('.input-slider-text').val(current.value * multi);
+    this.isDefault = current.isDefault;
+  }
+  onPropertyTextChanged(scope, el) {
+    this.parent.setParameter(this.name, this.$('.input-slider-text').val());
+
+    // Update current value
+    const multi = this.type.stepMultiplierVal ? this.type.stepMultiplierVal : 1;
+    const unit = this.type.unit ? this.type.unit : '';
+    const current = this.getCurrentValue();
+    this.$('.input-slider').val(current.value * multi);
     this.isDefault = current.isDefault;
   }
   resetToDefault() {
     const current = this.getCurrentValue();
-    this.$('input').val(0);
+    this.$('.input-slider').val(0);
+    this.$('.input-slider-text').val(0);
   }
 }
