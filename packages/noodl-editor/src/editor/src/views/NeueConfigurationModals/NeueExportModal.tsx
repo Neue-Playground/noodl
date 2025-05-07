@@ -74,11 +74,13 @@ export default function NeueExportModal(props: ModalProps) {
                 console.log("commands", commands)
                 for (const group of commands) {
                     await writeCommand(group, writer)
-                    console.log("Command response:", await reader.read())
+                    const response = await reads(reader)
+                    console.log("Command response:", response)
                 }
             }
         } catch (error) {
             console.log(error)
+            setError("Error writing to device: " + error)
         } finally {
             if (selectedDevice === 'USB') {
                 if (writer) writer.releaseLock()
@@ -86,7 +88,21 @@ export default function NeueExportModal(props: ModalProps) {
                 if (port) port.close()
             }
         }
-}
+    }
+
+    function reads(reader) {
+        return new Promise((resolve, reject) => {
+            const id = setTimeout(() => {
+                console.log("Timeout reading")
+                reject(new Error("Timeout reading"))
+            }, 5000);
+            reader.read().then(({ value, done }) => {
+                clearTimeout(id)
+                console.log("Done reading")
+                resolve(value)
+            });
+        });
+    }
 
     function writeCommand(group, writer) {
         return new Promise((resolve) => {
@@ -121,6 +137,7 @@ export default function NeueExportModal(props: ModalProps) {
 
     async function onClick() {
         setIsLoading(true);
+        setError("")
         let p: any
         if (selectedDevice === 'USB') {
             try {
