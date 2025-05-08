@@ -141,19 +141,19 @@ const UsbDefinition = {
       const type = message[2] >> 4
       this.data = message.slice(9);
       switch (type) {
-        case 1:
+        case 0:
           this.port1 = this.data
           this.flagOutputDirty('port1')
           break;
-        case 2:
+        case 1:
           this.port2 = this.data
           this.flagOutputDirty('port2')
           break;
-        case 3:
+        case 2:
           this.port3 = this.data
           this.flagOutputDirty('port3')
           break;
-        case 4:
+        case 3:
           this.port4 = this.data
           this.flagOutputDirty('port4')
           break;
@@ -164,6 +164,7 @@ const UsbDefinition = {
       this.sendSignalOnOutput('iterate')
       console.log(type)
       if (!this._internal.done && !this._internal.stop) {
+        console.log("Carryover:", carryover)
         this.read(Array.from(carryover))
       } else {
         this.sendSignalOnOutput('serialRead')
