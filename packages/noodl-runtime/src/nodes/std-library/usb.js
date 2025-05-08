@@ -95,19 +95,25 @@ const UsbDefinition = {
   },
   methods: {
     read: async function (message = []) {
-      // console.log("Reading... Carry over:", message)
-      const {value, done} = await this._internal.reader.read()
-      if (value == undefined) {
-        console.log("Undefined values in read stream", value, done)
-        return
+      let d = false
+      let v = []
+      if (message.length < 4 || message.length < message[3] + 4 ) {
+        const {value, done} = await this._internal.reader.read()
+        if (v === undefined) {
+          console.log("Undefined values in read stream", v, d)
+          return
+        }
+        v = value
+        d = done
       }
-      message = [...message, ...Array.from(value)]
+      message = [...message, ...Array.from(v)]
+      // console.log("Reading... Carry over:", message)
       let carryover = []
       console.log("Handling:", message)
       if (message.length < 4) {
         this.read(message)
         return
-      } else if (message.length === 255) {
+      } else if (message.length > 255) {
         this.read()
         return
       } else {
@@ -115,14 +121,11 @@ const UsbDefinition = {
           const length = message[3] + 4
 
           if (message.length < length) {
-            // console.log("Message2: ", message)
             this.read(message)
             return
           } else if (message.length >= length) {
-            // console.log("Message3.1: ", message)
-            message = message.slice(0, length);
             carryover = message.slice(length);
-            // console.log("Message3.2: ", message)
+            message = message.slice(0, length);
           }
         } else {
           for (let i = 0; i < message.length; i++) {
@@ -136,7 +139,7 @@ const UsbDefinition = {
           return
         }
       }
-      this._internal.dones = done
+      this._internal.dones = d
       // console.log("Message:", message.map((v) => v.toString(16).padStart(2, '0')).join(' '))
       const type = message[2] >> 4
       this.data = message.slice(9);
@@ -165,7 +168,7 @@ const UsbDefinition = {
       console.log(type)
       if (!this._internal.done && !this._internal.stop) {
         console.log("Carryover:", carryover)
-        this.read(Array.from(carryover))
+        this.read(carryover)
       } else {
         this.sendSignalOnOutput('serialRead')
       }
