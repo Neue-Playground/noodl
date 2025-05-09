@@ -101,7 +101,7 @@ export default function NeueExportModal(props: ModalProps) {
             const id = setTimeout(() => {
                 console.log("Timeout reading")
                 reject(new Error("Timeout reading"))
-            }, 10000);
+            }, 20000);
             reader.read().then(({ value, done }) => {
                 clearTimeout(id)
                 console.log("Done reading")

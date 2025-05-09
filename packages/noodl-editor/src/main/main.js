@@ -226,7 +226,14 @@ function launchApp() {
 
     win.webContents.session.on('select-serial-port', (event, portList, webContents, callback) => {
       event.preventDefault()
-      const selectedPort = portList[1]
+      let selectedPort = portList[0]
+      for (let i = 0; i < portList.length; i++) {
+        const port = portList[i]
+        if (port.productId && port.productId === '22336') {
+          selectedPort = port
+          break
+        }
+      }
       console.log('Selected port:', portList)
       if (!selectedPort) {
         callback('')
