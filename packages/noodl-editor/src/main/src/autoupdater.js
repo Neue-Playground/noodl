@@ -8,10 +8,14 @@ function setupAutoUpdate(window) {
   if (process.platform === 'linux') {
     return;
   }
+  autoUpdater.forceDevUpdateConfig = true
 
   function _checkForUpdates() {
     try {
-      autoUpdater.checkForUpdates();
+      autoUpdater.checkForUpdates().then((updateCheckResult) => {
+        console.log('Update check result:', updateCheckResult);
+      });
+
     } catch (e) {
       // Failed to check for updates, try again later
       setTimeout(() => {

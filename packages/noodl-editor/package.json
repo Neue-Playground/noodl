@@ -15,6 +15,13 @@
     "test:ci": "webpack-cli --config=webpackconfigs/webpack.test-ci.js && electron test.js"
   },
   "build": {
+    "publish": [
+      {
+        "provider": "github",
+        "owner": "Neue-Playground",
+        "repo": "noodl"
+      }
+    ],
     "appId": "noodl.net.noodl-editor",
     "win": {
       "target": "nsis"
