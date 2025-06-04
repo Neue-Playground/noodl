@@ -46,6 +46,8 @@ async function copyFilesMatchingRegex(
 const sourceFolder = path.join(__dirname, '..', 'packages/noodl-editor/dist');
 const destinationFolder = path.join(__dirname, '..', 'publish');
 const regexList: RegExp[] = [
+  /latest\.yml$/,
+
   /* Windows */
   /.*Setup.*\.exe$/,
   /.*Setup.*\.blockmap$/,
