@@ -617,7 +617,7 @@ export class NodeGraphEditorNode {
 
       // Clip
       ctx.beginPath();
-      ctx.rect(x, y, this.nodeSize.width, this.nodeSize.height);
+      ctx.roundRect(x, y, this.nodeSize.width, this.nodeSize.height, 5);
       ctx.clip();
 
       // Bg

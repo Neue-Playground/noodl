@@ -78,7 +78,7 @@ export function TitleBar({
             />
           )}
 
-          {Boolean(version) && <div className={classNames(css['Version'])}>{version}</div>}
+          {Boolean(version) && <div className={classNames(css['Version'])}>{`App version: ${version}`}</div>}
         </>
       )}
 
