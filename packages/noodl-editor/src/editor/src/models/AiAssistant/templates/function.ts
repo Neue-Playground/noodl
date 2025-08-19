@@ -1,5 +1,6 @@
 import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 
+import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
 import * as GPT4 from '@noodl-models/AiAssistant/templates/function/gpt-4-version';
 
@@ -9,8 +10,6 @@ export const template: AiNodeTemplate = {
   type: 'pink',
   name: 'JavaScriptFunction',
   onMessage: async (context) => {
-    const version = OpenAiStore.getVersion();
-
     const activityId = 'processing';
 
     context.chatHistory.addActivity({
@@ -18,17 +17,77 @@ export const template: AiNodeTemplate = {
       name: 'Processing'
     });
 
-    // ---
-    console.log('using version: ', version);
-
     try {
-      if ((version === 'enterprise' && OpenAiStore.getModel() === 'gpt-4o') || version === 'gpt-4o') {
+      // Get the selected AI model and route accordingly
+      const selectedAiModel = OpenAiStore.getAiSelectedModel();
+
+      if (selectedAiModel === 'disabled') {
+        throw new Error('AI is disabled. Please enable an AI model in the editor settings.');
+      }
+
+      if (selectedAiModel === 'openai') {
+        // Use OpenAI (existing logic)
         await GPT4.execute(context);
+      } else if (selectedAiModel === 'gemini') {
+        // Use Gemini - import and execute Gemini version
+        const { callGeminiApi } = await import('../api');
+        const apiKey = OpenAiStore.getGeminiApiKey();
+        const model = OpenAiStore.getGeminiModel();
+
+        if (!apiKey) {
+          throw new Error('Gemini is not properly configured. Please check your API key.');
+        }
+
+        // For now, use a simple approach with Gemini
+        // TODO: Implement full Gemini function template logic
+        const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
+        const prompt = lastUserMsg ? lastUserMsg.content : '';
+
+        const systemPrompt = `You are an AI assistant that helps create JavaScript functions for Noodl nodes.
+
+Users describe what they want their function to do, and you generate JavaScript code that:
+1. Defines inputs using the Inputs object
+2. Defines outputs using the Outputs object  
+3. Implements the requested functionality
+4. Uses proper JavaScript syntax and best practices
+
+Example structure:
+\`\`\`javascript
+// Define inputs
+Inputs.YourInput = "string";
+
+// Define outputs  
+Outputs.YourOutput = "string";
+
+// Your function logic here
+Outputs.YourOutput = "result";
+\`\`\`
+
+Generate ONLY the JavaScript code for the function.`;
+
+        const response = await callGeminiApi(apiKey, model, `${systemPrompt}\n\nUser request: ${prompt}`);
+
+        // Extract and set the function script
+        if (response) {
+          const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
+          if (codeBlockMatch) {
+            const functionScript = codeBlockMatch[1].trim();
+            context.node.setParameter('functionScript', functionScript);
+
+            // Add the generated code to chat history
+            context.chatHistory.add({
+              content: `Generated function:\n\`\`\`javascript\n${functionScript}\n\`\`\``,
+              type: ChatMessageType.Assistant
+            });
+          }
+        }
+      } else {
+        throw new Error('Invalid AI model selection. Please check your editor settings.');
       }
 
       context.chatHistory.removeActivity(activityId);
     } catch (error) {
-      ToastLayer.showError(error);
+      ToastLayer.showError(error.message || 'Failed to generate function');
       context.chatHistory.clearActivities();
     }
   }

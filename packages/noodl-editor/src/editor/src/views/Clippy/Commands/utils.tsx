@@ -7,7 +7,7 @@ import FileSystem from '@noodl-utils/filesystem';
 import { guid } from '@noodl-utils/utils';
 
 export async function makeImageGenerationRequest(prompt: string): Promise<{ type: string; data: Buffer }> {
-  const OPENAI_API_KEY = OpenAiStore.getApiKey();
+  const OPENAI_API_KEY = OpenAiStore.getOpenAiApiKey();
   const response = await fetch(`https://api.openai.com/v1/images/generations`, {
     method: 'POST',
     headers: {
@@ -50,7 +50,7 @@ export async function saveImageDataToDisk(imageData: { type: string; data: Buffe
 }
 
 export async function makeChatRequest(model: string, messages: unknown[]) {
-  const OPENAI_API_KEY = OpenAiStore.getApiKey();
+  const OPENAI_API_KEY = OpenAiStore.getOpenAiApiKey();
   const response = await fetch(`https://api.openai.com/v1/chat/completions`, {
     method: 'POST',
     headers: {
@@ -70,8 +70,8 @@ export async function makeChatRequest(model: string, messages: unknown[]) {
     console.error(json.error);
     return null;
   } else {
-    const promptTokenCost = model === 'gpt-4o' ? 0.03 : 0.002;
-    const completionTokenCost = model === 'gpt-4o' ? 0.06 : 0.002;
+    const promptTokenCost = 0.002;
+    const completionTokenCost = 0.002;
     let cost =
       (json.usage.completion_tokens * completionTokenCost) / 1000 + (json.usage.prompt_tokens * promptTokenCost) / 1000;
 

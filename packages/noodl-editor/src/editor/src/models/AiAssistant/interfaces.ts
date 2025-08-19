@@ -4,26 +4,14 @@ import { CopilotMessage, CopilotMessageAssistant } from '@noodl-models/AiAssista
 import { ChatGPTMessage } from '@noodl-models/AiAssistant/_backend/mapper';
 import { NodeGraphNode } from '@noodl-models/nodegraphmodel';
 import { IModel } from '@noodl-utils/model';
+import { OpenAiModel } from '@noodl-store/AiAssistantStore';
 
 export type AiNodeTemplateType = 'pink' | 'purple' | 'green' | 'grey' | 'blue';
 
-export type AiCopilotTextProviders = {
-  model: 'text-davinci-003',
-  temperature?: number;
-  max_tokens?: number;
-}
-
-export type ModelName = 'gpt-4o';
-
 export type AiCopilotChatProviders = {
-  model: 'gpt-4o',
+  model?: OpenAiModel,
   temperature?: number;
   max_tokens?: number;
-}
-
-export type AiCopilotTextArgs = {
-  content: string;
-  provider?: AiCopilotTextProviders;
 }
 
 export type AiCopilotChatMessage = {

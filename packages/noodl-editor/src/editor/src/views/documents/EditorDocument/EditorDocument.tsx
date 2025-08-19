@@ -12,6 +12,11 @@ import { SidebarModelEvent } from '@noodl-models/sidebar/sidebarmodel';
 import { EditorSettings } from '@noodl-utils/editorsettings';
 import { KeyCode, KeyMod } from '@noodl-utils/keyboard/KeyCode';
 import { KeyboardCommand } from '@noodl-utils/keyboardhandler';
+import {
+  getComponentModelRuntimeType,
+  isComponentModel_CloudRuntime,
+  isComponentModel_NeueRuntime
+} from '@noodl-utils/NodeGraph';
 
 import { Container, ContainerDirection } from '@noodl-core-ui/components/layout/Container';
 import { FrameDivider, FrameDividerOwner } from '@noodl-core-ui/components/layout/FrameDivider';
@@ -22,16 +27,15 @@ import Clippy from '../../Clippy/Clippy';
 import { Frame } from '../../common/Frame';
 import { EditorTopbar } from '../../EditorTopbar';
 import { HelpCenter } from '../../HelpCenter';
+import NeueCloudSyncModal from '../../NeueConfigurationModals/NeueCloudSyncModal';
 import { NodeGraphEditor } from '../../nodegrapheditor';
 import { showContextMenuInPopup } from '../../ShowContextMenuInPopup';
 import { useCanvasView } from './hooks/UseCanvasView';
+import { useCaptureThumbnailNeue } from './hooks/UseCaptureTumbnailNeue';
 import { useImportNodeset } from './hooks/UseImportNodeset';
 import { useRoutes } from './hooks/UseRoutes';
 import { useSetupNodeGraph } from './hooks/UseSetupNodeGraph';
 import { TitleBar } from './titlebar';
-import { getComponentModelRuntimeType, isComponentModel_CloudRuntime, isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
-import { useCaptureThumbnailNeue } from './hooks/UseCaptureTumbnailNeue';
-import NeueCloudSyncModal from '../../NeueConfigurationModals/NeueCloudSyncModal';
 
 type DocumentLayout = 'horizontal' | 'vertical' | 'detachedPreview';
 
@@ -54,20 +58,19 @@ function EditorDocument() {
   const [viewportSize, setViewportSize] = useState({ width: null, height: null, deviceName: null });
   const [frameDividerSize, setFrameDividerSize] = useState(undefined);
 
-  //Neue 
-  const [showSpinner, setShowSpinner] = useState(false)
-  const [showCloudSync, setShowCloudSync] = useState(false)
-  const [cloudSyncArgs, setCloudSyncArgs] = useState(undefined)
+  //Neue
+  const [showSpinner, setShowSpinner] = useState(false);
+  const [showCloudSync, setShowCloudSync] = useState(false);
+  const [cloudSyncArgs, setCloudSyncArgs] = useState(undefined);
 
-  const [enableAi, setEnableAi] = useState(OpenAiStore.getVersion() !== 'disabled');
+  const [enableAi, setEnableAi] = useState(OpenAiStore.getAiEnabled() !== 'disabled');
 
   useEffect(() => {
     const group = {};
     EditorSettings.instance.on(
       'updated',
       () => {
-        console.log('ai', OpenAiStore.getVersion());
-        setEnableAi(OpenAiStore.getVersion() !== 'disabled');
+        setEnableAi(OpenAiStore.getAiEnabled() !== 'disabled');
       },
       group
     );
@@ -79,8 +82,8 @@ function EditorDocument() {
   const [selectedNodeId, setSelectedNodeId] = useState(null); //The ID of the selected node, as highlighted by the viewer
 
   //Neue
-  const [isNeuePanelOpen, setIsNeuePanelOpen] = useState(false)
-  const [isNeueRuntime, setIsNeueRuntime] = useState(false)
+  const [isNeuePanelOpen, setIsNeuePanelOpen] = useState(false);
+  const [isNeueRuntime, setIsNeueRuntime] = useState(false);
 
   const [hasLoadedEditorSettings, setHasLoadedEditorSettings] = useState(false);
 
@@ -117,20 +120,20 @@ function EditorDocument() {
 
   //close detached viewer when EditorDocmument unmounts
   useEffect(() => {
-    const eventGroup = {}
+    const eventGroup = {};
     //Neue
     EventDispatcher.instance.on(
       'check-cloud-version-download-project-open',
       (args) => {
-        setCloudSyncArgs(args)
-        setShowCloudSync(true)
+        setCloudSyncArgs(args);
+        setShowCloudSync(true);
       },
       eventGroup
     );
 
     return () => {
       ipcRenderer.send('viewer-attach', {});
-      EventDispatcher.instance.off(eventGroup)
+      EventDispatcher.instance.off(eventGroup);
     };
   }, []);
 
@@ -144,17 +147,25 @@ function EditorDocument() {
 
   //track which nodes is currently selected. A hack that relies on the side panel to tell us.
   useEffect(() => {
-    setIsNeueRuntime(isComponentModel_NeueRuntime(nodeGraph.activeComponent))
-    setIsNeuePanelOpen(isComponentModel_NeueRuntime(nodeGraph.activeComponent) || isComponentModel_CloudRuntime(nodeGraph.activeComponent))
+    setIsNeueRuntime(isComponentModel_NeueRuntime(nodeGraph.activeComponent));
+    setIsNeuePanelOpen(
+      isComponentModel_NeueRuntime(nodeGraph.activeComponent) ||
+        isComponentModel_CloudRuntime(nodeGraph.activeComponent)
+    );
     const eventGroup = {};
     SidebarModel.instance.on(
       SidebarModelEvent.nodeSelected,
       (nodeId) => {
         //Neue
         const node = ProjectModel.instance.findNodeWithId(nodeId);
-        const comp = node.owner.owner
-        setIsNeuePanelOpen(isComponentModel_NeueRuntime(comp) || SidebarModel.instance.ActiveId === 'neuePanel' || isComponentModel_CloudRuntime(comp) || SidebarModel.instance.ActiveId === 'cloud-functions')
-        setIsNeueRuntime(isComponentModel_NeueRuntime(comp) || SidebarModel.instance.ActiveId === 'neuePanel')
+        const comp = node.owner.owner;
+        setIsNeuePanelOpen(
+          isComponentModel_NeueRuntime(comp) ||
+            SidebarModel.instance.ActiveId === 'neuePanel' ||
+            isComponentModel_CloudRuntime(comp) ||
+            SidebarModel.instance.ActiveId === 'cloud-functions'
+        );
+        setIsNeueRuntime(isComponentModel_NeueRuntime(comp) || SidebarModel.instance.ActiveId === 'neuePanel');
 
         setSelectedNodeId(nodeId);
       },
@@ -173,11 +184,11 @@ function EditorDocument() {
         //hide web viewer on neuePanel
         if (activeId === 'neuePanel' || activeId === 'cloud-functions') {
           setDocumentLayout(previousDocumentLayout || 'vertical');
-          setIsNeuePanelOpen(true)
-          setIsNeueRuntime(true)
+          setIsNeuePanelOpen(true);
+          setIsNeueRuntime(true);
         } else {
-          setIsNeuePanelOpen(false)
-          setIsNeueRuntime(false)
+          setIsNeuePanelOpen(false);
+          setIsNeueRuntime(false);
         }
       },
       eventGroup
@@ -187,7 +198,6 @@ function EditorDocument() {
       SidebarModel.instance.off(eventGroup);
     };
   }, [nodeGraph]);
-
 
   useEffect(() => {
     if (viewerDetached) {
@@ -440,7 +450,7 @@ function EditorDocument() {
       if (component) {
         nodeGraph.switchToComponent(component, { replaceHistory: true });
         //Neue
-        setIsNeuePanelOpen(SidebarModel.instance.ActiveId === 'neuePanel')
+        setIsNeuePanelOpen(SidebarModel.instance.ActiveId === 'neuePanel');
       }
     }
 
@@ -463,8 +473,8 @@ function EditorDocument() {
   useCaptureThumbnailNeue(canvasView, viewerDetached || isNeuePanelOpen, isNeueRuntime);
 
   function handleCloudSyncModalClose() {
-    setShowCloudSync(false)
-    setCloudSyncArgs(undefined)
+    setShowCloudSync(false);
+    setCloudSyncArgs(undefined);
   }
 
   return (
@@ -489,7 +499,7 @@ function EditorDocument() {
         isNeuePanelOpen={isNeuePanelOpen}
         setShowSpinner={setShowSpinner}
       />
-      {(hasLoadedEditorSettings) && (
+      {hasLoadedEditorSettings && (
         <ViewComponent
           documentLayout={isNeuePanelOpen ? 'detachedPreview' : documentLayout}
           canvasViewInstance={canvasView}
@@ -505,8 +515,11 @@ function EditorDocument() {
       <HelpCenter />
       {enableAi && <Clippy />}
 
-      <NeueCloudSyncModal isVisible={showCloudSync} onClose={handleCloudSyncModalClose} args={cloudSyncArgs}></NeueCloudSyncModal>
-
+      <NeueCloudSyncModal
+        isVisible={showCloudSync}
+        onClose={handleCloudSyncModalClose}
+        args={cloudSyncArgs}
+      ></NeueCloudSyncModal>
     </Container>
   );
 }
@@ -525,10 +538,11 @@ function ViewComponent({
   const totalSize = frameBounds ? (horizontal ? frameBounds.height : frameBounds.width) : undefined;
   return (
     <>
-
       {(() => {
         if (documentLayout === 'detachedPreview') {
-          return <Frame instance={nodeGraphEditorInstance} onResize={(bounds) => nodeGraphEditorInstance.resize(bounds)} />;
+          return (
+            <Frame instance={nodeGraphEditorInstance} onResize={(bounds) => nodeGraphEditorInstance.resize(bounds)} />
+          );
         } else {
           const firstInstance = horizontal ? canvasViewInstance : nodeGraphEditorInstance;
           const secondInstance = horizontal ? nodeGraphEditorInstance : canvasViewInstance;
@@ -561,8 +575,7 @@ function ViewComponent({
         </div>
       )}
     </>
-  )
-
+  );
 }
 
 function createKeyboardCommands(nodeGraph: NodeGraphEditor) {

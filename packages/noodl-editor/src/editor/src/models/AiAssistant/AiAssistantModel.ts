@@ -15,6 +15,12 @@ import { EventDispatcher } from '../../../../shared/utils/EventDispatcher';
 import { PopupItemType } from '../../views/Clippy/ClippyCommandsMetadata';
 import { ToastLayer } from '../../views/ToastLayer/ToastLayer';
 
+export type CommandResultItem = {
+  name: string;
+  description: string;
+  prompt: string;
+};
+
 const docsTemplates = [
   {
     label: 'Read from database',
@@ -64,6 +70,15 @@ const docsTemplates = [
     desc: '',
     examples: [],
     template: 'chart'
+  },
+  {
+    label: 'Simulator',
+    desc: 'Create a virtual IoT device simulator node from a text prompt',
+    examples: [
+      'A temperature sensor that fluctuates between 20-30°C every second',
+      'A weather station with temperature and humidity sensors'
+    ],
+    template: 'simulator'
   }
 ];
 

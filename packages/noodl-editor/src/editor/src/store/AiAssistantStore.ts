@@ -2,59 +2,74 @@
 
 import { EditorSettings } from '@noodl-utils/editorsettings';
 
-const AI_ASSISTANT_API_KEY = 'aiAssistant.temporaryApiKey';
-const AI_ASSISTANT_VERSION_KEY = 'aiAssistant.version';
-const AI_ASSISTANT_VERIFIED_KEY = 'aiAssistant.verified';
-const AI_ASSISTANT_ENDPOINT_KEY = 'aiAssistant.endpoint';
-const AI_ASSISTANT_MODEL_KEY = 'aiAssistant.model';
+const AI_ASSISTANT_ENABLED_KEY = 'aiAssistant.enabled';
+const AI_ASSISTANT_SELECTED_MODEL_KEY = 'aiAssistant.selectedModel';
+//const AI_ASSISTANT_ENDPOINT_KEY = 'aiAssistant.endpoint';
+const OPENAI_API_KEY = 'aiAssistant.openaiApiKey';
+const OPENAI_MODEL_KEY = 'aiAssistant.openaiModel';
+const GEMINI_API_KEY = 'aiAssistant.geminiApiKey';
+const GEMINI_MODEL_KEY = 'aiAssistant.geminiModel';
+const GEMINI_VERIFIED_KEY = 'aiAssistant.geminiVerified';
+const OPENAI_VERIFIED_KEY = 'aiAssistant.openaiVerified';
 
-export type AiVersion = 'disabled' | 'gpt-4o' | 'enterprise';
-
-export type AiModel = 'gpt-4o';
+export type AiEnabled = 'disabled' | 'enabled';
+export type OpenAiModel = 'gpt-5' | 'gpt-5-mini' | 'gpt-5-nano';
+export type GeminiAiModel = 'gemini-2.5-pro' | 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.0-flash';
+export type AiSelectedModel = 'disabled' | 'openai' | 'gemini';
 
 export const OpenAiStore = {
-  isEnabled(): boolean {
-    const version = EditorSettings.instance.get(AI_ASSISTANT_VERSION_KEY);
-    return version === 'gpt-4o';
+  getOpenAiApiKey() {
+    return EditorSettings.instance.get(OPENAI_API_KEY);
   },
-  getVersion(): AiVersion {
-    return EditorSettings.instance.get(AI_ASSISTANT_VERSION_KEY) || 'gpt-4o';
+  setOpenAiApiKey(value: string) {
+    EditorSettings.instance.set(OPENAI_API_KEY, value);
   },
-  getPrettyVersion(): string {
-    switch (this.getVersion()) {
-      case 'gpt-4o':
-        return 'GPT-4o';
-      case 'enterprise':
-        return 'Enterprise';
-    }
-    return null;
+  getGeminiApiKey() {
+    return EditorSettings.instance.get(GEMINI_API_KEY);
   },
-  setVersion(value: AiVersion): void {
-    EditorSettings.instance.set(AI_ASSISTANT_VERSION_KEY, value);
+  setGeminiApiKey(value: string) {
+    EditorSettings.instance.set(GEMINI_API_KEY, value);
   },
-
-  getApiKey() {
-    return EditorSettings.instance.get(AI_ASSISTANT_API_KEY);
+  getOpenAiModel(): OpenAiModel {
+    return EditorSettings.instance.get(OPENAI_MODEL_KEY) || 'disabled';
   },
-  async setApiKey(value: string) {
-    EditorSettings.instance.set(AI_ASSISTANT_API_KEY, value);
+  setOpenAiModel(value: OpenAiModel) {
+    EditorSettings.instance.set(OPENAI_MODEL_KEY, value);
   },
-  setIsAiApiKeyVerified(value: boolean) {
-    EditorSettings.instance.set(AI_ASSISTANT_VERIFIED_KEY, value);
+  getGeminiModel(): GeminiAiModel {
+    return EditorSettings.instance.get(GEMINI_MODEL_KEY) || 'gemini-2.5-flash';
   },
-  getIsAiApiKeyVerified() {
-    return !!EditorSettings.instance.get(AI_ASSISTANT_VERIFIED_KEY);
+  setGeminiModel(value: GeminiAiModel) {
+    EditorSettings.instance.set(GEMINI_MODEL_KEY, value);
   },
-  setEndpoint(value: string) {
+  setAiEnabled(value: AiEnabled) {
+    EditorSettings.instance.set(AI_ASSISTANT_ENABLED_KEY, value);
+  },
+  getAiEnabled() {
+    return EditorSettings.instance.get(AI_ASSISTANT_ENABLED_KEY) || 'disabled';
+  },
+  setAiSelectedModel(value: AiSelectedModel) {
+    EditorSettings.instance.set(AI_ASSISTANT_SELECTED_MODEL_KEY, value);
+  },
+  getAiSelectedModel(): AiSelectedModel {
+    return EditorSettings.instance.get(AI_ASSISTANT_SELECTED_MODEL_KEY) || 'disabled';
+  },
+  setGeminiVerified(value: boolean) {
+    EditorSettings.instance.set(GEMINI_VERIFIED_KEY, value);
+  },
+  getGeminiVerified() {
+    return !!EditorSettings.instance.get(GEMINI_VERIFIED_KEY) || false;
+  },
+  setOpenAiVerified(value: boolean) {
+    EditorSettings.instance.set(OPENAI_VERIFIED_KEY, value);
+  },
+  getOpenAiVerified() {
+    return !!EditorSettings.instance.get(OPENAI_VERIFIED_KEY) || false;
+  }
+  /*setEndpoint(value: string) {
     EditorSettings.instance.set(AI_ASSISTANT_ENDPOINT_KEY, value);
   },
   getEndpoint() {
     return EditorSettings.instance.get(AI_ASSISTANT_ENDPOINT_KEY);
-  },
-  setModel(value: AiModel) {
-    EditorSettings.instance.set(AI_ASSISTANT_MODEL_KEY, value);
-  },
-  getModel(): AiModel {
-    return EditorSettings.instance.get(AI_ASSISTANT_MODEL_KEY);
-  }
+  }*/
 };

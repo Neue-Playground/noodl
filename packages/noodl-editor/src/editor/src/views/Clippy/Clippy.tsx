@@ -6,21 +6,18 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { FeedbackType } from '@noodl-constants/FeedbackType';
 import { AiAssistantModel } from '@noodl-models/AiAssistant';
-import { verifyOpenAiApiKey } from '@noodl-models/AiAssistant/api';
-import { SidebarModel } from '@noodl-models/sidebar';
-import getDocsEndpoint from '@noodl-utils/getDocsEndpoint';
+import { verifyOpenAiApiKey, verifyGeminiApiKey } from '@noodl-models/AiAssistant/api';
+import { EditorSettings } from '@noodl-utils/editorsettings';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { tracker } from '@noodl-utils/tracker';
 
 import { Icon, IconName, IconSize } from '@noodl-core-ui/components/common/Icon';
-import { PrimaryButton, PrimaryButtonSize, PrimaryButtonVariant } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { TextInput, TextInputVariant } from '@noodl-core-ui/components/inputs/TextInput';
 import { DialogRenderDirection } from '@noodl-core-ui/components/layout/BaseDialog';
 import { Portal } from '@noodl-core-ui/components/layout/Portal';
 import { Tooltip } from '@noodl-core-ui/components/popups/Tooltip';
 import { Label, LabelSize } from '@noodl-core-ui/components/typography/Label';
 import { Text, TextSize, TextType } from '@noodl-core-ui/components/typography/Text';
-import { Title } from '@noodl-core-ui/components/typography/Title';
 import { UserBadge, UserBadgeSize } from '@noodl-core-ui/components/user/UserBadge';
 
 import { ToastLayer } from '../ToastLayer/ToastLayer';
@@ -29,7 +26,6 @@ import {
   PopupItemType,
   promptToNodeCommands,
   copilotNodeCommands,
-  comingSoonCommands,
   copilotNodeInstaPromptable
 } from './ClippyCommandsMetadata';
 import { ClippyLogo } from './components/ClippyLogo/ClippyLogo';
@@ -47,62 +43,123 @@ export default function Clippy() {
   const [shouldFirstInputAutofocus, setShouldFirstInputAutofocus] = useState(false);
   const [isTextareaInsteadOfInput, setIsTextareaInsteadOfInput] = useState(false);
   const [commandResultItems, setCommandResultItems] = useState<CommandResultItem[]>(null); //commands might generate follow-up items
-  const [hasGPT4, setHasGPT4] = useState(false);
   const firstInputRef = useRef(null);
   const secondInputRef = useRef(null);
   const secondTextAreaRef = useRef(null);
   const ref = useRef<HTMLDivElement>();
-  const [hasApiKey, setHasApiKey] = useState(false);
   const aiAssistantModel = useModernModel(AiAssistantModel.instance);
   const nodeGraphContext = useNodeGraphContext();
 
-  const version = OpenAiStore.getVersion();
+  // States for AI versions
+  const [isOpenAiVerified, setIsOpenAiVerified] = useState(false);
+  const [isGeminiVerified, setIsGeminiVerified] = useState(true);
+  const [hasOpenAiKey, setHasOpenAiKey] = useState(!!OpenAiStore.getOpenAiApiKey());
+  const [hasGeminiKey, setHasGeminiKey] = useState(!!OpenAiStore.getGeminiApiKey());
+  const [isCommandsEnabled, setIsCommandEnabled] = useState(true);
+  const [selectedAiModel, setSelectedAiModel] = useState(OpenAiStore.getAiSelectedModel());
 
   const isFrontend = nodeGraphContext.active === 'frontend';
-  const commandFilter = (x) =>
-    ((x.availableOnFrontend && isFrontend) || (x.availableOnBackend && !isFrontend)) &&
-    (!x.requireGPT4 || (x.requireGPT4 && hasGPT4));
+
+  // Update commandFilter to route commands based on selected AI model
+  const commandFilter = (x) => {
+    const aiModel = OpenAiStore.getAiSelectedModel();
+
+    // If AI is disabled, no commands are available
+    if (aiModel === 'disabled') {
+      return false;
+    }
+
+    // Check if the command is available for the current frontend/backend context
+    const isContextValid = (x.availableOnFrontend && isFrontend) || (x.availableOnBackend && !isFrontend);
+    if (!isContextValid) {
+      return false;
+    }
+
+    // Route commands based on selected AI model
+    if (aiModel === 'openai') {
+      // OpenAI commands require OpenAI verification
+      return isOpenAiVerified;
+    } else if (aiModel === 'gemini') {
+      // Gemini commands require Gemini verification
+      return isGeminiVerified;
+    }
+
+    return false;
+  };
 
   const promptToNode = promptToNodeCommands.filter(commandFilter);
   const copilotNodes = copilotNodeCommands.filter(commandFilter);
-  const comingSoonItems = comingSoonCommands.filter(commandFilter);
-  const disabledDueToGpt3Items = promptToNodeCommands
-    .concat(copilotNodeCommands)
-    .concat(comingSoonCommands)
-    .filter((x) => x.requireGPT4 && !hasGPT4);
 
-  const ALL_OPTIONS = [...promptToNode, ...copilotNodes];
+  const ALL_OPTIONS = React.useMemo(() => {
+    return [...promptToNode, ...copilotNodes];
+  }, [promptToNode, copilotNodes]);
 
   const user = LocalUserIdentity.getUserInfo();
 
+  // Update effect to check both keys and selected AI model
   useEffect(() => {
-    const version = OpenAiStore.getVersion();
-    if (version === 'enterprise') {
-      setHasApiKey(true);
-      setHasGPT4(OpenAiStore.getModel() === 'gpt-4o');
-    } else if (version === 'gpt-4o') {
-      setHasApiKey(OpenAiStore.getIsAiApiKeyVerified());
-    } else {
-      setHasGPT4(false);
-      setHasApiKey(false);
-    }
-  }, [isInputOpen]);
+    setHasOpenAiKey(!!OpenAiStore.getOpenAiApiKey());
+    setHasGeminiKey(!!OpenAiStore.getGeminiApiKey());
+    setSelectedAiModel(OpenAiStore.getAiSelectedModel());
 
-  useEffect(() => {
-    if (!hasApiKey) return;
+    if (!hasOpenAiKey && !hasGeminiKey) {
+      setIsOpenAiVerified(false);
+      setIsGeminiVerified(false);
+    }
 
     async function doIt() {
-      const version = OpenAiStore.getVersion();
-      if (version === 'enterprise') {
-        setHasGPT4(OpenAiStore.getModel() === 'gpt-4o');
-      } else {
-        const models = await verifyOpenAiApiKey(OpenAiStore.getApiKey());
-        setHasGPT4(!!models['gpt-4o']);
+      if (hasOpenAiKey && !isOpenAiVerified) {
+        const models = await verifyOpenAiApiKey(OpenAiStore.getOpenAiApiKey());
+        if (models) {
+          setIsOpenAiVerified(true);
+        }
+      }
+
+      if (hasGeminiKey && !isGeminiVerified) {
+        const models = await verifyGeminiApiKey(OpenAiStore.getGeminiApiKey());
+        if (models) {
+          setIsGeminiVerified(true);
+        }
       }
     }
 
     doIt();
-  }, [hasApiKey]);
+
+    // Update command enabled state based on selected AI model and verification status
+    const aiModel = OpenAiStore.getAiSelectedModel();
+    if (aiModel === 'disabled') {
+      setIsCommandEnabled(false);
+    } else if (aiModel === 'openai') {
+      setIsCommandEnabled(isOpenAiVerified);
+    } else if (aiModel === 'gemini') {
+      setIsCommandEnabled(isGeminiVerified);
+    }
+  }, [isInputOpen, selectedAiModel]);
+
+  // Listen for AI model selection changes
+  useEffect(() => {
+    const handleSettingsChange = () => {
+      const newSelectedModel = OpenAiStore.getAiSelectedModel();
+      setSelectedAiModel(newSelectedModel);
+
+      // Update command enabled state
+      if (newSelectedModel === 'disabled') {
+        setIsCommandEnabled(false);
+      } else if (newSelectedModel === 'openai') {
+        setIsCommandEnabled(isOpenAiVerified);
+      } else if (newSelectedModel === 'gemini') {
+        setIsCommandEnabled(isGeminiVerified);
+      }
+    };
+
+    // Listen for editor settings changes
+    const group = {};
+    EditorSettings.instance.on('updated', handleSettingsChange, group);
+
+    return () => {
+      EditorSettings.instance.off(group);
+    };
+  }, [isOpenAiVerified, isGeminiVerified]);
 
   //check for clicks outside clippy, which should close it if it's open and not thinking
   useEffect(() => {
@@ -213,26 +270,7 @@ export default function Clippy() {
 
   const initialPlaceholder = isInputOpen ? 'Select (or type) a command below' : 'Ask AI';
   const isPromptInWrongOrder = Boolean(!selectedOption) && Boolean(secondInputValue);
-  const isFullBeta = ['gpt-4o', 'enterprise'].includes(version);
-  const isLimitedBeta = false; // TODO: version === 'limited-beta';
-
-  let isCommandsEnabled = isLimitedBeta;
-  if (version === 'enterprise') {
-    isCommandsEnabled = true;
-  } else if (isFullBeta) {
-    if (!hasGPT4 || !hasApiKey) {
-      isCommandsEnabled = false;
-    } else {
-      isCommandsEnabled = true;
-    }
-  }
-
-  let versionLabel = '';
-  if (version === 'enterprise') {
-    versionLabel = `Enterprise (${OpenAiStore.getModel()})`;
-  } else if (isFullBeta && hasApiKey && hasGPT4) {
-    versionLabel = 'GPT-4o';
-  }
+  const versionLabel = selectedAiModel === 'gemini' ? OpenAiStore.getGeminiModel() : OpenAiStore.getOpenAiModel();
 
   return (
     <Portal portalRoot={portalRoot}>
@@ -395,33 +433,6 @@ export default function Clippy() {
         <div className={css.UglySpacingHackPleaseLookAway} />
 
         <div className={classNames(css.ClippyPopup, isInputOpen && !isAiThinking && css.__isVisible)}>
-          {isFullBeta && !isCommandsEnabled && (
-            <div className={css.ClippyNoApiKey}>
-              <Title hasBottomSpacing>Add your OpenAI API key</Title>
-              <Text hasBottomSpacing>You need a GPT-4 API key to access the full beta features.</Text>
-              <Text>
-                1. Get your API key from your{' '}
-                <a href="https://platform.openai.com/account/api-keys" target="_blank" rel="noreferrer">
-                  OpenAI account
-                </a>
-              </Text>
-              <Text>2. Make sure GPT-4 is enabled for your account</Text>
-              <Text>3. Paste the key into the AI section in the Editor Settings panel</Text>
-              <Text hasBottomSpacing>4. Click the &quot;Verify API Key&quot; button</Text>
-
-              <Text hasBottomSpacing>
-                If you dont have an API key with GPT-4 access, you can set the Noodl AI to use the Limited Beta in the
-                editor settings.
-              </Text>
-              <PrimaryButton
-                size={PrimaryButtonSize.Small}
-                variant={PrimaryButtonVariant.MutedOnLowBg}
-                onClick={() => SidebarModel.instance.switch('editor-settings')}
-                label="Open editor settings"
-              />
-            </div>
-          )}
-
           {isCommandsEnabled && !selectedPromptTitle && !isRegularChat && (
             <>
               {isPromptInWrongOrder && (
@@ -443,6 +454,9 @@ export default function Clippy() {
                       isHighlighted={highlightedOption ? highlightedOption.title === item.title : false}
                       onClick={() => {
                         if (copilotNodeInstaPromptable.includes(item.title.toLowerCase())) {
+                          setSelectedPromptTitle(item.title);
+                          setSecondInputValue(firstInputValue);
+                        } else if (item.title.toLowerCase() === '/simulator') {
                           setSelectedPromptTitle(item.title);
                           setSecondInputValue(firstInputValue);
                         } else {
@@ -478,38 +492,6 @@ export default function Clippy() {
                       key={item.title}
                       isHighlighted={highlightedOption ? highlightedOption.title === item.title : false}
                       onClick={() => setSelectedPromptTitle(item.title)}
-                    />
-                  ))}
-                </>
-              )}
-
-              {Boolean(disabledDueToGpt3Items.length) && (
-                <>
-                  <SectionTitle title="Requires a key with GPT4 support" />
-                  {disabledDueToGpt3Items.map((item, i) => (
-                    <PromptTagSuggestion
-                      isDisabled={true}
-                      title={item.title}
-                      description={item.description}
-                      type={item.type}
-                      icon={item.icon}
-                      key={item.title}
-                    />
-                  ))}
-                </>
-              )}
-
-              {Boolean(comingSoonItems.length) && (
-                <>
-                  <SectionTitle title="Coming soon" />
-                  {comingSoonItems.map((item, i) => (
-                    <PromptTagSuggestion
-                      isDisabled={true}
-                      title={item.title}
-                      description={item.description}
-                      type={item.type}
-                      icon={item.icon}
-                      key={item.title}
                     />
                   ))}
                 </>
@@ -586,26 +568,6 @@ export default function Clippy() {
                 />
               ))}
             </>
-          )}
-
-          {!isFullBeta && (
-            <div className={css.LimitedBetaCard}>
-              <Label size={LabelSize.Medium} variant={TextType.Proud} hasBottomSpacing>
-                Limited beta
-              </Label>
-
-              <Text hasBottomSpacing size={TextSize.Medium}>
-                You are running the limited beta of Noodl AI. If features fewer commands and a less capable AI. Get full
-                beta access by bringing your own GPT-4 API key.
-              </Text>
-
-              <PrimaryButton
-                size={PrimaryButtonSize.Small}
-                variant={PrimaryButtonVariant.Muted}
-                label="GPT-4o setup instructions"
-                href={getDocsEndpoint() + '/docs/getting-started/noodl-ai#full-beta'}
-              />
-            </div>
           )}
 
           {versionLabel && (

@@ -173,18 +173,16 @@ function AiNodeChat({ context, onUpdated }: AiNodeChatProps) {
 
   // You should not be able to reactivly update this while having this panel open
   // So it will always re-render when opening the panel, and we get the latest version.
-  const version = OpenAiStore.getVersion();
-  const prettyVersion = OpenAiStore.getPrettyVersion();
-
   const activities = context.chatHistory.activities;
   const suggestions = context.chatHistory.suggestions;
+  const prettyVersion = OpenAiStore.getAiSelectedModel();
 
   return (
     <AiChatBox
       footer={
-        version === 'disabled' ? (
+        OpenAiStore.getAiEnabled() === 'disabled' ? (
           <Center>
-            <Text textType={TextType.Shy}>Noodl AI is currently disabled.</Text>
+            <Text textType={TextType.Shy}>AI is currently disabled.</Text>
           </Center>
         ) : (
           <>

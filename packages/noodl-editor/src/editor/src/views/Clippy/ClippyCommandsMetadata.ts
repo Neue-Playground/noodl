@@ -53,20 +53,14 @@ export const promptToNodeCommands: CommandMetadata[] = [
     icon: IconName.Neue,
     availableOnFrontend: false,
     availableOnBackend: true,
-    requireGPT4: true,
-    examples: [
-      'Create config for temperature sensor'
-
-      // 'A vertical list with five popular car brands. Each list item should have the brand name, most popular vechicle name and type, and a button that says "view". The items should use a horizontal layout.',
-      // 'Pokemon card creator form',
-      // 'A group that contains two columns. First column has the text "Left column" and the other column the text "Right column". Left column is twice the size of the right one.'
-    ]
+    requireGPT4: false,
+    examples: ['Create config for temperature sensor']
   },
   //Neue
   {
     title: '/Image',
     tag: 'Image Prompt',
-    description: 'Create an image with DALL·E 2',
+    description: 'Create an image',
     placeholder: 'How should it look?',
     type: PopupItemType.Visual,
     icon: IconName.Image,
@@ -81,10 +75,10 @@ export const promptToNodeCommands: CommandMetadata[] = [
   }
 ];
 
-export const copilotNodeInstaPromptable = ['/function', '/read from database', '/write to database'];
+export const copilotNodeInstaPromptable = ['/function', '/read from database', '/write to database', '/simulator'];
 export const copilotNodeCommands: CopilotCommandMetadata[] = [
   {
-    requireGPT4: false,
+    requireGPT4: true,
     templateId: 'function',
     title: '/Function',
     tag: 'Function',
@@ -142,33 +136,21 @@ export const copilotNodeCommands: CopilotCommandMetadata[] = [
     availableOnFrontend: true,
     availableOnBackend: true,
     examples: ['Get an array of numbers, calculate the average, and save that to the current users score attribute']
-  }
-];
-
-export const comingSoonCommands: CommandMetadata[] = [
-  {
-    requireGPT4: true,
-    // templateId: 'chart',
-    title: '/Chart',
-    tag: 'Chart Prompt',
-    description: 'Generate a chart that can display data',
-    placeholder: '',
-    type: PopupItemType.Visual,
-    icon: IconName.Question,
-    availableOnFrontend: true,
-    availableOnBackend: false,
-    examples: []
   },
   {
-    title: '/Suggest',
-    requireGPT4: true,
-    tag: 'Suggest Prompt',
-    description: 'Get suggestions',
-    placeholder: 'What to get suggestions for',
-    type: PopupItemType.Visual,
-    icon: IconName.Question,
+    requireGPT4: false,
+    templateId: 'simulator',
+    title: '/Simulator',
+    tag: 'Simulator',
+    description: 'Create a virtual IoT device simulator node from a text prompt',
+    placeholder: 'Describe the device you want to simulate',
+    type: PopupItemType.Custom,
+    icon: IconName.Code,
     availableOnFrontend: true,
-    availableOnBackend: false,
-    examples: ['What feature should I add next?', 'How can the form be improved?']
+    availableOnBackend: true,
+    examples: [
+      'A temperature sensor that fluctuates between 20-30°C every second',
+      'A weather station with temperature and humidity sensors'
+    ]
   }
 ];

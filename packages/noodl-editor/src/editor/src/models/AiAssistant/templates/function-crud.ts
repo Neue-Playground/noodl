@@ -1,149 +1,10 @@
+import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { extractDatabaseSchema } from '@noodl-models/AiAssistant/DatabaseSchemaExtractor';
 import { AiNodeTemplate, IAiCopilotContext } from '@noodl-models/AiAssistant/interfaces';
 
-export const template: AiNodeTemplate = {
-  type: 'green',
-  name: 'JavaScriptFunction',
-  nodeDisplayName: 'Write Database',
-  onMessage: async ({ node, chatHistory, chatStreamXml }: IAiCopilotContext) => {
-    const activityId = 'processing';
-    const activityCodeGenId = 'code-generation';
-
-    chatHistory.addActivity({
-      id: activityId,
-      name: 'Processing'
-    });
-
-    chatHistory.addActivity({
-      id: activityCodeGenId,
-      name: 'Generating code...'
-    });
-
-    // ---
-    // Database
-    const dbCollectionsSource = await extractDatabaseSchema();
-    console.log('database schema', dbCollectionsSource);
-
-    // Set the parameter
-    // node.setParameter('functionScript', codeText);
-
-    // Save it in the history, so it will be possible to go back and forth.
-    // chatHistory.updateLast({
-    //   metadata: {
-    //     code: codeText
-    //   }
-    // });
-
-    // ---
-    // Explain the code
-    // const snowflakeId = chatHistory.add({
-    //   type: ChatMessageType.Assistant,
-    //   content: ''
-    // });
-
-    const history = chatHistory.messages.map((x) => ({
-      role: String(x.type),
-      content: x.content
-    }));
-
-    const currentScript = node.getParameter('functionScript');
-    const messages = currentScript
-      ? [
-          // TODO: Enable this again later, ...history.slice(0, -1),
-          {
-            role: 'system',
-            content: FUNCTION_CRUD_CONTEXT_EDIT.replace('%{database-schema}%', dbCollectionsSource).replace(
-              '%{code}%',
-              currentScript
-            )
-          },
-          history.at(-1)
-        ]
-      : [
-          {
-            role: 'system',
-            content: FUNCTION_CRUD_CONTEXT.replace('%{database-schema}%', dbCollectionsSource)
-          },
-          ...history
-        ];
-
-    const fullText = await chatStreamXml({
-      messages,
-      provider: {
-        model: 'gpt-4o',
-        temperature: 0.5,
-        max_tokens: 2048
-      },
-      onStream(tagName, text) {
-        // TODO: It calls an empty string at the end, why?
-        if (text.length === 0) {
-          return;
-        }
-
-        console.log('[stream]', tagName, text);
-
-        switch (tagName) {
-          case 'explain': {
-            chatHistory.updateLast({
-              content: text
-            });
-            break;
-          }
-        }
-      },
-      onTagOpen(tagName) {
-        console.log('[open]', tagName);
-
-        switch (tagName) {
-          case 'explain': {
-            chatHistory.add({
-              type: ChatMessageType.Assistant,
-              content: ''
-            });
-            break;
-          }
-        }
-      },
-      onTagEnd(tagName, fullText) {
-        console.log('[done]', tagName, fullText);
-
-        switch (tagName) {
-          case 'function': {
-            const prefix = 'const Records = Noodl.Records;';
-            const fullCode = fullText.includes(prefix) ? fullText : prefix + '\n\n' + fullText;
-
-            // Set the parameter
-            node.setParameter('functionScript', fullCode);
-
-            // Save it in the history, so it will be possible to go back and forth.
-            chatHistory.updateLast({
-              metadata: {
-                code: fullCode
-              }
-            });
-
-            chatHistory.removeActivity(activityCodeGenId);
-            break;
-          }
-
-          case 'explain': {
-            chatHistory.updateLast({
-              content: fullText
-            });
-            break;
-          }
-        }
-      }
-    });
-
-    console.log('fullText', fullText);
-
-    chatHistory.removeActivity(activityCodeGenId);
-    chatHistory.removeActivity(activityId);
-  }
-};
-
+// Define constants inline to avoid circular imports
 const FUNCTION_CRUD_CONTEXT = `
 With these functions you can read, write and delete records in the cloud database. All functions are async and will throw an exception if they fail.
 
@@ -162,176 +23,6 @@ With these functions you can read, write and delete records in the cloud databas
 - All const should be using Noodl inputs with an OR operator to a default value.
 - When the request is successful call "Success" output signal.
 - When something fails in the code the "Failure" output signal.
-
-Examples:
-\`\`\`js
-const inputName = Inputs.InputName;
-
-// Check if the input has a value, otherwise return
-if (!inputName) return;
-
-// Perform the function logic
-\`\`\`
-
-Create a new Car record, with price set to 50:
-\`\`\`js
-const recordId = Inputs.RecordId;
-const newPrice = Inputs.NewPrice || 50;
-
-if (!recordId) return;
-
-try {
-  const results = await Record.save(recordId, {
-    price: newPrice,
-  }, { className: "Car" });
-
-  Outputs.Success();
-} catch (error) {
-  console.error("Error:", error);
-  Outputs.Failure();
-}
-\`\`\`
-
-Records.fetch(objectOrId,options)
-Use this function to fetch the latest properties of a specific record from the cloud database. It will return the object / record.
-
-\`\`\`
-// If you use the a record ID you must also specify the class
-const myRecord = await Records.fetch(myRecordId, {
-  className: "myClass",
-});
-
-// You can also fetch a record you have previously fetched or received from a
-// query, to get the latest properties from the backend
-await Records.fetch(myRecord);
-\`\`\`
-
-By default fetch will return pointer properties as the string Id of the object pointed to. But you can use the \`include\` option to specify that you want the content of the object to be returned instead.
-
-\`\`\`
-// By using include the request will return the pointed to object with all properties instead of
-// just the string Id
-const res = await Records.fetch(myRecord,{
-  include:["Customer","Author"]
-});
-
-res.Customer.id // Now Customer is an object and not a string
-\`\`\`
-
-Records.save(objectOrId,properties,options)
-Use this function to write an existing record to the cloud database. It will attempt to save all properties of the record / object if you don't specify the optional properties argument, if so it will set and save those properties.
-
-\`\`\`
-Objects[myRecordId].SomeProperty = "hello";
-
-// If you use the record id to save, you need to specify the classname explicitly
-// by specfiying null or undefinded for properties it will save all proporties in
-// the record
-await Records.save(myRecordId, null, { className: "myClass" });
-
-// Or use the object directly
-await Records.save(Objects[myRecordId]);
-
-// Set specified properties and save only those to the backned
-await Records.save(myRecord, {
-  SomeProperty: "hello",
-});
-\`\`\`
-
-Records.increment(objectOrId,properties,options)
-This function will increment (or decrease) propertis of a certain record saving it to the cloud database in a race condition safe way. That is, normally you would have to first read the current value, modify it and save it to the database. Here you can do it with one operation.
-
-\`\`\`
-// Modify the specified numbers in the cloud
-await Records.increment(myRecord, {
-  Score: 10,
-  Life: -1,
-});
-
-// Like save, you can use a record Id and class
-await Records.increment(myRecordId, { Likes: 1 }, { className: "myClass" });
-\`\`\`
-
-Using the options you can also specify access control, this let's you control which users can access a specific record. The access control is specified as below:
-
-\`\`\`
-await Records.save(myRecord, null, {
-  acl: {
-    "*": { read: true, write: false }, // "*" means everyone, this rules gives everyone read access but not write
-    "a-user-id": { read: true, write: true }, // give a specific user write access
-    "role:a-role-name": { read: true, write: true }, // give a specific role write access
-  },
-});
-\`\`\`
-
-Records.create(className,properties,options)
-This function will create a new record in the cloud database and return the object of the newly created record. If it's unsuccessful it will throw an exception.
-
-\`\`\`
-const myNewRecord = await Records.create("myClass", {
-  SomeProperty: "Hello",
-});
-
-console.log(myNewRecord.SomeProperty);
-\`\`\`
-
-You can use the \`options\` agrument to specify access control rules as detailed under **Records.save** above.
-
-Records.delete(objectOrId,options)
-Use this function to delete an existing record from the cloud database.
-
-\`\`\`
-// If you specify the id of a record to be deleted, you must also provide the
-// class name in the options
-await Records.delete(myRecordId, { className: "myClass" });
-
-// Or use the object directly (provided it was previously fetched or received via a query)
-await Records.delete(Objects[myRecordId]);
-\`\`\`
-
-Records.addRelation(options)
-Use this function to add a relation between two records.
-
-\`\`\`
-// You can either specify the Ids and classes directly
-await Noodl.Records.addRelation({
-  className: "myClass",
-  recordId: "owning-record-id",
-  key: "the-relation-key-on-the-owning-record",
-  targetRecordId: "the-id-of-the-record-to-add-a-relation-to",
-  targetClassName: "the-class-of-the-target-record",
-});
-
-// Or if you already have two records that have been previously fetched or returned from a
-// query
-await Records.addRelation({
-  record: myRecord,
-  key: "relation-key",
-  targetRecord: theTargetRecord,
-});
-\`\`\`
-
-Records.removeRelation(options)
-Use this function to remove a relation between two records.
-
-\`\`\`
-// You can either specify the Ids and classes directly
-await Records.removeRelation({
-  className: "myClass",
-  recordId: "owning-record-id",
-  key: "the-relation-key-on-the-owning-record",
-  targetRecordId: "the-id-of-the-record-to-remove-a-relation-to",
-  targetClassName: "the-class-of-the-target-record",
-});
-
-// Or if you already have two records that have been previously fetched or returned from a
-// query
-await Records.removeRelation({
-  record: myRecord,
-  key: "relation-key",
-  targetRecord: theTargetRecord,
-});
-\`\`\`
 
 Here is the schema of the database:
 %{database-schema}%
@@ -359,147 +50,6 @@ With these functions you can read, write and delete records in the cloud databas
 - When the request is successful call "Success" output signal.
 - When something fails in the code the "Failure" output signal.
 
-Records.fetch(objectOrId,options)
-Use this function to fetch the latest properties of a specific record from the cloud database. It will return the object / record.
-
-\`\`\`
-// If you use the a record ID you must also specify the class
-const myRecord = await Records.fetch(myRecordId, {
-  className: "myClass",
-});
-
-// You can also fetch a record you have previously fetched or received from a
-// query, to get the latest properties from the backend
-await Records.fetch(myRecord);
-\`\`\`
-
-By default fetch will return pointer properties as the string Id of the object pointed to. But you can use the \`include\` option to specify that you want the content of the object to be returned instead.
-
-\`\`\`
-// By using include the request will return the pointed to object with all properties instead of
-// just the string Id
-const res = await Records.fetch(myRecord,{
-  include:["Customer","Author"]
-});
-
-res.Customer.id // Now Customer is an object and not a string
-\`\`\`
-
-Records.save(objectOrId,properties,options)
-Use this function to write an existing record to the cloud database. It will attempt to save all properties of the record / object if you don't specify the optional properties argument, if so it will set and save those properties.
-
-\`\`\`
-Objects[myRecordId].SomeProperty = "hello";
-
-// If you use the record id to save, you need to specify the classname explicitly
-// by specfiying null or undefinded for properties it will save all proporties in
-// the record
-await Records.save(myRecordId, null, { className: "myClass" });
-
-// Or use the object directly
-await Records.save(Objects[myRecordId]);
-
-// Set specified properties and save only those to the backned
-await Records.save(myRecord, {
-  SomeProperty: "hello",
-});
-\`\`\`
-
-Records.increment(objectOrId,properties,options)
-This function will increment (or decrease) propertis of a certain record saving it to the cloud database in a race condition safe way. That is, normally you would have to first read the current value, modify it and save it to the database. Here you can do it with one operation.
-
-\`\`\`
-// Modify the specified numbers in the cloud
-await Records.increment(myRecord, {
-  Score: 10,
-  Life: -1,
-});
-
-// Like save, you can use a record Id and class
-await Records.increment(myRecordId, { Likes: 1 }, { className: "myClass" });
-\`\`\`
-
-Using the options you can also specify access control, this let's you control which users can access a specific record. The access control is specified as below:
-
-\`\`\`
-await Records.save(myRecord, null, {
-  acl: {
-    "*": { read: true, write: false }, // "*" means everyone, this rules gives everyone read access but not write
-    "a-user-id": { read: true, write: true }, // give a specific user write access
-    "role:a-role-name": { read: true, write: true }, // give a specific role write access
-  },
-});
-\`\`\`
-
-Records.create(className,properties,options)
-This function will create a new record in the cloud database and return the object of the newly created record. If it's unsuccessful it will throw an exception.
-
-\`\`\`
-const myNewRecord = await Records.create("myClass", {
-  SomeProperty: "Hello",
-});
-
-console.log(myNewRecord.SomeProperty);
-\`\`\`
-
-You can use the \`options\` agrument to specify access control rules as detailed under **Records.save** above.
-
-Records.delete(objectOrId,options)
-Use this function to delete an existing record from the cloud database.
-
-\`\`\`
-// If you specify the id of a record to be deleted, you must also provide the
-// class name in the options
-await Records.delete(myRecordId, { className: "myClass" });
-
-// Or use the object directly (provided it was previously fetched or received via a query)
-await Records.delete(Objects[myRecordId]);
-\`\`\`
-
-Records.addRelation(options)
-Use this function to add a relation between two records.
-
-\`\`\`
-// You can either specify the Ids and classes directly
-await Noodl.Records.addRelation({
-  className: "myClass",
-  recordId: "owning-record-id",
-  key: "the-relation-key-on-the-owning-record",
-  targetRecordId: "the-id-of-the-record-to-add-a-relation-to",
-  targetClassName: "the-class-of-the-target-record",
-});
-
-// Or if you already have two records that have been previously fetched or returned from a
-// query
-await Records.addRelation({
-  record: myRecord,
-  key: "relation-key",
-  targetRecord: theTargetRecord,
-});
-\`\`\`
-
-Records.removeRelation(options)
-Use this function to remove a relation between two records.
-
-\`\`\`
-// You can either specify the Ids and classes directly
-await Records.removeRelation({
-  className: "myClass",
-  recordId: "owning-record-id",
-  key: "the-relation-key-on-the-owning-record",
-  targetRecordId: "the-id-of-the-record-to-remove-a-relation-to",
-  targetClassName: "the-class-of-the-target-record",
-});
-
-// Or if you already have two records that have been previously fetched or returned from a
-// query
-await Records.removeRelation({
-  record: myRecord,
-  key: "relation-key",
-  targetRecord: theTargetRecord,
-});
-\`\`\`
-
 Here is the schema of the database:
 %{database-schema}%
 
@@ -511,3 +61,198 @@ We are starting from this code and will only modify it:
 Respond only with this specific format, and nothing else:
 <function>output the code</function>
 <explain>short description</explain>`;
+
+export const template: AiNodeTemplate = {
+  type: 'green',
+  name: 'JavaScriptFunction',
+  nodeDisplayName: 'Write to Database',
+  onMessage: async ({ node, chatHistory, chatStreamXml }: IAiCopilotContext) => {
+    const activityId = 'processing';
+    const activityCodeGenId = 'code-generation';
+
+    chatHistory.addActivity({
+      id: activityId,
+      name: 'Processing'
+    });
+
+    chatHistory.addActivity({
+      id: activityCodeGenId,
+      name: 'Generating code...'
+    });
+
+    // ---
+    // Database
+    const dbCollectionsSource = await extractDatabaseSchema();
+    console.log('database schema', dbCollectionsSource);
+
+    const currentScript = node.getParameter('functionScript');
+
+    // Convert chat history to messages format
+    const history = chatHistory.messages.map((x) => ({
+      role: String(x.type),
+      content: x.content
+    }));
+
+    const messages = currentScript
+      ? [
+          {
+            role: 'system',
+            content: FUNCTION_CRUD_CONTEXT_EDIT.replace('%{database-schema}%', dbCollectionsSource).replace(
+              '%{code}%',
+              currentScript
+            )
+          },
+          history[history.length - 1]
+        ]
+      : [
+          {
+            role: 'system',
+            content: FUNCTION_CRUD_CONTEXT.replace('%{database-schema}%', dbCollectionsSource)
+          },
+          ...history
+        ];
+
+    // Get the selected AI model and route accordingly
+    const selectedAiModel = OpenAiStore.getAiSelectedModel();
+
+    if (selectedAiModel === 'disabled') {
+      throw new Error('AI is disabled. Please enable an AI model in the editor settings.');
+    }
+
+    if (selectedAiModel === 'openai') {
+      // Use OpenAI (existing logic)
+      const result = [''];
+
+      const fullText = await chatStreamXml({
+        messages,
+        provider: {
+          model: OpenAiStore.getOpenAiModel(),
+          temperature: 0.5,
+          max_tokens: 2048
+        },
+        onStream(tagName, text) {
+          // TODO: It calls an empty string at the end, why?
+          if (text.length === 0) {
+            return;
+          }
+
+          console.log('[stream]', tagName, text);
+
+          switch (tagName) {
+            case 'explain': {
+              chatHistory.updateLast({
+                content: text
+              });
+              break;
+            }
+          }
+        },
+        onTagOpen(tagName) {
+          switch (tagName) {
+            case 'Input':
+            case 'Output': {
+              result.push('');
+              break;
+            }
+          }
+        },
+        onTagEnd(tagName, fullText) {
+          console.log('[done]', tagName, fullText);
+
+          switch (tagName) {
+            case 'label': {
+              node.setLabel(fullText);
+              break;
+            }
+
+            case 'explain': {
+              result[result.length - 1] = fullText;
+              result.push('');
+              break;
+            }
+
+            case 'Input': {
+              result[result.length - 1] = fullText;
+              result.push('');
+              break;
+            }
+
+            case 'Output': {
+              result[result.length - 1] = fullText;
+              result.push('');
+              break;
+            }
+          }
+
+          if (['explain', 'Input', 'Output'].includes(tagName)) {
+            chatHistory.updateLast({
+              content: result.join('')
+            });
+          }
+        }
+      });
+    } else if (selectedAiModel === 'gemini') {
+      // Use Gemini
+      const { callGeminiApi } = await import('../api');
+      const apiKey = OpenAiStore.getGeminiApiKey();
+      const model = OpenAiStore.getGeminiModel();
+
+      if (!apiKey) {
+        throw new Error('Gemini is not properly configured. Please check your API key.');
+      }
+
+      // For now, use a simple approach with Gemini
+      // TODO: Implement full Gemini CRUD template logic
+      const lastUserMsg = [...chatHistory.messages].reverse().find((m) => m.metadata?.user);
+      const prompt = lastUserMsg ? lastUserMsg.content : '';
+
+      const systemPrompt = `You are an AI assistant that helps create database CRUD (Create, Read, Update, Delete) functions for Noodl nodes.
+
+Users describe what database operation they want to perform, and you generate JavaScript code that:
+1. Uses Noodl.Records to perform database operations
+2. Defines inputs using the Inputs object
+3. Defines outputs using the Outputs object  
+4. Implements the requested database CRUD functionality
+5. Uses proper JavaScript syntax and best practices
+
+Available database collections: ${JSON.stringify(dbCollectionsSource, null, 2)}
+
+Example structure:
+\`\`\`javascript
+// Define inputs
+Inputs.YourInput = "string";
+
+// Define outputs  
+Outputs.YourOutput = "string";
+
+// Your database CRUD logic here
+const result = Noodl.Records.create('CollectionName', { /* data */ });
+Outputs.YourOutput = result;
+\`\`\`
+
+Generate ONLY the JavaScript code for the database CRUD function.`;
+
+      const response = await callGeminiApi(apiKey, model, `${systemPrompt}\n\nUser request: ${prompt}`);
+
+      // Extract and set the function script
+      if (response) {
+        const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
+        if (codeBlockMatch) {
+          const functionScript = codeBlockMatch[1].trim();
+          node.setParameter('functionScript', functionScript);
+
+          // Add the generated code to chat history
+          chatHistory.add({
+            content: `Generated database CRUD function:\n\`\`\`javascript\n${functionScript}\n\`\`\``,
+            type: ChatMessageType.Assistant
+          });
+        }
+      }
+    } else {
+      throw new Error('Invalid AI model selection. Please check your editor settings.');
+    }
+
+    chatHistory.removeActivity(activityCodeGenId);
+    chatHistory.removeActivity(activityId);
+  }
+};

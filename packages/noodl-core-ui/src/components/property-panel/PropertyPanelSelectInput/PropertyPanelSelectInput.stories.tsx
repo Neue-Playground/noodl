@@ -17,22 +17,24 @@ const Template: ComponentStory<typeof PropertyPanelSelectInput> = (args) => (
 
 export const Common = Template.bind({});
 Common.args = {
-  value: 'disabled',
+  value: 'gpt-5-mini',
   properties: {
     options: [
-      { label: 'Disabled', value: 'disabled' },
-      { label: 'GPT-4o', value: 'gpt-4o' }
+      { label: 'GPT-5', value: 'gpt-5' },
+      { label: 'GPT-5 mini', value: 'gpt-5-mini' },
+      { label: 'GPT-5 nano', value: 'gpt-5-nano' }
     ]
   }
 };
 
 export const hasSmallText = Template.bind({});
 hasSmallText.args = {
-  value: 'disabled',
+  value: 'gpt-5-mini',
   properties: {
     options: [
-      { label: 'Disabled', value: 'disabled' },
-      { label: 'GPT-4o', value: 'gpt-4o' }
+      { label: 'GPT-5', value: 'gpt-5' },
+      { label: 'GPT-5 mini', value: 'gpt-5-mini' },
+      { label: 'GPT-5 nano', value: 'gpt-5-nano' }
     ]
   },
   hasSmallText: true

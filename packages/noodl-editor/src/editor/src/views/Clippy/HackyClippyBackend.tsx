@@ -61,6 +61,35 @@ export async function handleCommand(
     return;
   }
 
+  if (command === '/simulator') {
+    // Use the same logic as copilotNodeInstaPromptable, but force the simulator template
+    const templateId = 'simulator';
+
+    const panAndScale = options.nodeGraph.getPanAndScale();
+
+    const x = Math.round(Math.random() * 100 + 50);
+    const y = Math.round(Math.random() * 100 + 50);
+
+    const scaledPos = {
+      x: x / panAndScale.scale - panAndScale.x,
+      y: y / panAndScale.scale - panAndScale.y
+    };
+
+    const context = await AiAssistantModel.instance.createNode(templateId, null, scaledPos);
+    context.chatHistory.add({
+      content: prompt,
+      metadata: {
+        user: LocalUserIdentity.getUserInfo()
+      }
+    });
+
+    statusCallback('Processing...');
+
+    await AiAssistantModel.instance.send(context);
+
+    return;
+  }
+
   if (command === '/image') {
     return await handleImageCommand(prompt, statusCallback);
   } else if (command === '/suggest') {

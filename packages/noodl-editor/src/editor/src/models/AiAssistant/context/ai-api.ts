@@ -12,13 +12,9 @@ function toChatProvider(provider: AiCopilotChatProviders | undefined) {
 }
 
 async function directChatOpenAi({ messages, provider, abortController, onEnd, onStream }: AiCopilotChatStreamArgs) {
-  const OPENAI_API_KEY = OpenAiStore.getApiKey();
+  const OPENAI_API_KEY = OpenAiStore.getOpenAiApiKey();
   const controller = abortController || new AbortController();
-  let endpoint = `https://api.openai.com/v1/chat/completions`;
-
-  if (OpenAiStore.getVersion() === 'enterprise') {
-    endpoint = OpenAiStore.getEndpoint();
-  }
+  const endpoint = `https://api.openai.com/v1/chat/completions`;
 
   let fullText = '';
   let completionTokenCount = 0;
@@ -39,13 +35,17 @@ async function directChatOpenAi({ messages, provider, abortController, onEnd, on
     }),
     async onopen(response) {
       if (response.ok) {
-        //        if (response.ok && response.headers.get('content-type') === EventStreamContentType) {
         return; // everything's good
-      } else if (response.status >= 400 && response.status < 500 && response.status !== 429) {
-        // client-side errors are usually non-retriable:
-        throw 'FatalError';
+      } else if (response.status === 429) {
+        throw new Error('OpenAI is overloaded or you are being rate limited. Please try again later.');
+      } else if (response.status === 401) {
+        throw new Error('OpenAI API key is invalid or unauthorized.');
+      } else if (response.status === 500 || response.status === 503) {
+        throw new Error('OpenAI service is temporarily unavailable. Please try again later.');
+      } else if (response.status >= 400 && response.status < 500) {
+        throw new Error('OpenAI request failed: ' + response.status + ' ' + response.statusText);
       } else {
-        throw 'RetriableError';
+        throw new Error('OpenAI server error: ' + response.status + ' ' + response.statusText);
       }
     },
     onmessage(ev) {
@@ -76,12 +76,13 @@ async function directChatOpenAi({ messages, provider, abortController, onEnd, on
         throw err; // rethrow to stop the operation
       } else if (['RetriableError'].includes(errText)) {
         if (tries <= 0) {
-          throw `Apologies, OpenAI is currently facing heavy traffic, causing delays in processing requests. Please be patient and try again later.`;
+          throw new Error(
+            'OpenAI is currently facing heavy traffic, causing delays in processing requests. Please be patient and try again later.'
+          );
         }
         tries--;
       } else {
-        // do nothing to automatically retry. You can also
-        // return a specific retry interval here.
+        throw new Error('An unknown error occurred while communicating with OpenAI: ' + errText);
       }
     }
   });
@@ -95,14 +96,8 @@ async function directChatOpenAi({ messages, provider, abortController, onEnd, on
 export namespace Ai {
   export async function chatStream(args: AiCopilotChatStreamArgs): Promise<string> {
     let fullText = '';
-
-    const version = OpenAiStore.getVersion();
-    if (['gpt-4o', 'enterprise'].includes(version)) {
-      const result = await directChatOpenAi(args);
-      fullText = result.fullText;
-    } else {
-      throw 'Invalid AI version.';
-    }
+    const result = await directChatOpenAi(args);
+    fullText = result.fullText;
 
     return fullText;
   }

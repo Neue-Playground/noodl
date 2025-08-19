@@ -1,8 +1,8 @@
-import { AiModel, AiVersion, OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { GeminiAiModel, OpenAiModel, AiEnabled, AiSelectedModel, OpenAiStore } from '@noodl-store/AiAssistantStore';
 import React, { useState } from 'react';
 import { platform } from '@noodl/platform';
 
-import { verifyOpenAiApiKey } from '@noodl-models/AiAssistant/api';
+import { verifyOpenAiApiKey, verifyGeminiApiKey } from '@noodl-models/AiAssistant/api';
 
 import { PrimaryButton, PrimaryButtonSize, PrimaryButtonVariant } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { Box } from '@noodl-core-ui/components/layout/Box';
@@ -11,7 +11,6 @@ import { PropertyPanelButton } from '@noodl-core-ui/components/property-panel/Pr
 import { PropertyPanelRow } from '@noodl-core-ui/components/property-panel/PropertyPanelInput';
 import { PropertyPanelPasswordInput } from '@noodl-core-ui/components/property-panel/PropertyPanelPasswordInput';
 import { PropertyPanelSelectInput } from '@noodl-core-ui/components/property-panel/PropertyPanelSelectInput';
-import { PropertyPanelTextInput } from '@noodl-core-ui/components/property-panel/PropertyPanelTextInput';
 import { CollapsableSection } from '@noodl-core-ui/components/sidebar/CollapsableSection';
 import { Text } from '@noodl-core-ui/components/typography/Text';
 import { Title, TitleSize } from '@noodl-core-ui/components/typography/Title';
@@ -21,75 +20,86 @@ import { ToastLayer } from '../../../ToastLayer/ToastLayer';
 export const AI_ASSISTANT_ENABLED_SUGGESTIONS_KEY = 'aiAssistant.enabledSuggestions';
 
 export function OpenAiSection() {
-  const [enabledState, setEnabledState] = useState<AiVersion>(OpenAiStore.getVersion());
-  const [apiKey, setApiKey] = useState(OpenAiStore.getApiKey());
-  const [endpoint, setEndpoint] = useState(OpenAiStore.getEndpoint());
-  const [model, setModel] = useState<AiModel>(OpenAiStore.getModel());
+  const [openAiApiKey, setOpenAiApiKey] = useState(OpenAiStore.getOpenAiApiKey());
+  const [openAiModel, setOpenAiModel] = useState(OpenAiStore.getOpenAiModel());
+  const [geminiApiKey, setGeminiApiKey] = useState(OpenAiStore.getGeminiApiKey());
+  const [geminiModel, setGeminiModel] = useState(OpenAiStore.getGeminiModel());
+  const [enabledState, setEnabledState] = useState<AiEnabled>(OpenAiStore.getAiEnabled());
+  const [selectedAiModel, setSelectedAiModel] = useState<AiSelectedModel>(OpenAiStore.getAiSelectedModel());
 
-  async function onVerifyApiKey() {
-    const models = await verifyOpenAiApiKey(apiKey);
+  async function onVerifyOpenAiApiKey() {
+    const models = await verifyOpenAiApiKey(openAiApiKey);
     if (models) {
-      const haveGpt4 = !!models['gpt-4o'];
-      if (haveGpt4) {
-        OpenAiStore.setIsAiApiKeyVerified(true);
-        ToastLayer.showSuccess('OpenAI API Key is valid with GPT-4!');
-      } else {
-        OpenAiStore.setIsAiApiKeyVerified(false);
-        ToastLayer.showError('OpenAI API Key is missing gpt-4 model Support!');
-      }
+      OpenAiStore.setOpenAiVerified(true);
+      ToastLayer.showSuccess('OpenAI API Key is valid');
     } else {
-      OpenAiStore.setIsAiApiKeyVerified(false);
+      OpenAiStore.setOpenAiVerified(false);
       ToastLayer.showError('OpenAI API Key is invalid!');
     }
   }
 
+  async function onVerifyGeminiApiKey() {
+    const isValid = await verifyGeminiApiKey(geminiApiKey);
+    if (isValid) {
+      OpenAiStore.setGeminiVerified(true);
+      ToastLayer.showSuccess('Gemini API Key is valid!');
+    } else {
+      OpenAiStore.setGeminiVerified(false);
+      ToastLayer.showError('Gemini API Key is invalid!');
+    }
+  }
+
   return (
-    <CollapsableSection title="AI (Beta)">
+    <CollapsableSection title="AI">
       <Box hasXSpacing>
         <VStack>
-          <PropertyPanelRow label="Version" isChanged={false}>
+          <PropertyPanelRow label="AI Model" isChanged={false}>
             <PropertyPanelSelectInput
-              value={enabledState}
+              value={selectedAiModel}
               properties={{
                 options: [
                   { label: 'Disabled', value: 'disabled' },
-                  { label: 'OpenAI', value: 'gpt-4o' },
-                  { label: 'Custom', value: 'enterprise' }
+                  { label: 'OpenAI', value: 'openai' },
+                  { label: 'Gemini', value: 'gemini' }
                 ]
               }}
-              onChange={(value: AiVersion) => {
-                setEnabledState(value);
-                OpenAiStore.setVersion(value);
+              onChange={(value: string) => {
+                const aiModel = value as AiSelectedModel;
+                setSelectedAiModel(aiModel);
+                OpenAiStore.setAiSelectedModel(aiModel);
+
+                // Update the enabled state based on selection
+                const newEnabledState = aiModel === 'disabled' ? 'disabled' : 'enabled';
+                setEnabledState(newEnabledState);
+                OpenAiStore.setAiEnabled(newEnabledState);
               }}
             />
           </PropertyPanelRow>
 
-          {enabledState === 'disabled' && (
-            <Box hasYSpacing>
-              <Text>AI is currently disabled.</Text>
-            </Box>
-          )}
-
-          {enabledState === 'gpt-4o' && (
-            <>
+          {selectedAiModel === 'openai' && (
+            <CollapsableSection title="OpenAI">
               <PropertyPanelRow label="Model" isChanged={false}>
                 <PropertyPanelSelectInput
-                  value={model}
+                  value={openAiModel}
                   properties={{
-                    options: [{ label: 'gpt-4o', value: 'gpt-4o' }]
+                    options: [
+                      { label: 'GPT-5', value: 'gpt-5' },
+                      { label: 'GPT-5 mini', value: 'gpt-5-mini' },
+                      { label: 'GPT-5 nano', value: 'gpt-5-nano' }
+                    ]
                   }}
-                  onChange={(value: AiModel) => {
-                    setModel(value);
-                    OpenAiStore.setModel(value);
+                  onChange={(value: OpenAiModel) => {
+                    setOpenAiModel(value);
+                    OpenAiStore.setOpenAiModel(value);
                   }}
                 />
               </PropertyPanelRow>
               <PropertyPanelRow label="API Key" isChanged={false}>
                 <PropertyPanelPasswordInput
-                  value={apiKey}
+                  value={openAiApiKey}
                   onChange={(value) => {
-                    setApiKey(value);
-                    OpenAiStore.setApiKey(value);
+                    setOpenAiApiKey(value);
+                    OpenAiStore.setOpenAiApiKey(value);
                   }}
                 />
               </PropertyPanelRow>
@@ -97,52 +107,56 @@ export function OpenAiSection() {
                 <PropertyPanelButton
                   properties={{
                     isPrimary: true,
-                    buttonLabel: 'Verify API Key',
+                    buttonLabel: 'Verify OpenAI Key',
                     onClick() {
-                      onVerifyApiKey();
+                      onVerifyOpenAiApiKey();
                     }
                   }}
                 />
               </PropertyPanelRow>
-              <Box hasYSpacing>
-                <Text>Verify your OpenAI API key to start using AI Commands.</Text>
-              </Box>
-            </>
+            </CollapsableSection>
           )}
 
-          {enabledState === 'enterprise' && (
-            <>
+          {selectedAiModel === 'gemini' && (
+            <CollapsableSection title="Gemini">
               <PropertyPanelRow label="Model" isChanged={false}>
                 <PropertyPanelSelectInput
-                  value={model}
+                  value={geminiModel}
                   properties={{
-                    options: [{ label: 'gpt-4o', value: 'gpt-4o' }]
+                    options: [
+                      { label: 'Gemini 2.5 Pro', value: 'gemini-2.5-pro' },
+                      { label: 'Gemini 2.5 Flash', value: 'gemini-2.5-flash' },
+                      { label: 'Gemini 2.5 Flash Lite', value: 'gemini-2.5-flash-lite' },
+                      { label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' }
+                    ]
                   }}
-                  onChange={(value: AiModel) => {
-                    setModel(value);
-                    OpenAiStore.setModel(value);
+                  onChange={(value: GeminiAiModel) => {
+                    setGeminiModel(value);
+                    OpenAiStore.setGeminiModel(value);
                   }}
                 />
               </PropertyPanelRow>
               <PropertyPanelRow label="API Key" isChanged={false}>
                 <PropertyPanelPasswordInput
-                  value={apiKey}
+                  value={geminiApiKey}
                   onChange={(value) => {
-                    setApiKey(value);
-                    OpenAiStore.setApiKey(value);
+                    setGeminiApiKey(value);
+                    OpenAiStore.setGeminiApiKey(value);
                   }}
                 />
               </PropertyPanelRow>
-              <PropertyPanelRow label="Endpoint" isChanged={false}>
-                <PropertyPanelTextInput
-                  value={endpoint}
-                  onChange={(value) => {
-                    setEndpoint(value);
-                    OpenAiStore.setEndpoint(value);
+              <PropertyPanelRow label="API Key" isChanged={false}>
+                <PropertyPanelButton
+                  properties={{
+                    isPrimary: true,
+                    buttonLabel: 'Verify Gemini Key',
+                    onClick() {
+                      onVerifyGeminiApiKey();
+                    }
                   }}
                 />
               </PropertyPanelRow>
-            </>
+            </CollapsableSection>
           )}
 
           <Box

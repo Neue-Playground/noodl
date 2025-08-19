@@ -1,4 +1,5 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
+import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 
 import { AiCopilotContext } from '@noodl-models/AiAssistant/AiCopilotContext';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeJSON } from '@noodl-models/nodegraphmodel';
@@ -137,7 +138,7 @@ export async function handleUICommand(
   await ctx.chatStreamXml({
     messages: messages,
     provider: {
-      model: 'gpt-4o',
+      model: OpenAiStore.getOpenAiModel(),
       temperature: 0.1
     },
     ...callbacks
