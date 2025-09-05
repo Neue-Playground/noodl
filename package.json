@@ -46,5 +46,9 @@
   "engines": {
     "npm": ">=6.0.0",
     "node": ">=16.0.0"
+  },
+  "dependencies": {
+    "@google/genai": "^1.16.0",
+    "bytez.js": "^1.1.15"
   }
 }

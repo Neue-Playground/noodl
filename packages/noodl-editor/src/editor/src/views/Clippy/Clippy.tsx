@@ -95,6 +95,52 @@ export default function Clippy() {
   }, [promptToNode, copilotNodes]);
 
   const user = LocalUserIdentity.getUserInfo();
+  // Track if we've spun up a Bytez cluster already
+  const hasSpunUpBytezClusterRef = useRef(false);
+  // Ensure cluster for Bytez image model when Clippy opens
+  useEffect(() => {
+    if (!isInputOpen) return;
+    const imageModel = (OpenAiStore.getImageModel() as string) || '';
+    const isBytezImageModel = imageModel === 'playgroundai/playground-v2.5-1024px-aesthetic';
+    if (!isBytezImageModel) return;
+    const apiKey = OpenAiStore.getBytezApiKey();
+    if (!apiKey) return;
+    (async () => {
+      try {
+        // Check if any cluster exists for our model
+        const listUrl = 'https://api.bytez.com/models/v2/list/clusters';
+        const listRes = await fetch(listUrl, { method: 'GET', headers: { Authorization: apiKey } } as RequestInit);
+        const listJson = await listRes.json().catch(() => undefined);
+
+        const hasCluster = Array.isArray(listJson)
+          ? listJson.some((c) => {
+              try {
+                return (
+                  c?.modelId === imageModel ||
+                  c?.model === imageModel ||
+                  c?.id === imageModel ||
+                  (typeof c?.name === 'string' && c.name.indexOf(imageModel) !== -1)
+                );
+              } catch (_) {
+                return false;
+              }
+            })
+          : false;
+
+        if (!hasCluster && !hasSpunUpBytezClusterRef.current) {
+          const url = `https://api.bytez.com/models/v2/${encodeURIComponent(imageModel)}`;
+          await fetch(url, {
+            method: 'PUT',
+            headers: { Authorization: apiKey, 'Content-Type': 'application/json' },
+            body: JSON.stringify({ timeout: 10, capacity: { max: 1 } })
+          } as RequestInit);
+          hasSpunUpBytezClusterRef.current = true;
+        }
+      } catch (err) {
+        console.warn('Bytez cluster check/spin-up failed', err);
+      }
+    })();
+  }, [isInputOpen]);
 
   // Update effect to check both keys and selected AI model
   useEffect(() => {

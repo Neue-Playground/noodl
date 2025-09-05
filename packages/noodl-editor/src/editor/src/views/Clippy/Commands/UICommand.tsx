@@ -1,13 +1,14 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 
-import { AiCopilotContext } from '@noodl-models/AiAssistant/AiCopilotContext';
+import { getXmlChatProvider } from '@noodl-models/AiAssistant/context/ai-providers';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeJSON } from '@noodl-models/nodegraphmodel';
 import { NodeLibrary } from '@noodl-models/nodelibrary';
 import { ProjectModel } from '@noodl-models/projectmodel';
 import { UndoActionGroup, UndoQueue } from '@noodl-models/undo-queue-model';
 import { guid } from '@noodl-utils/utils';
 
+import { generateUiPrimer } from './ui-primer';
 import { makeImageGenerationRequest, saveImageDataToDisk } from './utils';
 
 type UICommandOptions = {
@@ -58,16 +59,15 @@ export async function handleUICommand(
   statusCallback('Generating nodes');
 
   const messages = [
-    { role: 'system', content: generatePrimer({ ...options, userComponents, uiPrimer }) },
+    { role: 'system', content: generateUiPrimer({ ...options, userComponents, uiPrimer }) },
     { role: 'user', content: prompt }
   ];
-
-  const ctx = new AiCopilotContext(null, null, null);
 
   const undoGroup = new UndoActionGroup({ label: 'AI: Generate nodes' });
 
   const callbacks = {
     onTagOpen(tagName: string, attributes: Record<string, string>) {
+      console.log('AI onTagOpen:', { tagName, attributes });
       const json: NodeGraphNodeJSON = {
         type: attributes.componentName ? transformComponentName(attributes.componentName) : transformName(tagName),
         parameters: {},
@@ -76,6 +76,8 @@ export async function handleUICommand(
         y: 0,
         id: guid()
       };
+
+      console.log('json', json);
 
       const type = NodeLibrary.instance.getNodeTypeWithName(json.type);
       const allPortNames = new Set(type.ports.map((p) => p.name));
@@ -135,128 +137,40 @@ export async function handleUICommand(
     }
   };
 
-  await ctx.chatStreamXml({
-    messages: messages,
-    provider: {
+  const selectedAiModel = OpenAiStore.getAiSelectedModel();
+
+  const provider = getXmlChatProvider({
+    selectedModel: selectedAiModel,
+    openAi: {
       model: OpenAiStore.getOpenAiModel(),
-      temperature: 0.1
+      temperature: 0.1,
+      max_tokens: 2048
     },
-    ...callbacks
+    gemini: {
+      apiKey: OpenAiStore.getGeminiApiKey(),
+      model: OpenAiStore.getGeminiModel()
+    },
+    bytez: {
+      apiKey: OpenAiStore.getBytezApiKey(),
+      model: OpenAiStore.getBytezModel()
+    }
   });
 
+  try {
+    await provider.chatStreamXml({
+      messages,
+      onTagOpen: callbacks.onTagOpen,
+      onTagEnd: callbacks.onTagEnd
+    });
+    statusCallback('Nodes generated successfully!'); // Success message
+  } catch (error: any) {
+    statusCallback(`Error: Failed to generate UI. ${error.message || ''}`);
+    return; // Stop execution on error
+  }
   UndoQueue.instance.push(undoGroup);
 }
 
-type PrimerOptions = {
-  allowImageNode?: boolean;
-  allowImageGeneration?: boolean;
-  userComponents: {
-    name: string;
-    fullName: string;
-    description: string;
-    canHaveChildren: boolean;
-  }[];
-  uiPrimer: string;
-};
-
-function generatePrimer(options?: PrimerOptions) {
-  const userComponentsPrimer = options.userComponents
-    .map((c) => {
-      return `
-${c.name}
-${c.description}
-The attribute "componentName" must always be set to "${c.fullName}" 
-xml: <${c.name} componentName="${c.fullName}" />
-${c.canHaveChildren ? 'Can contain children' : 'This element must have no child elements'}
-  `;
-    })
-    .join('\n');
-
-  const primer = `
-Format the response as xml using the following elements:
-
-Group
-An element that can contain multiple children.
-xml: <group>[insert children]</group>
-Attributes:
-- flexDirection: "column"|"row". Default is column.
-- backgroundColor: hex color|"transparent". Default is transparent.
-- paddingTop: top padding. Default 0
-- paddingBottom: bottom padding. Default 0
-- paddingLeft: top padding. Default 0
-- paddingRight: bottom padding. Default 0
-- borderRadius: corner radius in pixels
-Rules:
-- Padding is one of the following: 0, 8, 16, 32
-- A group with a background color has to have a padding of 16.
-
-Columns
-An element that contain groups, one per column.
-xml: <columns>[insert children]</columns>
-Attributes:
-- layoutString: a string that has one value per column, separated by a space. The value is the relative size of the column. Default size is 1.
-
-Text
-xml: <text />
-Children: not allowed
-Attributes:
-- text: the text content
-
-Button
-xml: <button />
-Attributes
-- label: the button label
-
-Input
-xml: <input />
-Children: not allowed
-Attributes:
-- label: the inputs label
-- type: the type of input
-- placeholder: placeholder text when no option is selected
-
-Checkbox
-xml: <checkbox />
-Children: not allowed
-- label: the checkbox label
-- checked: a boolean. Default is false.
-
-Image
-xml: <img />
-Attributes:
-- src: an url
-- width: the width as a number in pixels or %
-- height: the height as a number in pixels
-- prompt: prompt for OpenAIs image generation describing the picture
-
-Dropdown
-xml: <dropdown />
-Children: not allowed
-Attributes:
-- items: an array with options with the format: [{Label: "[label name]", Value: "[value]"}]
-- label: the label
-- placeholder: placeholder text when no option is selected
-
-All elements above have the following attributes:
-- marginTop: top margin. Default 0
-- marginBottom: bottom margin. Default 0
-- marginLeft: top margin. Default 0
-- marginRight: bottom margin. Default 0
-- position: "absolute" | "relative". Default is relative.
-Rules:
-- Margins can be one of the following: 0, 8, 16, 32
-
-Prefer to use these elements:
-{userComponentPrimers}
-
-Add a "nodeLabel" attribute to every node with an explanation for why this node was created
-
-Attributes with spaces should be formatted as camelCase, no spaces.
-
-Response only contains XML with the elements listed above. Always start with a group.`;
-
-  return (options.uiPrimer || primer).replace('{userComponentPrimers}', userComponentsPrimer);
-}
+// Primer moved to './ui-primer'
 
 function transformName(name: string) {
   const nameMap = {
