@@ -209,7 +209,7 @@ export function OpenAiSection() {
                 properties={{
                   options: [
                     { label: 'Disabled', value: 'disabled' },
-                    { label: 'Gemini 2.0 Flash', value: 'gemini-2.0-flash' },
+                    { label: 'Gemini Imagen', value: 'imagen-4.0-fast-generate-001' },
                     { label: 'Gemini 2.5 Flash Image Preview', value: 'gemini-2.5-flash-image-preview' },
                     {
                       label: 'Playground v2.5 (Bytez, 1024px aesthetic)',

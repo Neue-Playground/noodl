@@ -1,9 +1,8 @@
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
-
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
 
 import { ToastLayer } from '../../../views/ToastLayer/ToastLayer';
+import { Ai } from '../api';
 
 export const template: AiNodeTemplate = {
   type: 'pink',
@@ -18,149 +17,68 @@ export const template: AiNodeTemplate = {
       name: 'Processing'
     });
     try {
-      // Get the selected AI model and route accordingly
-      const selectedAiModel = OpenAiStore.getAiSelectedModel();
+      const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
+      const prompt = lastUserMsg ? lastUserMsg.content : '';
 
-      if (selectedAiModel === 'disabled') {
-        throw new Error('AI is disabled. Please enable an AI model in the editor settings.');
-      }
+      // Prepare the conversation history for context
+      const conversationHistory = context.chatHistory.messages
+        .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
+        .map((msg) => ({
+          role: msg.metadata?.user ? 'user' : 'assistant',
+          content: msg.content
+        }))
+        .slice(-10); // Keep last 10 messages for context
 
-      if (selectedAiModel === 'openai') {
-        // Use OpenAI
-        const apiKey = OpenAiStore.getOpenAiApiKey();
-        const model = OpenAiStore.getOpenAiModel();
-
-        if (!apiKey) {
-          throw new Error('OpenAI is not properly configured. Please check your API key and model selection.');
-        }
-
-        // Import OpenAI chat functionality
-        const {
-          Ai: { chatStream }
-        } = await import('../context/ai-api');
-
-        // First OpenAI call with conversation history included in prompt
-        context.chatHistory.add({ content: 'Calling OpenAI...', metadata: { system: true } });
-
-        const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
-        const prompt = lastUserMsg ? lastUserMsg.content : '';
-
-        // Prepare the conversation history for context
-        const conversationHistory = context.chatHistory.messages
-          .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
-          .map((msg) => ({
-            role: msg.metadata?.user ? 'user' : 'assistant',
-            content: msg.content
-          }))
-          .slice(-10); // Keep last 10 messages for context
-
-        // Build context-aware prompt with conversation history
-        const contextPrompt =
-          conversationHistory.length > 0
-            ? `###Conversation History###
+      // Build context-aware prompt with conversation history
+      const contextPrompt =
+        conversationHistory.length > 0
+          ? `###Conversation History###
 ${conversationHistory.map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')}
 
 ###Current Request###
 ${prompt}
 
 ###Instructions###
-You are an assistant for generating virtual IoT device simulators for the Neue Playground (based on Noodl) low-code software.
-Users describe a device in natural language. You must generate JavaScript code for a Script node that simulates the described device.
+${systemPrompt}`
+          : `${systemPrompt}\n\nUser request: ${prompt}`;
 
-The code should:
-1. Use Script.Inputs to define input parameters (e.g., ranges, intervals, etc.)
-2. Use Script.Outputs to define output values (e.g., sensor readings, status)
-3. Use Script.Signals to define functions that can be triggered as an input, or sent as an output.
-4. Include realistic simulation logic (random variations, time-based changes, etc.)
-5. Be well-commented and easy to understand
+      console.log('Context prompt:', contextPrompt);
 
-Example structure:
-\`\`\`javascript
-Script.Inputs = {
-  // Define your inputs here
-};
-
-Script.Outputs = {
-  // Define your outputs here
-};
-
-Script.Signals.YourSignal = function() {
-  // Your simulation logic here
-};
-\`\`\`
-
-Output ONLY the JavaScript code for a Script node using Script.Inputs, Script.Outputs, and Script.Signals.`
-            : `You are an assistant for generating virtual IoT device simulators for Playgrounds Script nodes.
-
-Users describe a device in natural language. You must generate JavaScript code for a Script node that simulates the described device.
-
-The code should:
-1. Use Script.Inputs to define input parameters (e.g., ranges, intervals, etc.)
-2. Use Script.Outputs to define output values (e.g., sensor readings, status)
-3. Use Script.Signals to define functions that can be triggered
-4. Include realistic simulation logic (random variations, time-based changes, etc.)
-5. Be well-commented and easy to understand
-
-Example structure:
-\`\`\`javascript
-Script.Inputs = {
-  // Define your inputs here
-};
-
-Script.Outputs = {
-  // Define your outputs here
-};
-
-Script.Signals.YourSignal = function() {
-  // Your simulation logic here
-};
-\`\`\`
-
-User request: ${prompt}
-
-Output ONLY the JavaScript code for a Script node using Script.Inputs, Script.Outputs, and Script.Signals.`;
-
-        const response = await chatStream({
-          messages: [
-            {
-              role: 'system',
-              content: contextPrompt
-            }
-          ],
-          provider: {
-            model: model,
-            temperature: 0.7,
-            max_tokens: 2048
-          },
-          onStream(fullText) {
-            console.log('OpenAI response:', fullText);
+      // First OpenAI call to generate JavaScript code
+      const response = await Ai.chatStream({
+        messages: [
+          {
+            role: 'system',
+            content: contextPrompt
           }
-        });
-
-        context.chatHistory.add({ content: 'OpenAI response received. Processing...', metadata: { system: true } });
-
-        // Extract JavaScript code block
-        let javascriptCode = '';
-        if (response) {
-          // Look for code blocks in the response
-          const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
-          if (codeBlockMatch) {
-            javascriptCode = codeBlockMatch[1].trim();
-          } else {
-            // If no code block found, try to extract code from the response
-            javascriptCode = response.trim();
-          }
+        ],
+        onStream(fullText) {
+          console.log('AI response:', fullText);
         }
+      });
 
-        if (!javascriptCode) {
-          throw new Error('Failed to generate simulator code. Please try again.');
+      // Extract JavaScript code block
+      let javascriptCode = '';
+      if (response) {
+        // Look for code blocks in the response
+        const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
+        if (codeBlockMatch) {
+          javascriptCode = codeBlockMatch[1].trim();
+        } else {
+          // If no code block found, try to extract code from the response
+          javascriptCode = response.trim();
         }
+      }
 
-        // Set the code parameter for the Script node
-        context.node.setParameter('code', javascriptCode);
+      if (!javascriptCode) {
+        throw new Error('Failed to generate simulator code. Please try again.');
+      }
 
-        // Second OpenAI call to generate explanation
-        const explanationPrompt = `Analyze this JavaScript code for a virtual IoT device simulator and provide:
+      // Set the code parameter for the Script node
+      context.node.setParameter('code', javascriptCode);
+
+      // Second OpenAI call to generate explanation
+      const explanationPrompt = `Analyze this JavaScript code for a virtual IoT device simulator and provide:
 
 1. A concise label (2-5 words) describing what the simulator does
 2. A clear explanation (2-5 sentences) of how the simulator works
@@ -174,45 +92,45 @@ Format your response as:
 <label>Your Label Here</label>
 <explain>Your explanation here</explain>`;
 
-        const explanationResponse = await chatStream({
-          messages: [
-            {
-              role: 'system',
-              content: explanationPrompt
-            }
-          ],
-          provider: {
-            model: model,
-            temperature: 0.3,
-            max_tokens: 256
-          },
-          onStream(fullText) {
-            console.log('Explanation response:', fullText);
+      const explanationResponse = await Ai.chatStream({
+        messages: [
+          {
+            role: 'system',
+            content: explanationPrompt
           }
-        });
-
-        // Parse the explanation response
-        const labelMatch = explanationResponse.match(/<label>(.*?)<\/label>/);
-        const explainMatch = explanationResponse.match(/<explain>(.*?)<\/explain>/);
-
-        if (labelMatch && explainMatch) {
-          const label = labelMatch[1].trim();
-          const explanation = explainMatch[1].trim();
-
-          // Add the explanation to chat history
-          context.chatHistory.add({
-            content: `**${label}**\n\n${explanation}`,
-            type: ChatMessageType.Assistant
-          });
+        ],
+        onStream(fullText) {
+          console.log('Explanation response:', fullText);
         }
-      } else if (selectedAiModel === 'gemini') {
-        // Use Gemini (existing logic)
-        const apiKey = OpenAiStore.getGeminiApiKey();
-        const model = OpenAiStore.getGeminiModel();
-        const { callGeminiApi } = await import('../api');
+      });
 
-        // Compose the system prompt to generate a Script node compatible code
-        const systemPrompt = `You generate JavaScript for a Noodl JavaScript node that simulates virtual IoT sensors.
+      // Parse the explanation response
+      const labelMatch = explanationResponse.match(/<label>(.*?)<\/label>/);
+      const explainMatch = explanationResponse.match(/<explain>(.*?)<\/explain>/);
+
+      if (labelMatch && explainMatch) {
+        const label = labelMatch[1].trim();
+        const explanation = explainMatch[1].trim();
+
+        // Update the label of the node to match the explanation label
+        context.node.setLabel(label);
+
+        // Add the explanation to chat history
+        context.chatHistory.add({
+          content: `**${label}**\n\n${explanation}`,
+          type: ChatMessageType.Assistant
+        });
+      }
+
+      context.chatHistory.removeActivity(activityId);
+    } catch (error) {
+      ToastLayer.showError(error.message || 'Failed to generate simulator');
+      context.chatHistory.clearActivities();
+    }
+  }
+};
+
+const systemPrompt = `You generate JavaScript for a Noodl JavaScript node that simulates virtual IoT sensors.
 From the user's device description, extract each sensor and its type, set realistic default ranges and units, and include them as simulation parameters (min, max, noise, etc.) in your Script.Inputs—all with sensible defaults.
 
 - Structure your code with clear, commented sections: "// --- Inputs ---", "// --- Outputs ---", "// --- Internal State ---", "// --- Utility Functions ---", "// --- Setters ---", "// --- Signals ---", and "// --- Main Simulation Loop ---".
@@ -397,120 +315,3 @@ function startLoop() {
   }
 }
 \`\`\``;
-
-        const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
-        const prompt = lastUserMsg ? lastUserMsg.content : '';
-
-        // Prepare the conversation history for context
-        const conversationHistory = context.chatHistory.messages
-          .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
-          .map((msg) => ({
-            role: msg.metadata?.user ? 'user' : 'assistant',
-            content: msg.content
-          }))
-          .slice(-10); // Keep last 10 messages for context
-
-        // Build context-aware prompt with conversation history
-        const contextPrompt =
-          conversationHistory.length > 0
-            ? `###Conversation History###
-${conversationHistory.map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')}
-
-###Current Request###
-${prompt}
-
-###Instructions###
-${systemPrompt}`
-            : `${systemPrompt}\n\nUser request: ${prompt}`;
-
-        // First Gemini call with conversation history included in prompt
-        context.chatHistory.add({ content: 'Calling Gemini...', metadata: { system: true } });
-        const response = await callGeminiApi(apiKey, model, contextPrompt);
-        context.chatHistory.add({ content: 'Gemini response received. Processing...', metadata: { system: true } });
-
-        // Extract JavaScript code block
-        let javascriptCode = '';
-        if (response) {
-          // Look for code blocks in the response
-          const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
-          if (codeBlockMatch) {
-            javascriptCode = codeBlockMatch[1].trim();
-          } else {
-            // If no code block found, try to extract code from the response
-            javascriptCode = response.trim();
-          }
-        }
-
-        if (!javascriptCode) {
-          throw new Error('Failed to generate simulator code. Please try again.');
-        }
-
-        // Set the code parameter for the Script node
-        context.node.setParameter('code', javascriptCode);
-
-        // Second Gemini call with conversation history and generated code included in prompt
-        const explanationPrompt = `Analyze this JavaScript code for a virtual IoT device simulator and provide:
-
-1. A concise label (2-5 words) describing what the simulator does
-2. A clear explanation (2-5 sentences) of how the simulator works
-
-Code to analyze:
-\`\`\`javascript
-${javascriptCode}
-\`\`\`
-
-Format your response as:
-<label>Your Label Here</label>
-<explain>Your explanation here</explain>`;
-
-        const explanationContextPrompt =
-          conversationHistory.length > 0
-            ? `###Conversation History###
-${conversationHistory.map((msg) => `${msg.role === 'user' ? 'User' : 'Assistant'}: ${msg.content}`).join('\n')}
-
-###User's Original Request###
-${prompt}
-
-###Generated Simulator Code###
-\`\`\`javascript
-${javascriptCode}
-\`\`\`
-
-${explanationPrompt}`
-            : `${explanationPrompt}
-
-###Generated Simulator Code###
-\`\`\`javascript
-${javascriptCode}
-\`\`\``;
-
-        const explanationResponse = await callGeminiApi(apiKey, model, explanationContextPrompt);
-
-        // Parse the explanation response
-        const labelMatch = explanationResponse.match(/<label>(.*?)<\/label>/);
-        const explainMatch = explanationResponse.match(/<explain>(.*?)<\/explain>/);
-
-        if (labelMatch && explainMatch) {
-          const label = labelMatch[1].trim();
-          const explanation = explainMatch[1].trim();
-
-          // Update the label of the node to match the explanation label
-          context.node.setLabel(label);
-
-          // Add the explanation to chat history
-          context.chatHistory.add({
-            content: `**${label}**\n\n${explanation}`,
-            type: ChatMessageType.Assistant
-          });
-        }
-      } else {
-        throw new Error('Invalid AI model selection. Please check your editor settings.');
-      }
-
-      context.chatHistory.removeActivity(activityId);
-    } catch (error) {
-      ToastLayer.showError(error.message || 'Failed to generate simulator');
-      context.chatHistory.clearActivities();
-    }
-  }
-};

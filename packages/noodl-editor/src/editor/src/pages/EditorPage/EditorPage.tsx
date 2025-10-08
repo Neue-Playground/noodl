@@ -69,6 +69,7 @@ function setupSidePanels() {
   const isLesson = ProjectModel.instance.isLesson();
 
   installSidePanel({ isLesson });
+  EventDispatcher.instance.emit('sidebar-ready');
 }
 
 export type EditorPageProps = IRouteProps;

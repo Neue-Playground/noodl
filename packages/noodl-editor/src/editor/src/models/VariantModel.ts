@@ -100,7 +100,7 @@ export class VariantModel extends Model {
 
   setParameters(args) {
     this.parameters = args.parameters;
-    this.stateParameters = args.stateParamaters;
+    this.stateParameters = args.stateParameters;
     this.stateTransitions = args.stateTransitions;
     this.defaultStateTransitions = args.defaultStateTransitions;
 
@@ -496,7 +496,7 @@ export class VariantModel extends Model {
       name: this.name,
       typename: this.typename,
       parameters: this.parameters,
-      stateParamaters: this.stateParameters,
+      stateParameters: this.stateParameters,
       stateTransitions: this.stateTransitions,
       defaultStateTransitions: this.defaultStateTransitions,
       conflicts: this.conflicts ? JSON.parse(JSON.stringify(this.conflicts)) : undefined
@@ -512,7 +512,7 @@ export class VariantModel extends Model {
     });
 
     _this.parameters = json.parameters;
-    _this.stateParameters = json.stateParamaters;
+    _this.stateParameters = json.stateParameters;
     _this.stateTransitions = json.stateTransitions;
     _this.defaultStateTransitions = json.defaultStateTransitions;
     _this.conflicts = json.conflicts;

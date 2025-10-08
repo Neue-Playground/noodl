@@ -1,6 +1,6 @@
 import { ReActCommand, ReActCommandLexer } from '@noodl-models/AiAssistant/_backend/commandLexer';
+import { Ai } from '@noodl-models/AiAssistant/api';
 import { ChatHistory, ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
-import { Ai } from '@noodl-models/AiAssistant/context/ai-api';
 import { AiCopilotChatMessage } from '@noodl-models/AiAssistant/interfaces';
 import { NodeGraphModel } from '@noodl-models/nodegraphmodel';
 

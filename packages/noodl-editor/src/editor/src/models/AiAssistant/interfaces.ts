@@ -1,49 +1,50 @@
+import { ChatGPTMessage } from '@noodl-models/AiAssistant/_backend/mapper';
 import { AiTemplate } from '@noodl-models/AiAssistant/AiAssistantModel';
 import { ChatHistory, ChatMessage } from '@noodl-models/AiAssistant/ChatHistory';
 import { CopilotMessage, CopilotMessageAssistant } from '@noodl-models/AiAssistant/ChatMessage';
-import { ChatGPTMessage } from '@noodl-models/AiAssistant/_backend/mapper';
 import { NodeGraphNode } from '@noodl-models/nodegraphmodel';
 import { IModel } from '@noodl-utils/model';
-import { OpenAiModel } from '@noodl-store/AiAssistantStore';
 
 export type AiNodeTemplateType = 'pink' | 'purple' | 'green' | 'grey' | 'blue';
 
 export type AiCopilotChatProviders = {
-  model?: OpenAiModel,
+  model?: string;
   temperature?: number;
   max_tokens?: number;
-}
+  responseSchema?: object;
+};
 
 export type AiCopilotChatMessage = {
   role: 'system' | 'user' | 'assistant' | string;
   content: string;
-}
+};
 
 export type AiCopilotChatArgs = {
   messages: AiCopilotChatMessage[];
   provider?: AiCopilotChatProviders;
   abortController?: AbortController;
-}
+};
 
-export type AiCopilotChatStreamArgs = Prettify<AiCopilotChatArgs & {
-  onStream?: (fullText: string, text: string) => void;
-  onEnd?: () => void;
-}>;
+export type AiCopilotChatStreamArgs = Prettify<
+  AiCopilotChatArgs & {
+    onStream?: (fullText: string, text: string) => void;
+    onEnd?: () => void;
+  }
+>;
 
-export type AiCopilotChatStreamXmlArgs = Prettify<AiCopilotChatArgs & {
-  onStream?: (tagName: string, text: string) => void;
-  onTagOpen?: (tagName: string, attributes: Record<string, string>) => void;
-  onTagEnd?: (tagName: string, fullText: string) => void;
-  onEnd?: () => void;
-}>;
+export type AiCopilotChatStreamXmlArgs = Prettify<
+  AiCopilotChatArgs & {
+    onStream?: (tagName: string, text: string) => void;
+    onTagOpen?: (tagName: string, attributes: Record<string, string>) => void;
+    onTagEnd?: (tagName: string, fullText: string) => void;
+    onEnd?: () => void;
+  }
+>;
 
 export interface IAiCopilotContext {
   template: AiTemplate;
   chatHistory: ChatHistory;
   node: NodeGraphNode;
-
-  chatStream(args: AiCopilotChatStreamArgs): Promise<string>;
-  chatStreamXml(args: AiCopilotChatStreamXmlArgs): Promise<string>;
 }
 
 export type AiNodeTemplate = {
@@ -51,20 +52,7 @@ export type AiNodeTemplate = {
   name: string;
   nodeDisplayName?: string;
   onMessage: (context: IAiCopilotContext, message: ChatMessage) => Promise<void>;
-}
-
-// Memory fragments?
-export interface ICopilotMemory {
-  get messages(): ReadonlyArray<CopilotMessage>;
-
-  add(message: CopilotMessage): void;
-
-  clear(): void;
-
-  forget(): void;
-
-  fetch(tokenLimit: number): ChatGPTMessage[];
-}
+};
 
 export interface ICopilotHistory {
   /** Send more information to AI. */
@@ -101,8 +89,3 @@ export type CopilotEvents = {
   [CopilotEvent.MessagesChanged]: () => void;
   [CopilotEvent.StateChanged]: () => void;
 };
-
-export interface ICopilot extends IModel<CopilotEvent, CopilotEvents>, ICopilotHistory {
-  get memory(): ICopilotMemory;
-  get executor(): ICopilotAgentExecutor;
-}

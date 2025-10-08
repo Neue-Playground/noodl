@@ -8,6 +8,7 @@ import { IconName } from '@noodl-core-ui/components/common/Icon';
 import config from '../../shared/config/config';
 import { ComponentDiffDocumentProvider } from './views/documents/ComponentDiffDocument';
 import { EditorDocumentProvider } from './views/documents/EditorDocument';
+import { AiPanel } from './views/panels/AiPanel/AiPanel';
 import { CloudFunctionsPanel } from './views/panels/CloudFunctionsPanel/CloudFunctionsPanel';
 import { CloudServicePanel } from './views/panels/CloudServicePanel/CloudServicePanel';
 import { ComponentPortsComponent } from './views/panels/componentports';
@@ -79,7 +80,7 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
   SidebarModel.instance.register({
     id: VersionControlPanel_ID,
     name: 'Version control',
-    order: 5,
+    order: 4,
     icon: IconName.StructureCircle,
     panel: VersionControlPanel
   });
@@ -96,7 +97,7 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
     id: 'cloudservice',
     name: 'Cloud Services',
     isDisabled: isLesson === true,
-    order: 6,
+    order: 5,
     icon: IconName.CloudData,
     panel: CloudServicePanel
   });
@@ -105,7 +106,7 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
     id: 'cloud-functions',
     name: 'Cloud Functions',
     isDisabled: isLesson === true,
-    order: 7,
+    order: 6,
     icon: IconName.CloudFunction,
     panel: CloudFunctionsPanel
   });
@@ -164,6 +165,14 @@ export function installSidePanel({ isLesson }: SetupEditorOptions) {
     placement: 'bottom',
     icon: IconName.SlidersHorizontal,
     panel: EditorSettingsPanel
+  });
+
+  SidebarModel.instance.register({
+    id: 'ai-assistant',
+    name: 'AI Assistant',
+    order: 7,
+    icon: IconName.Chat,
+    panel: AiPanel
   });
 }
 

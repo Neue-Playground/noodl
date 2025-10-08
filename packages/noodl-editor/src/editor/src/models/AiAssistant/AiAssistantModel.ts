@@ -3,7 +3,7 @@ import { filesystem } from '@noodl/platform';
 
 import { AiCopilotContext } from '@noodl-models/AiAssistant/AiCopilotContext';
 import { aiNodeTemplates } from '@noodl-models/AiAssistant/AiTemplates';
-import { ChatHistory, ChatHistoryEvent } from '@noodl-models/AiAssistant/ChatHistory';
+import { ChatHistory, ChatHistoryEvent, ChatMessage } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate, AiNodeTemplateType } from '@noodl-models/AiAssistant/interfaces';
 import { ComponentModel } from '@noodl-models/componentmodel';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeSet } from '@noodl-models/nodegraphmodel';
@@ -96,12 +96,16 @@ export type AiTemplate = {
 
 export enum AiAssistantEvent {
   ProcessingUpdated,
-  ActivityUpdated
+  ActivityUpdated,
+  GlobalChatNewMessage,
+  GlobalChatStreaming
 }
 
 export type AiAssistantEvents = {
   [AiAssistantEvent.ProcessingUpdated]: (nodeId: string) => void;
   [AiAssistantEvent.ActivityUpdated]: () => void;
+  [AiAssistantEvent.GlobalChatNewMessage]: (message: ChatMessage) => void;
+  [AiAssistantEvent.GlobalChatStreaming]: (chunk: string) => void;
 };
 
 export interface AiActivityItem {
@@ -121,6 +125,8 @@ async function deprecated_getAiDirPath() {
   }
   return path;
 }
+
+type PartialWithRequired<T, K extends keyof T> = Partial<T> & Required<Pick<T, K>>;
 
 export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents> {
   public static instance = new AiAssistantModel();
@@ -142,6 +148,9 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
   private _contexts: Record<string, AiCopilotContext> = {};
 
   public activities: AiActivityItem[] = [];
+
+  public globalChatHistory: ChatHistory = new ChatHistory([], {});
+  public globalChatStreamingContent = '';
 
   constructor() {
     super();
@@ -170,6 +179,24 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
     this.activities = this.activities.filter((item) => item.id !== id);
     this.notifyListeners(AiAssistantEvent.ActivityUpdated);
     ToastLayer.showInteraction(`AI finished the ${activityTitle} activity`);
+  }
+
+  public addGlobalChatMessage(message: PartialWithRequired<ChatMessage, 'content'>) {
+    this.globalChatHistory.add(message);
+    this.notifyListeners(
+      AiAssistantEvent.GlobalChatNewMessage,
+      this.globalChatHistory.messages[this.globalChatHistory.messages.length - 1]
+    );
+  }
+
+  public setGlobalChatStreamingContent(content: string) {
+    this.globalChatStreamingContent = content;
+    this.notifyListeners(AiAssistantEvent.GlobalChatStreaming, this.globalChatStreamingContent);
+  }
+
+  public appendGlobalChatStreamingContent(chunk: string) {
+    this.globalChatStreamingContent += chunk;
+    this.notifyListeners(AiAssistantEvent.GlobalChatStreaming, this.globalChatStreamingContent);
   }
 
   /**

@@ -1,8 +1,7 @@
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
-
-import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { extractDatabaseSchema } from '@noodl-models/AiAssistant/DatabaseSchemaExtractor';
 import { AiNodeTemplate, IAiCopilotContext } from '@noodl-models/AiAssistant/interfaces';
+
+import { Ai } from '../api';
 
 // Define constants inline to avoid circular imports
 const FUNCTION_CRUD_CONTEXT = `
@@ -61,12 +60,38 @@ We are starting from this code and will only modify it:
 Respond only with this specific format, and nothing else:
 <function>output the code</function>
 <explain>short description</explain>`;
+/*
+const systemPrompt = `You are an AI assistant that helps create database CRUD (Create, Read, Update, Delete) functions for Noodl nodes.
 
+Users describe what database operation they want to perform, and you generate JavaScript code that:
+1. Uses Noodl.Records to perform database operations
+2. Defines inputs using the Inputs object
+3. Defines outputs using the Outputs object  
+4. Implements the requested database CRUD functionality
+5. Uses proper JavaScript syntax and best practices
+
+Available database collections: ${JSON.stringify(dbCollectionsSource, null, 2)}
+
+Example structure:
+\`\`\`javascript
+// Define inputs
+Inputs.YourInput = "string";
+
+// Define outputs  
+Outputs.YourOutput = "string";
+
+// Your database CRUD logic here
+const result = Noodl.Records.create('CollectionName', { *data* });
+Outputs.YourOutput = result;
+\`\`\`
+
+Generate ONLY the JavaScript code for the database CRUD function.`;
+*/
 export const template: AiNodeTemplate = {
   type: 'green',
   name: 'JavaScriptFunction',
   nodeDisplayName: 'Write to Database',
-  onMessage: async ({ node, chatHistory, chatStreamXml }: IAiCopilotContext) => {
+  onMessage: async ({ node, chatHistory }: IAiCopilotContext) => {
     const activityId = 'processing';
     const activityCodeGenId = 'code-generation';
 
@@ -112,145 +137,28 @@ export const template: AiNodeTemplate = {
           ...history
         ];
 
-    // Get the selected AI model and route accordingly
-    const selectedAiModel = OpenAiStore.getAiSelectedModel();
-
-    if (selectedAiModel === 'disabled') {
-      throw new Error('AI is disabled. Please enable an AI model in the editor settings.');
-    }
-
-    if (selectedAiModel === 'openai') {
-      // Use OpenAI (existing logic)
-      const result = [''];
-
-      const fullText = await chatStreamXml({
-        messages,
-        provider: {
-          model: OpenAiStore.getOpenAiModel(),
-          temperature: 0.5,
-          max_tokens: 2048
-        },
-        onStream(tagName, text) {
-          // TODO: It calls an empty string at the end, why?
-          if (text.length === 0) {
-            return;
-          }
-
-          console.log('[stream]', tagName, text);
-
-          switch (tagName) {
-            case 'explain': {
-              chatHistory.updateLast({
-                content: text
-              });
-              break;
-            }
-          }
-        },
-        onTagOpen(tagName) {
-          switch (tagName) {
-            case 'Input':
-            case 'Output': {
-              result.push('');
-              break;
-            }
-          }
-        },
-        onTagEnd(tagName, fullText) {
-          console.log('[done]', tagName, fullText);
-
-          switch (tagName) {
-            case 'label': {
-              node.setLabel(fullText);
-              break;
-            }
-
-            case 'explain': {
-              result[result.length - 1] = fullText;
-              result.push('');
-              break;
-            }
-
-            case 'Input': {
-              result[result.length - 1] = fullText;
-              result.push('');
-              break;
-            }
-
-            case 'Output': {
-              result[result.length - 1] = fullText;
-              result.push('');
-              break;
-            }
-          }
-
-          if (['explain', 'Input', 'Output'].includes(tagName)) {
-            chatHistory.updateLast({
-              content: result.join('')
-            });
-          }
+    await Ai.chatStream({
+      messages,
+      onStream(fullText) {
+        const functionMatch = fullText.match(/<function>([\s\S]*?)<\/function>/);
+        if (functionMatch) {
+          node.setParameter('functionScript', functionMatch[1].trim());
         }
-      });
-    } else if (selectedAiModel === 'gemini') {
-      // Use Gemini
-      const { callGeminiApi } = await import('../api');
-      const apiKey = OpenAiStore.getGeminiApiKey();
-      const model = OpenAiStore.getGeminiModel();
 
-      if (!apiKey) {
-        throw new Error('Gemini is not properly configured. Please check your API key.');
-      }
-
-      // For now, use a simple approach with Gemini
-      // TODO: Implement full Gemini CRUD template logic
-      const lastUserMsg = [...chatHistory.messages].reverse().find((m) => m.metadata?.user);
-      const prompt = lastUserMsg ? lastUserMsg.content : '';
-
-      const systemPrompt = `You are an AI assistant that helps create database CRUD (Create, Read, Update, Delete) functions for Noodl nodes.
-
-Users describe what database operation they want to perform, and you generate JavaScript code that:
-1. Uses Noodl.Records to perform database operations
-2. Defines inputs using the Inputs object
-3. Defines outputs using the Outputs object  
-4. Implements the requested database CRUD functionality
-5. Uses proper JavaScript syntax and best practices
-
-Available database collections: ${JSON.stringify(dbCollectionsSource, null, 2)}
-
-Example structure:
-\`\`\`javascript
-// Define inputs
-Inputs.YourInput = "string";
-
-// Define outputs  
-Outputs.YourOutput = "string";
-
-// Your database CRUD logic here
-const result = Noodl.Records.create('CollectionName', { /* data */ });
-Outputs.YourOutput = result;
-\`\`\`
-
-Generate ONLY the JavaScript code for the database CRUD function.`;
-
-      const response = await callGeminiApi(apiKey, model, `${systemPrompt}\n\nUser request: ${prompt}`);
-
-      // Extract and set the function script
-      if (response) {
-        const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
-        if (codeBlockMatch) {
-          const functionScript = codeBlockMatch[1].trim();
-          node.setParameter('functionScript', functionScript);
-
-          // Add the generated code to chat history
-          chatHistory.add({
-            content: `Generated database CRUD function:\n\`\`\`javascript\n${functionScript}\n\`\`\``,
-            type: ChatMessageType.Assistant
+        const explainMatch = fullText.match(/<explain>([\s\S]*?)<\/explain>/);
+        if (explainMatch) {
+          const explainText = explainMatch[1].trim();
+          chatHistory.updateLast({
+            content: explainText
           });
         }
+
+        const labelMatch = fullText.match(/<label>([\s\S]*?)<\/label>/);
+        if (labelMatch) {
+          node.setLabel(labelMatch[1].trim());
+        }
       }
-    } else {
-      throw new Error('Invalid AI model selection. Please check your editor settings.');
-    }
+    });
 
     chatHistory.removeActivity(activityCodeGenId);
     chatHistory.removeActivity(activityId);

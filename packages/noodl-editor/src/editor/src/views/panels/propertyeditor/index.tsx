@@ -1,5 +1,6 @@
 import React, { useEffect, useState } from 'react';
 
+import { AiAssistantModel } from '@noodl-models/AiAssistant';
 import { NodeGraphNode } from '@noodl-models/nodegraphmodel';
 import { SidebarModel } from '@noodl-models/sidebar';
 import { SidebarModelEvent } from '@noodl-models/sidebar/sidebarmodel';

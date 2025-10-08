@@ -1,7 +1,9 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 
-import { makeChatRequest } from './utils';
+import { AiAssistantModel } from '@noodl-models/AiAssistant';
+import { Ai } from '@noodl-models/AiAssistant/api';
+import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 
 export async function handleSuggestionCommand(prompt: string, statusCallback: (status: string) => void) {
   statusCallback('Generating suggestions...');
@@ -45,10 +47,25 @@ export async function handleSuggestionCommand(prompt: string, statusCallback: (s
     { role: 'user', content: p }
   ];
 
-  const response = await makeChatRequest(OpenAiStore.getOpenAiModel(), messages);
-  console.log(response);
+  // AiAssistantModel.instance.addGlobalChatMessage({ type: ChatMessageType.User, content: p });
 
-  return JSON.parse(response.content);
+  const stream = await Ai.chatStream({
+    messages,
+    provider: { model: OpenAiStore.getOpenAiModel() }
+  });
+
+  let responseContent = '';
+  for await (const chunk of stream) {
+    responseContent += chunk;
+    AiAssistantModel.instance.setGlobalChatStreamingContent(responseContent);
+  }
+
+  AiAssistantModel.instance.setGlobalChatStreamingContent('');
+  // AiAssistantModel.instance.addGlobalChatMessage({ type: ChatMessageType.Assistant, content: responseContent });
+
+  console.log(responseContent);
+
+  return JSON.parse(responseContent);
 }
 
 const nameMap = {
@@ -89,13 +106,11 @@ Prompt: a short description of an UI
 
 Name: Function:
 Description: a javascript function
-Prompt: a prompt for GTP that generates a javascript function
+Prompt: a prompt that generates a javascript function
 
 Name: Suggestion
 Description: Suggest commands from the list above
 Prompt: a command and its prompt
-
-Each command takes a prompt for an AI to use.
 
 Only answer with the following JSON format:
 [

@@ -1,14 +1,15 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 
+import { Ai } from '@noodl-models/AiAssistant/api';
 import { NodeGraphNode } from '@noodl-models/nodegraphmodel';
 import { guid } from '@noodl-utils/utils';
 
-import { makeImageGenerationRequest, saveImageDataToDisk } from './utils';
+import { saveImageDataToDisk } from './utils';
 
 export async function handleImageCommand(prompt: string, statusCallback: (status: string) => void) {
   statusCallback('Generating image...');
 
-  const imageData = await makeImageGenerationRequest(prompt);
+  const imageData = await Ai.makeImageGenerationRequest(prompt);
   const imageUrl = await saveImageDataToDisk(imageData);
 
   const selectedNodes = NodeGraphContextTmp.nodeGraph.getSelectedNodes();

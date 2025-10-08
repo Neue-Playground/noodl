@@ -1,88 +1,93 @@
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
-
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
-import * as GPT4 from '@noodl-models/AiAssistant/templates/function/gpt-4-version';
 
 import { ToastLayer } from '../../../views/ToastLayer/ToastLayer';
+import { Ai } from '../api';
 
 export const template: AiNodeTemplate = {
   type: 'pink',
   name: 'JavaScriptFunction',
+  nodeDisplayName: 'Function Generator',
   onMessage: async (context) => {
     const activityId = 'processing';
-
-    context.chatHistory.addActivity({
-      id: activityId,
-      name: 'Processing'
-    });
+    context.chatHistory.addActivity({ id: activityId, name: 'Processing' });
 
     try {
-      // Get the selected AI model and route accordingly
-      const selectedAiModel = OpenAiStore.getAiSelectedModel();
+      const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
+      const prompt = lastUserMsg ? lastUserMsg.content : '';
 
-      if (selectedAiModel === 'disabled') {
-        throw new Error('AI is disabled. Please enable an AI model in the editor settings.');
+      // Build conversation context with role separation
+      const conversationHistory = context.chatHistory.messages
+        .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
+        .map((msg) => ({
+          role: msg.metadata?.user ? 'user' : 'assistant',
+          content: msg.content
+        }))
+        .slice(-10);
+
+      const systemPrompt = FUNCTION_CODE_CONTEXT;
+
+      // Split the AI prompt more explicitly by roles instead of embedding everything into one system message
+      const messages = [
+        {
+          role: 'system',
+          content: `${systemPrompt}\n\nYou are to write code following these rules and user requests.`
+        },
+        ...conversationHistory,
+        {
+          role: 'user',
+          content: `Current request:\n${prompt}\n\nRespond only with valid JavaScript code.`
+        }
+      ];
+
+      // Generate code
+      const response = await Ai.chatStream({
+        messages,
+        onStream(fullText) {
+          console.log('AI response:', fullText);
+        }
+      });
+
+      let javascriptCode = '';
+      const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
+      if (codeBlockMatch) {
+        javascriptCode = codeBlockMatch[1].trim();
+      } else {
+        javascriptCode = response.trim();
       }
 
-      if (selectedAiModel === 'openai') {
-        // Use OpenAI (existing logic)
-        await GPT4.execute(context);
-      } else if (selectedAiModel === 'gemini') {
-        // Use Gemini - import and execute Gemini version
-        const { callGeminiApi } = await import('../api');
-        const apiKey = OpenAiStore.getGeminiApiKey();
-        const model = OpenAiStore.getGeminiModel();
+      if (!javascriptCode) throw new Error('No function code generated');
 
-        if (!apiKey) {
-          throw new Error('Gemini is not properly configured. Please check your API key.');
+      context.node.setParameter('functionScript', javascriptCode);
+
+      // Generate explanation and label in separate roles
+      const explanationPrompt = FUNCTION_CODE_EXPLAIN(false).replace('%{code}%', javascriptCode);
+
+      const explanationMessages = [
+        { role: 'system', content: 'You are analyzing a Noodl JavaScript function.' },
+        { role: 'user', content: explanationPrompt }
+      ];
+
+      const explanationResponse = await Ai.chatStream({
+        messages: explanationMessages,
+        onStream(fullText) {
+          console.log('Explanation response:', fullText);
         }
+      });
 
-        // For now, use a simple approach with Gemini
-        // TODO: Implement full Gemini function template logic
-        const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
-        const prompt = lastUserMsg ? lastUserMsg.content : '';
+      const labelMatch = explanationResponse.match(/<label>(.*?)<\/label>/);
+      const explainMatch = explanationResponse.match(/<explain>([\s\S]*?)<\/explain>/);
 
-        const systemPrompt = `You are an AI assistant that helps create JavaScript functions for Noodl nodes.
+      if (labelMatch && explainMatch) {
+        const label = labelMatch[1].trim();
+        const explanation = explainMatch[1].trim();
 
-Users describe what they want their function to do, and you generate JavaScript code that:
-1. Defines inputs using the Inputs object
-2. Defines outputs using the Outputs object  
-3. Implements the requested functionality
-4. Uses proper JavaScript syntax and best practices
+        context.node.setLabel(label);
 
-Example structure:
-\`\`\`javascript
-// Define inputs
-Inputs.YourInput = "string";
-
-// Define outputs  
-Outputs.YourOutput = "string";
-
-// Your function logic here
-Outputs.YourOutput = "result";
-\`\`\`
-
-Generate ONLY the JavaScript code for the function.`;
-
-        const response = await callGeminiApi(apiKey, model, `${systemPrompt}\n\nUser request: ${prompt}`);
-
-        // Extract and set the function script
-        if (response) {
-          const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
-          if (codeBlockMatch) {
-            const functionScript = codeBlockMatch[1].trim();
-            context.node.setParameter('functionScript', functionScript);
-
-            // Add the generated code to chat history
-            context.chatHistory.add({
-              content: `Generated function:\n\`\`\`javascript\n${functionScript}\n\`\`\``,
-              type: ChatMessageType.Assistant
-            });
-          }
-        }
-      } else {
-        throw new Error('Invalid AI model selection. Please check your editor settings.');
+        context.chatHistory.add({
+          content: `**${label}**\n\n${explanation}`,
+          type: ChatMessageType.Assistant
+        });
       }
 
       context.chatHistory.removeActivity(activityId);

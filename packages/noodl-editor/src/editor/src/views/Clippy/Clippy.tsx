@@ -7,6 +7,8 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 import { FeedbackType } from '@noodl-constants/FeedbackType';
 import { AiAssistantModel } from '@noodl-models/AiAssistant';
 import { verifyOpenAiApiKey, verifyGeminiApiKey } from '@noodl-models/AiAssistant/api';
+import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
+import { SidebarModel } from '@noodl-models/sidebar';
 import { EditorSettings } from '@noodl-utils/editorsettings';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { tracker } from '@noodl-utils/tracker';
@@ -266,6 +268,19 @@ export default function Clippy() {
     }, 100);
   }, []);
 
+  const handleGeneralChat = useCallback(async () => {
+    try {
+      setIsAiThinking(true);
+      setAIThinkingStatus('Opening AI chat...');
+      setAIThinkingStatus('AI chat ready');
+    } catch (e) {
+      console.log(e);
+      ToastLayer.showError(e.toString());
+    } finally {
+      setIsAiThinking(false);
+    }
+  }, []);
+
   const portalRoot = document.querySelector('.clippy-layer');
 
   if (!portalRoot) return null;
@@ -284,8 +299,10 @@ export default function Clippy() {
     closeAndResetInput();
 
     try {
+      setIsAiThinking(true);
       const command = selectedOption?.title.toLowerCase();
       const prompt = secondInputValue;
+
       tracker.track('AI Command', {
         command,
         prompt
@@ -309,6 +326,8 @@ export default function Clippy() {
     } catch (e) {
       console.log(e);
       ToastLayer.showError(e.toString());
+    } finally {
+      setIsAiThinking(false);
     }
 
     aiAssistantModel.removeActivity(id);
@@ -329,8 +348,18 @@ export default function Clippy() {
           )}
           onClick={() => {
             if (!isInputOpen) {
+              // Open the clippy popup for command selection
               setShouldFirstInputAutofocus(false);
               setIsInputOpen(true);
+
+              // Also open the AI panel in the sidebar
+              SidebarModel.instance.switch('ai-assistant');
+
+              // Trigger a general chat command to start the conversation
+              handleGeneralChat();
+            } else {
+              // If clippy is already open, just open the AI panel
+              SidebarModel.instance.switch('ai-assistant');
             }
           }}
         >
@@ -478,7 +507,7 @@ export default function Clippy() {
 
         <div className={css.UglySpacingHackPleaseLookAway} />
 
-        <div className={classNames(css.ClippyPopup, isInputOpen && !isAiThinking && css.__isVisible)}>
+        <div className={classNames(css.ClippyPopup, isInputOpen && css.__isVisible)}>
           {isCommandsEnabled && !selectedPromptTitle && !isRegularChat && (
             <>
               {isPromptInWrongOrder && (
@@ -500,9 +529,6 @@ export default function Clippy() {
                       isHighlighted={highlightedOption ? highlightedOption.title === item.title : false}
                       onClick={() => {
                         if (copilotNodeInstaPromptable.includes(item.title.toLowerCase())) {
-                          setSelectedPromptTitle(item.title);
-                          setSecondInputValue(firstInputValue);
-                        } else if (item.title.toLowerCase() === '/simulator') {
                           setSelectedPromptTitle(item.title);
                           setSecondInputValue(firstInputValue);
                         } else {
@@ -528,7 +554,7 @@ export default function Clippy() {
 
               {Boolean(promptToNode.length) && (
                 <>
-                  <SectionTitle title="Experimental features" />
+                  <SectionTitle title="Web features" />
                   {promptToNode.map((item, i) => (
                     <PromptTagSuggestion
                       title={item.title}

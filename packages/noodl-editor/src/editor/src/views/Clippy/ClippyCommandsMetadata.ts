@@ -17,7 +17,6 @@ export type CommandMetadata = {
   examples: string[];
   availableOnFrontend: boolean;
   availableOnBackend: boolean;
-  requireGPT4: boolean;
 };
 
 type CopilotCommandMetadata = CommandMetadata & {
@@ -34,7 +33,6 @@ export const promptToNodeCommands: CommandMetadata[] = [
     icon: IconName.UI,
     availableOnFrontend: true,
     availableOnBackend: false,
-    requireGPT4: true,
     examples: [
       'A login form',
       'A dropdown with values 1 to 10',
@@ -53,7 +51,6 @@ export const promptToNodeCommands: CommandMetadata[] = [
     icon: IconName.Neue,
     availableOnFrontend: false,
     availableOnBackend: true,
-    requireGPT4: false,
     examples: ['Create config for temperature sensor']
   },
   //Neue
@@ -66,7 +63,6 @@ export const promptToNodeCommands: CommandMetadata[] = [
     icon: IconName.Image,
     availableOnFrontend: true,
     availableOnBackend: false,
-    requireGPT4: true,
     examples: [
       'A big, steaming bowl of noodles',
       'Four kittens with cool sunshades',
@@ -78,7 +74,6 @@ export const promptToNodeCommands: CommandMetadata[] = [
 export const copilotNodeInstaPromptable = ['/function', '/read from database', '/write to database', '/simulator'];
 export const copilotNodeCommands: CopilotCommandMetadata[] = [
   {
-    requireGPT4: true,
     templateId: 'function',
     title: '/Function',
     tag: 'Function',
@@ -95,7 +90,6 @@ export const copilotNodeCommands: CopilotCommandMetadata[] = [
     ]
   },
   {
-    requireGPT4: true,
     templateId: 'function-query-database',
     title: '/Read from database',
     tag: 'Read from database',
@@ -125,7 +119,6 @@ export const copilotNodeCommands: CopilotCommandMetadata[] = [
   //   ]
   // },
   {
-    requireGPT4: true,
     templateId: 'function-crud',
     title: '/Write to database',
     tag: 'Write to database',
@@ -138,7 +131,6 @@ export const copilotNodeCommands: CopilotCommandMetadata[] = [
     examples: ['Get an array of numbers, calculate the average, and save that to the current users score attribute']
   },
   {
-    requireGPT4: false,
     templateId: 'simulator',
     title: '/Simulator',
     tag: 'Simulator',
