@@ -77,7 +77,7 @@ export class ProjectModel extends Model {
     return ProjectModel._instance;
   }
   public static set instance(project: ProjectModel | undefined) {
-    project.notifyListeners('projectLoaded');
+    if (project) project.notifyListeners('projectLoaded');
     if (ProjectModel._instance !== project) {
       //unload old project
       if (ProjectModel._instance) {

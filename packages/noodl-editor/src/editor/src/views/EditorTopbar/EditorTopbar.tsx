@@ -236,7 +236,7 @@ export function EditorTopbar({
             UNSAFE_className={css['SaveButton']}
             testId="save-popup-button"
           />
-          <span ref={saveTemplateButtonRef}>
+          {/* <span ref={saveTemplateButtonRef}>
             <PrimaryButton
               label={'Save template'}
               icon={IconName.File}
@@ -245,7 +245,7 @@ export function EditorTopbar({
               UNSAFE_className={css['SaveTmplateButton']}
               testId="save-popup-button"
             />
-          </span>
+          </span> */}
           <NeueSaveTemplateToCloud isVisible={isSaveTemplateToCloudModalVisible} onClose={() => setIsSaveTemplateToCloudModalVisible(false)} triggerRef={saveTemplateButtonRef} toastActivity={ToastLayer} />
         </div>
 

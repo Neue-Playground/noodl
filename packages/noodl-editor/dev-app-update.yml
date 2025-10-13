@@ -1,9 +1,8 @@
 ---
+version: 1.0.2
+provider: generic
+url: https://playground-updatable.s3.eu-west-1.amazonaws.com
 build:
-  publish:
-    - provider: github
-      owner: Neue-Playground
-      repo: noodl
   appId: noodl.net.noodl-editor
   win:
     target: nsis

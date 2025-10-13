@@ -8,12 +8,15 @@ function setupAutoUpdate(window) {
   if (process.platform === 'linux') {
     return;
   }
+  // autoUpdater.updateConfigPath = app.getAppPath() + '/dev-app-update.yml';
   autoUpdater.forceDevUpdateConfig = true
 
   function _checkForUpdates() {
     try {
       autoUpdater.checkForUpdates().then((updateCheckResult) => {
         console.log('Update check result:', updateCheckResult);
+      }).catch((e) => {
+        console.log('Failed to check for updates, trying again later...', e);
       });
 
     } catch (e) {
@@ -53,7 +56,7 @@ function setupAutoUpdate(window) {
 
   autoUpdater.addListener('error', (event) => {
     // There was an error while trying to update, try again
-    console.log('Error while auto updating, trying again in a while...');
+    console.log('Error while auto updating, trying again in a while...', event);
     setTimeout(() => {
       _checkForUpdates();
     }, 60 * 1000);
