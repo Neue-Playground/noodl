@@ -170,7 +170,7 @@ function launchApp() {
     require('@electron/remote/main').enable(win.webContents);
 
     // if (!Config.devMode) {
-      AutoUpdater.setupAutoUpdate(win);
+
     // }
 
     win.loadURL('file:///' + appPath + '/src/editor/index.html');
@@ -183,6 +183,7 @@ function launchApp() {
 
     win.once('ready-to-show', () => {
       win.show();
+      AutoUpdater.setupAutoUpdate(win);
     });
 
     win.on('closed', () => {

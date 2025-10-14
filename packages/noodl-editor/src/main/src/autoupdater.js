@@ -34,7 +34,6 @@ function setupAutoUpdate(window) {
 
   autoUpdater.addListener('update-downloaded', (event) => {
     window.webContents.send('showAutoUpdatePopup');
-
     return true;
   });
 
