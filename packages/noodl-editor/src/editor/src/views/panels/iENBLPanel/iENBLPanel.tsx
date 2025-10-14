@@ -16,6 +16,7 @@ import NeueExportModal from '../../NeueConfigurationModals/NeueExportModal';
 import { App } from '@noodl-models/app';
 import { CollapsableSection } from '@noodl-core-ui/components/sidebar/CollapsableSection';
 import { SectionVariant } from '@noodl-core-ui/components/sidebar/Section';
+import { TextArea } from '@noodl-core-ui/components/inputs/TextArea';
 
 export function iENBLPanel() {
   const environment = useActiveEnvironment(ProjectModel.instance);
@@ -51,15 +52,16 @@ export function iENBLPanel() {
     App.instance.logout();
   }
 
-  function fetchDevices() {
+  async function fetchDevices() {
     setLoading(true);
-    NeueService.instance.fetchDevices().then((response) => {
-      setDevices([...response, {id: 'USB'}]);
-    }).catch((err) => {
+    try {
+      const response = await NeueService.instance.fetchDevices();
+      setDevices([...response]);
+    } catch (err) {
       console.log(err);
-    }).finally(() => {
+    } finally {
       setLoading(false);
-    });
+    }
   }
 
   function handleCloseModal() {
@@ -147,7 +149,7 @@ export function iENBLPanel() {
       <Container direction={ContainerDirection.Vertical} isFill>
         <Box hasXSpacing hasYSpacing>
           <VStack>
-            <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} isDisabled={loading} />
+            <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} isDisabled={loading}/>
           </VStack>
         </Box>
         <CollapsableSection title="Device Commands" variant={SectionVariant.Panel} hasTopDivider hasBottomSpacing hasGutter isClosed={true}>
@@ -164,6 +166,7 @@ export function iENBLPanel() {
             <PrimaryButton label="Logout" onClick={logoutClick} />
           </VStack>
         </Box>
+
       </Container>
       <NeueExportModal title={exportModalTitle} commands={commands} setCommands={setCommands} onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} firmware={ProjectModel.instance.firmware} />
 

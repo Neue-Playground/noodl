@@ -1,5 +1,6 @@
 import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { Select } from '@noodl-core-ui/components/inputs/Select';
+import { TextArea } from '@noodl-core-ui/components/inputs/TextArea';
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog';
 import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import React, { useEffect, useState } from 'react';
@@ -18,8 +19,11 @@ type ModalProps = {
 export default function NeueExportModal(props: ModalProps) {
     const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
     const [selectedDevice, setSetSelectedDevice] = useState(null);
+    const [serialDevices, setSetSerialDevices] = useState(null);
+    const [deviceItems, setSetDeviceItems] = useState(props.devices);
     const [error, setError] = useState(null);
     const [isLoading, setIsLoading] = useState(false);
+    const [debuggers, setDebugger] = useState("");
 
     useEffect(() => {
         if (props.isVisible) {
@@ -27,6 +31,15 @@ export default function NeueExportModal(props: ModalProps) {
             setSetSelectedDevice(null);
             setError(null);
         }
+        // @ts-ignore
+        navigator.serial.getPorts().then((ports) => {
+            console.log("Serial ports: ", ports)
+            setSetSerialDevices(ports);
+            const usbDevices = ports.filter((port) => port.getInfo().usbVendorId !== undefined);
+            setSetDeviceItems(props.devices.concat(usbDevices.map((port) => { return { id: `USB: pid=${port.getInfo().usbProductId} vid=${port.getInfo().usbVendorId}`, port }; })));
+        }).catch((err) => {
+            console.log("Error getting serial ports: ", err)
+        });
     }, [props]);
 
     async function read (message = []) {
@@ -74,13 +87,19 @@ export default function NeueExportModal(props: ModalProps) {
     }
 
     async function writerCommands (cmds, port, writer, reader) {
+        console.log("Writing commands to device", cmds)
         try {
-            if (selectedDevice === 'USB') {
+            if (selectedDevice.includes('USB')) {
                 const commands = cmds instanceof Response ? (await cmds.json()).flat() : cmds
                 console.log("commands", commands)
+                const logs = [`Pushing ${commands.length} commands to device...`]
                 for (const group of commands) {
                     await writeCommand(group, writer)
+                    logs.push(`Wrote command: ${group.cmd}`)
+                    setDebugger(logs.join("\n"))
                     const response = await reads(reader)
+                    logs.push(`Response: ${toHexString(response)}`)
+                    setDebugger(logs.join("\n"))
                     console.log("Command response:", toHexString(response))
                 }
             }
@@ -88,7 +107,7 @@ export default function NeueExportModal(props: ModalProps) {
             console.log(error)
             setError("Error writing to device: " + error)
         } finally {
-            if (selectedDevice === 'USB') {
+            if (selectedDevice.includes('USB')) {
                 if (writer) writer.releaseLock()
                 if (reader) reader.releaseLock()
                 if (port) port.close()
@@ -144,11 +163,16 @@ export default function NeueExportModal(props: ModalProps) {
     async function onClick() {
         setIsLoading(true);
         setError("")
+        setDebugger("")
         let p: any
-        if (selectedDevice === 'USB') {
+        const isUsb = selectedDevice && selectedDevice.includes('USB')
+        if (isUsb) {
+            const usbVendorId = parseInt(selectedDevice.match(/vid=(\d+)/)?.[1] || "0", 10);
+            const usbProductId = parseInt(selectedDevice.match(/pid=(\d+)/)?.[1] || "0", 10);
             try {
+                setDebugger("Requesting port with vid=" + usbVendorId + " pid=" + usbProductId)
                 // @ts-ignore
-                p = await navigator.serial.requestPort()
+                p = await navigator.serial.requestPort({ filters: [{ usbProductId, usbVendorId }] });
                 await p.open({baudRate: 115200, bufferSize: 255});
             } catch (error) {
                 console.log("Error opening port: ", error)
@@ -162,10 +186,13 @@ export default function NeueExportModal(props: ModalProps) {
             commands = props.commands
             props.setCommands([])
         } else {
+            console.log("Requesting commands from server...")
+            setDebugger("Fetching commands from server...")
             commands = await NeueService.instance.pushFlow(selectedDevice, props.jsonData, props.firmware);
+            console.log("Requesting commands from server... done", commands)
         }
 
-        if (selectedDevice !== 'USB') return
+        if (!isUsb) return
 
         // @ts-ignore
         // const p = await navigator.serial.requestPort()
@@ -201,9 +228,9 @@ export default function NeueExportModal(props: ModalProps) {
                         padding: '32px'
                     }}
                 >
-                    {Boolean(props.devices.length) && (
+                    {Boolean(deviceItems.length) && (
                         <Select
-                            options={props.devices.map((device) => { return { label: device.id, value: device.id, isDisabled: false }; })}
+                            options={deviceItems.map((device) => { return { label: device.id, value: device.id, isDisabled: false }; })}
                             onChange={(value: string) => setSetSelectedDevice(value)}
                             placeholder="Select device"
                             value={selectedDevice}
@@ -217,6 +244,7 @@ export default function NeueExportModal(props: ModalProps) {
                     <PrimaryButton label="Push to device" onClick={onClick}
                         isLoading={isLoading}
                         isDisabled={isLoading} />
+                    <TextArea label="USB Debugger" value={debuggers} isDisabled={true} />
                 </div>
             </div>
 

@@ -294,7 +294,7 @@ export class SidebarModel extends Model<SidebarModelEvent, SidebarModelEventEven
 
       // In case it fails we still continue since this can be
       // user created code too.
-      console.error(error);
+      // console.error(error);
       return false;
     }
   }
