@@ -1,0 +1,28 @@
+---
+version: 1.0.2
+provider: generic
+url: https://playground-updatable.s3.eu-west-1.amazonaws.com
+build:
+  appId: noodl.net.noodl-editor
+  win:
+    target: nsis
+  nsis:
+    guid: noodl.net.noodl-editor
+  protocols:
+    name: noodl
+    schemes:
+      - noodl
+  npmRebuild: false
+  files:
+    - '*.js'
+    - src
+    - node_modules
+    - '!node_modules/monaco-editor'
+    - node_modules/monaco-editor/esm
+    - node_modules/dugite
+    - '!test.js'
+    - '!src/main/main.js'
+    - '!src/main/src'
+    - '!src/editor/src'
+    - '!src/frames/viewer-frame/src'
+    - '!src/shared'
