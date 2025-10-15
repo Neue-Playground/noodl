@@ -37,7 +37,13 @@ export function BaseWindow({
 
   useEffect(() => {
     const func = () => setNewVersionAvailable(true);
-
+    ipcRenderer.on('updateCheck', () => console.log('Update check received'));
+    ipcRenderer.on('updateCheckResult', (event, result) => {
+      console.log('Update check result received', result);
+    });
+    ipcRenderer.on('updateCheckFailed', (event, error) => {
+      console.log('Update check failed', error);
+    });
     ipcRenderer.on('showAutoUpdatePopup', func);
     return function () {
       ipcRenderer.off('showAutoUpdatePopup', func);

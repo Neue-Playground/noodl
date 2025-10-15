@@ -12,14 +12,18 @@ function setupAutoUpdate(window) {
   autoUpdater.forceDevUpdateConfig = true
 
   function _checkForUpdates() {
+    window.webContents.send('updateCheck');
     try {
       autoUpdater.checkForUpdates().then((updateCheckResult) => {
         console.log('Update check result:', updateCheckResult);
+        window.webContents.send('updateCheckResult', updateCheckResult);
       }).catch((e) => {
         console.log('Failed to check for updates, trying again later...', e);
+        window.webContents.send('updateCheckFailed', e);
       });
 
     } catch (e) {
+      window.webContents.send('updateCheckFailed', e);
       // Failed to check for updates, try again later
       setTimeout(() => {
         _checkForUpdates();
@@ -48,6 +52,7 @@ function setupAutoUpdate(window) {
   });*/
 
   autoUpdater.addListener('update-not-available', () => {
+    window.webContents.send('updateCheckResultFailed', "No update available");
     setTimeout(() => {
       _checkForUpdates();
     }, 60 * 1000);

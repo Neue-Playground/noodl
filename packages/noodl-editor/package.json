@@ -4,7 +4,7 @@
   "description": "Low-code for when experience matter",
   "author": "Noodl <info@noodl.net>",
   "homepage": "https://noodl.net",
-  "version": "1.0.3",
+  "version": "1.0.4",
   "main": "src/main/main.js",
   "scripts": {
     "build": "npx ts-node -P ./tsconfig.build.json ./scripts/build.ts",
@@ -17,9 +17,8 @@
   "build": {
     "publish": [
       {
-        "provider": "github",
-        "owner": "Neue-Playground",
-        "repo": "noodl"
+        "provider": "generic",
+        "url": "https://playground-updatable.s3.eu-west-1.amazonaws.com"
       }
     ],
     "appId": "noodl.net.noodl-editor",
