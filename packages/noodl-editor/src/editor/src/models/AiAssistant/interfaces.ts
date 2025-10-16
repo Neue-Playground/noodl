@@ -1,9 +1,7 @@
-import { ChatGPTMessage } from '@noodl-models/AiAssistant/_backend/mapper';
 import { AiTemplate } from '@noodl-models/AiAssistant/AiAssistantModel';
 import { ChatHistory, ChatMessage } from '@noodl-models/AiAssistant/ChatHistory';
-import { CopilotMessage, CopilotMessageAssistant } from '@noodl-models/AiAssistant/ChatMessage';
+import { CopilotMessageAssistant } from '@noodl-models/AiAssistant/ChatMessage';
 import { NodeGraphNode } from '@noodl-models/nodegraphmodel';
-import { IModel } from '@noodl-utils/model';
 
 export type AiNodeTemplateType = 'pink' | 'purple' | 'green' | 'grey' | 'blue';
 

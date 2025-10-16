@@ -168,3 +168,4 @@ packages/noodl-editor/tests/vendors-node_modules_monaco-editor_esm_vs_language_t
 packages/noodl-editor/src/external
 .github/.secrets
 packages/noodl-viewer-cloud/publish
+.github/copilot-instructions.md

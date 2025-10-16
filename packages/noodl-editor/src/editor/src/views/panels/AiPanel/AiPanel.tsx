@@ -1,9 +1,9 @@
 import { useModernModel } from '@noodl-hooks/useModel';
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { AiStore } from '@noodl-store/AiAssistantStore';
 import React, { useState } from 'react';
 
-import { Ai } from '@noodl-models/AiAssistant/api';
 import { AiAssistantEvent, AiAssistantModel } from '@noodl-models/AiAssistant/AiAssistantModel';
+import { handleUICommand } from '../../Clippy/Commands/UICommand';
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { tracker } from '@noodl-utils/tracker';
@@ -15,6 +15,7 @@ import { TextArea } from '@noodl-core-ui/components/inputs/TextArea';
 import { Center } from '@noodl-core-ui/components/layout/Center';
 import { VStack } from '@noodl-core-ui/components/layout/Stack';
 import { Text, TextType } from '@noodl-core-ui/components/typography/Text';
+import { handleSuggestionCommand } from '../../Clippy/Commands/SuggestCommand';
 
 export function AiPanel() {
   useModernModel(AiAssistantModel.instance, [
@@ -24,6 +25,7 @@ export function AiPanel() {
 
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
+  const [suggestions, setSuggestions] = useState<any[]>([]);
   const messages = AiAssistantModel.instance.globalChatHistory.messages;
   const streamingContent = AiAssistantModel.instance.globalChatStreamingContent;
 
@@ -50,13 +52,8 @@ export function AiPanel() {
     });
 
     try {
-      const response = await Ai.chat({
-        messages: AiAssistantModel.instance.globalChatHistory.messages.map((m) => ({ role: m.type, content: m.content }))
-      });
-
-      AiAssistantModel.instance.addGlobalChatMessage({
-        type: ChatMessageType.Assistant,
-        content: response
+      await handleUICommand(userMessage, (status) => {
+        AiAssistantModel.instance.setGlobalChatStreamingContent(status);
       });
     } catch (error) {
       console.error('Error sending message:', error);
@@ -64,6 +61,27 @@ export function AiPanel() {
         type: ChatMessageType.Assistant,
         content: `Error: ${error.message}`
       });
+    } finally {
+      setIsLoading(false);
+    }
+
+  };
+
+  const handleSuggestion = async () => {
+    if (!message.trim() || isLoading) return;
+
+    const userMessage = message.trim();
+    setMessage('');
+    setIsLoading(true);
+
+    try {
+      const suggestion = await handleSuggestionCommand(userMessage, (status) => {
+        // You can handle status updates here if needed
+        console.log(status);
+      });
+      setSuggestions(suggestion);
+    } catch (error) {
+      console.error('Error getting suggestion:', error);
     } finally {
       setIsLoading(false);
     }
@@ -85,7 +103,7 @@ export function AiPanel() {
       <div style={{ flex: 1, display: 'flex', flexDirection: 'column', minHeight: 0 }}>
         <AiChatBox
           footer={
-            OpenAiStore.getAiEnabled() === 'disabled' ? (
+            AiStore.getAiEnabled() === 'disabled' ? (
               <Center>
                 <Text textType={TextType.Shy}>AI is currently disabled.</Text>
               </Center>
@@ -107,6 +125,13 @@ export function AiPanel() {
                     isGrowing
                     isDisabled={!message.trim() || isLoading}
                     onClick={handleSendMessage}
+                  />
+                  <PrimaryButton
+                    label={isLoading ? 'Getting Suggestions...' : 'Suggest'}
+                    size={PrimaryButtonSize.Small}
+                    isGrowing
+                    isDisabled={isLoading}
+                    onClick={handleSuggestion}
                   />
                 </VStack>
               </>
@@ -137,6 +162,15 @@ export function AiPanel() {
               content={streamingContent}
             />
           )}
+          {suggestions.map((suggestion, index) => (
+            <AiChatMessage
+              key={index}
+              user={{
+                role: 'assistant'
+              }}
+              content={`Suggestion: ${suggestion.name} - ${suggestion.description}`}
+            />
+          ))}
         </AiChatBox>
       </div>
     </div>

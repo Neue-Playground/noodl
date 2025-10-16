@@ -1,4 +1,4 @@
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { AiStore } from '@noodl-store/AiAssistantStore';
 
 import { Ai } from '@noodl-models/AiAssistant/api';
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';

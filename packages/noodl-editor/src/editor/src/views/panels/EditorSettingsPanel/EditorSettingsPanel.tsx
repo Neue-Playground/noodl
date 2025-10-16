@@ -12,7 +12,7 @@ import { CollapsableSection } from '@noodl-core-ui/components/sidebar/Collapsabl
 import { ExperimentalFlag, ExperimentalFlagVariant } from '@noodl-core-ui/components/sidebar/ExperimentalFlag';
 import { Text, TextSize } from '@noodl-core-ui/components/typography/Text';
 
-import { OpenAiSection } from './sections/OpenAiSection';
+import { AiSection } from './sections/AiSection';
 
 export function EditorSettingsPanel() {
   // @ts-expect-error Model is yeah, not great!
@@ -53,7 +53,7 @@ export function EditorSettingsPanel() {
               </VStack>
             </Box>
           </CollapsableSection>
-          <OpenAiSection />
+          <AiSection />
         </>
       )}
     </BasePanel>

@@ -49,6 +49,6 @@
   },
   "dependencies": {
     "@google/genai": "^1.16.0",
-    "bytez.js": "^1.1.15"
+    "openai": "^6.2.0"
   }
 }

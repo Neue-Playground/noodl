@@ -1,6 +1,6 @@
 import { useNodeGraphContext } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { useModernModel } from '@noodl-hooks/useModel';
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { AiStore } from '@noodl-store/AiAssistantStore';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -55,16 +55,16 @@ export default function Clippy() {
   // States for AI versions
   const [isOpenAiVerified, setIsOpenAiVerified] = useState(false);
   const [isGeminiVerified, setIsGeminiVerified] = useState(true);
-  const [hasOpenAiKey, setHasOpenAiKey] = useState(!!OpenAiStore.getOpenAiApiKey());
-  const [hasGeminiKey, setHasGeminiKey] = useState(!!OpenAiStore.getGeminiApiKey());
+  const [hasOpenAiKey, setHasOpenAiKey] = useState(!!AiStore.getOpenAiApiKey());
+  const [hasGeminiKey, setHasGeminiKey] = useState(!!AiStore.getGeminiApiKey());
   const [isCommandsEnabled, setIsCommandEnabled] = useState(true);
-  const [selectedAiModel, setSelectedAiModel] = useState(OpenAiStore.getAiSelectedModel());
+  const [selectedAiModel, setSelectedAiModel] = useState(AiStore.getAiSelectedModel());
 
   const isFrontend = nodeGraphContext.active === 'frontend';
 
   // Update commandFilter to route commands based on selected AI model
   const commandFilter = (x) => {
-    const aiModel = OpenAiStore.getAiSelectedModel();
+    const aiModel = AiStore.getAiSelectedModel();
 
     // If AI is disabled, no commands are available
     if (aiModel === 'disabled') {
@@ -97,58 +97,12 @@ export default function Clippy() {
   }, [promptToNode, copilotNodes]);
 
   const user = LocalUserIdentity.getUserInfo();
-  // Track if we've spun up a Bytez cluster already
-  const hasSpunUpBytezClusterRef = useRef(false);
-  // Ensure cluster for Bytez image model when Clippy opens
-  useEffect(() => {
-    if (!isInputOpen) return;
-    const imageModel = (OpenAiStore.getImageModel() as string) || '';
-    const isBytezImageModel = imageModel === 'playgroundai/playground-v2.5-1024px-aesthetic';
-    if (!isBytezImageModel) return;
-    const apiKey = OpenAiStore.getBytezApiKey();
-    if (!apiKey) return;
-    (async () => {
-      try {
-        // Check if any cluster exists for our model
-        const listUrl = 'https://api.bytez.com/models/v2/list/clusters';
-        const listRes = await fetch(listUrl, { method: 'GET', headers: { Authorization: apiKey } } as RequestInit);
-        const listJson = await listRes.json().catch(() => undefined);
-
-        const hasCluster = Array.isArray(listJson)
-          ? listJson.some((c) => {
-              try {
-                return (
-                  c?.modelId === imageModel ||
-                  c?.model === imageModel ||
-                  c?.id === imageModel ||
-                  (typeof c?.name === 'string' && c.name.indexOf(imageModel) !== -1)
-                );
-              } catch (_) {
-                return false;
-              }
-            })
-          : false;
-
-        if (!hasCluster && !hasSpunUpBytezClusterRef.current) {
-          const url = `https://api.bytez.com/models/v2/${encodeURIComponent(imageModel)}`;
-          await fetch(url, {
-            method: 'PUT',
-            headers: { Authorization: apiKey, 'Content-Type': 'application/json' },
-            body: JSON.stringify({ timeout: 10, capacity: { max: 1 } })
-          } as RequestInit);
-          hasSpunUpBytezClusterRef.current = true;
-        }
-      } catch (err) {
-        console.warn('Bytez cluster check/spin-up failed', err);
-      }
-    })();
-  }, [isInputOpen]);
 
   // Update effect to check both keys and selected AI model
   useEffect(() => {
-    setHasOpenAiKey(!!OpenAiStore.getOpenAiApiKey());
-    setHasGeminiKey(!!OpenAiStore.getGeminiApiKey());
-    setSelectedAiModel(OpenAiStore.getAiSelectedModel());
+    setHasOpenAiKey(!!AiStore.getOpenAiApiKey());
+    setHasGeminiKey(!!AiStore.getGeminiApiKey());
+    setSelectedAiModel(AiStore.getAiSelectedModel());
 
     if (!hasOpenAiKey && !hasGeminiKey) {
       setIsOpenAiVerified(false);
@@ -157,14 +111,14 @@ export default function Clippy() {
 
     async function doIt() {
       if (hasOpenAiKey && !isOpenAiVerified) {
-        const models = await verifyOpenAiApiKey(OpenAiStore.getOpenAiApiKey());
+        const models = await verifyOpenAiApiKey(AiStore.getOpenAiApiKey());
         if (models) {
           setIsOpenAiVerified(true);
         }
       }
 
       if (hasGeminiKey && !isGeminiVerified) {
-        const models = await verifyGeminiApiKey(OpenAiStore.getGeminiApiKey());
+        const models = await verifyGeminiApiKey(AiStore.getGeminiApiKey());
         if (models) {
           setIsGeminiVerified(true);
         }
@@ -174,7 +128,7 @@ export default function Clippy() {
     doIt();
 
     // Update command enabled state based on selected AI model and verification status
-    const aiModel = OpenAiStore.getAiSelectedModel();
+    const aiModel = AiStore.getAiSelectedModel();
     if (aiModel === 'disabled') {
       setIsCommandEnabled(false);
     } else if (aiModel === 'openai') {
@@ -187,7 +141,7 @@ export default function Clippy() {
   // Listen for AI model selection changes
   useEffect(() => {
     const handleSettingsChange = () => {
-      const newSelectedModel = OpenAiStore.getAiSelectedModel();
+      const newSelectedModel = AiStore.getAiSelectedModel();
       setSelectedAiModel(newSelectedModel);
 
       // Update command enabled state
@@ -335,7 +289,7 @@ export default function Clippy() {
 
   const initialPlaceholder = isInputOpen ? 'Select (or type) a command below' : 'Ask AI';
   const isPromptInWrongOrder = Boolean(!selectedOption) && Boolean(secondInputValue);
-  const versionLabel = selectedAiModel === 'gemini' ? OpenAiStore.getGeminiModel() : OpenAiStore.getOpenAiModel();
+  const versionLabel = selectedAiModel === 'gemini' ? AiStore.getGeminiModel() : AiStore.getOpenAiModel();
 
   return (
     <Portal portalRoot={portalRoot}>

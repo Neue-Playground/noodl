@@ -1,5 +1,5 @@
 import { useModernModel } from '@noodl-hooks/useModel';
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { AiStore } from '@noodl-store/AiAssistantStore';
 import React, { useEffect, useMemo, useRef, useState } from 'react';
 import ReactDOM from 'react-dom';
 
@@ -175,12 +175,12 @@ function AiNodeChat({ context, onUpdated }: AiNodeChatProps) {
   // So it will always re-render when opening the panel, and we get the latest version.
   const activities = context.chatHistory.activities;
   const suggestions = context.chatHistory.suggestions;
-  const prettyVersion = OpenAiStore.getAiSelectedModel();
+  const prettyVersion = AiStore.getAiSelectedModel();
 
   return (
     <AiChatBox
       footer={
-        OpenAiStore.getAiEnabled() === 'disabled' ? (
+        AiStore.getAiEnabled() === 'disabled' ? (
           <Center>
             <Text textType={TextType.Shy}>AI is currently disabled.</Text>
           </Center>

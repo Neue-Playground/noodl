@@ -1,7 +1,7 @@
 import { NodeGraphContextTmp, useNodeGraphContext } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { useKeyboardCommands } from '@noodl-hooks/useKeyboardCommands';
 import usePrevious from '@noodl-hooks/usePrevious';
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { AiStore } from '@noodl-store/AiAssistantStore';
 import { ipcRenderer } from 'electron';
 import React, { useCallback, useEffect, useState } from 'react';
 
@@ -63,14 +63,14 @@ function EditorDocument() {
   const [showCloudSync, setShowCloudSync] = useState(false);
   const [cloudSyncArgs, setCloudSyncArgs] = useState(undefined);
 
-  const [enableAi, setEnableAi] = useState(OpenAiStore.getAiEnabled() !== 'disabled');
+  const [enableAi, setEnableAi] = useState(AiStore.getAiEnabled() !== 'disabled');
 
   useEffect(() => {
     const group = {};
     EditorSettings.instance.on(
       'updated',
       () => {
-        setEnableAi(OpenAiStore.getAiEnabled() !== 'disabled');
+        setEnableAi(AiStore.getAiEnabled() !== 'disabled');
       },
       group
     );

@@ -26,6 +26,7 @@ export async function handleCommand(
   statusCallback: (string) => void
 ): Promise<CommandResultItem[] | void> {
   console.log(command, prompt);
+  console.log(options.nodeGraph);
   if (command === '/ui') {
     return await handleUICommand(prompt, statusCallback, {
       allowImageGeneration: true, //TODO: check if AI image generation is enabled

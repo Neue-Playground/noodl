@@ -50,6 +50,11 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
               description: 'Unique identifier (UUID). Always insert new-uuid- prefix for new nodes'
             },
             label: { type: 'STRING', description: 'Short explanation for why this node was created.' },
+            status: {
+              type: 'ENUM',
+              options: ['added', 'modified', 'unchanged'],
+              description: 'Add a status for the node, indicating if it was added, modified or left unchanged'
+            },
             type: {
               type: 'STRING',
               description:
@@ -118,7 +123,6 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
                   options: [0, 4, 8, 12, 16, 24, 32, 48, 64],
                   description: 'Right margin.'
                 },
-                padding: { type: 'NUMBER', description: 'Uniform padding (px).' },
                 paddingTop: { type: 'NUMBER', options: [0, 4, 8, 12, 16, 24, 32, 48, 64], description: 'Top padding.' },
                 paddingBottom: {
                   type: 'NUMBER',
@@ -135,7 +139,6 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
                   options: [0, 4, 8, 12, 16, 24, 32, 48, 64],
                   description: 'Right padding.'
                 },
-
                 transformX: { type: 'NUMBER', units: ['px', '%'], description: 'Translate along X.' },
                 transformY: { type: 'NUMBER', units: ['px', '%'], description: 'Translate along Y.' },
                 transformRotation: { type: 'NUMBER', units: ['deg'], description: 'Rotation in degrees.' },
@@ -152,20 +155,23 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
                   defaultUnit: '%',
                   description: 'Transform origin Y. Default: 50%.'
                 },
-
-                backgroundColor: { type: 'STRING', description: "Background color, e.g., '#FEFFCE'." },
-                backgroundImage: { type: 'STRING', description: 'Background image URL.' },
+                backgroundColor: { type: 'STRING', description: "Background color, e.g. '#FEFFCE'" },
                 color: { type: 'STRING', description: 'Text or foreground color.' },
                 borderRadius: { type: 'NUMBER', description: 'Corner radius in px.' },
                 borderWidth: { type: 'NUMBER', description: 'Border width in px.' },
                 borderColor: { type: 'STRING', description: 'Border color.' },
-                boxShadow: { type: 'STRING', description: 'CSS box-shadow string.' },
+                boxShadowEnabled: { type: 'BOOLEAN', description: 'Enables box shadow' },
+                boxShadowInset: { type: 'BOOLEAN', description: 'Box shadow inset' },
+                boxShadowOffsetX: { type: 'NUMBER', description: 'Box shadow offset x in px.' },
+                boxShadowOffsetY: { type: 'NUMBER', description: 'Box shadow offset y in px' },
+                boxShadowBlurRadius: { type: 'NUMBER', description: 'Box shadow blur radius in px' },
+                boxShadowSpreadRadius: { type: 'NUMBER', description: 'Box shadow spread radius in px' },
+                boxShadowColor: { type: 'STRING', description: 'Box shadow color' },
                 overflow: { type: 'ENUM', options: ['visible', 'hidden', 'scroll'], description: 'Overflow behavior.' },
-
                 flexDirection: { type: 'ENUM', options: ['row', 'column'], description: 'Flex direction.' },
                 justifyContent: {
                   type: 'ENUM',
-                  options: ['flex-start', 'center', 'space-between', 'space-around', 'space-evenly'],
+                  options: ['flex-start', 'center', 'space-between', 'space-around', 'space-evenly', 'flex-end'],
                   description: 'Flex justify.'
                 },
                 alignItems: {
@@ -174,12 +180,25 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
                   description: 'Flex alignment.'
                 },
                 flexWrap: { type: 'ENUM', options: ['nowrap', 'wrap'], description: 'Flex wrap.' },
-                columnGap: { type: 'NUMBER', description: 'Gap between columns (px).' },
-                rowGap: { type: 'NUMBER', description: 'Gap between rows (px).' },
+                columnGap: {
+                  type: 'NUMBER',
+                  units: ['%', 'px', 'em'],
+                  defaultUnit: 'px',
+                  description: 'Horizontal Gap for a Group'
+                },
+                rowGap: {
+                  type: 'NUMBER',
+                  units: ['%', 'px', 'em'],
+                  defaultUnit: 'px',
+                  description: 'Vertical Gap for a Group'
+                },
                 layoutString: { type: 'STRING', description: "Column layout string (e.g., '1 2 1')." },
-                responsiveLayoutString: { type: 'STRING', description: 'Responsive column widths.' },
-
+                marginX: { type: 'NUMBER', description: 'Horizontal gap for columns in px.' },
+                marginY: { type: 'NUMBER', description: 'Vertical gap for columns in px.' },
+                direction: { type: 'ENUM', options: ['row', 'column'], description: 'Layout direction for Columns.' },
                 text: { type: 'STRING', description: 'Text content, only used for Text type' },
+                textStyle: { type: 'STRING', description: 'Named text style, e.g., "Body Medium", "Title Large".' },
+                fontFamily: { type: 'STRING', description: 'Font family, e.g. "fonts/Roboto/Roboto-Light.ttf"' },
                 fontSize: { type: 'NUMBER', units: ['px', 'em', 'rem'], defaultUnit: 'px', description: 'Font size.' },
                 fontWeight: {
                   type: 'ENUM',
@@ -195,7 +214,27 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
                   description: 'Text transform.'
                 },
                 ellipsis: { type: 'BOOLEAN', description: 'Truncate text with ellipsis.' },
-                label: { type: 'STRING', description: 'Label text. Used for text in all other types than Text' },
+                label: {
+                  type: 'STRING',
+                  description:
+                    'Label text. Labels can be used for Input, Checkbox, Dropdown, Radio button. Not used for Text'
+                },
+                useLabel: { type: 'BOOLEAN', description: 'Indicates if the label should be visable or not' },
+                labelfontSize: { type: 'NUMBER', units: ['px', 'em', 'rem'], description: 'Label font size.' },
+                labelcolor: { type: 'STRING', description: 'Label text color.' },
+                labelletterSpacing: { type: 'NUMBER', description: 'Label Letter spacing.' },
+                labellineHeight: { type: 'NUMBER', description: 'Label Line height.' },
+                labeltextTransform: {
+                  type: 'ENUM',
+                  options: ['none', 'uppercase', 'lowercase', 'capitalize'],
+                  description: 'Text transform.'
+                },
+                labelSpacing: { type: 'NUMBER', description: 'Vertical distance between label and component' },
+                labelfontFamily: { type: 'STRING', description: 'Font family, e.g. "fonts/Roboto/Roboto-Light.ttf"' },
+                labeltextStyle: {
+                  type: 'STRING',
+                  description: 'Named text style, e.g., "Body Medium", "Title Large".'
+                },
                 placeholder: { type: 'STRING', description: 'Placeholder text.' },
                 type: { type: 'STRING', description: "Input type, e.g., 'text', 'password', 'email', 'number'." },
                 variant: {
@@ -226,29 +265,41 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
                   }
                 },
                 searchable: { type: 'BOOLEAN', description: 'Whether dropdown is searchable.' },
-                iconLeft: { type: 'STRING', description: 'Icon URL for left side.' },
-                iconRight: { type: 'STRING', description: 'Icon URL for right side.' },
+                useIcon: { type: 'BOOLEAN', description: 'If icon is visable or not' },
+                iconPlacement: { type: 'ENUM', options: ['right', 'left'], description: 'Position of icon' },
+                iconSpacing: { type: 'NUMBER', description: 'Icon spacing in px.' },
+                iconSize: { type: 'NUMBER', description: 'Icon size in px.' },
+                iconColor: { type: 'STRING', description: 'Icon color' },
                 hoverStyle: { type: 'OBJECT', description: 'Style overrides on hover.' },
                 activeStyle: { type: 'OBJECT', description: 'Style overrides when active.' },
                 disabledStyle: { type: 'OBJECT', description: 'Style overrides when disabled.' },
-
-                src: { type: 'STRING', description: 'Image source URL.' },
+                src: { type: 'STRING', description: 'Image source URL. For example image-new-uuid-1.png' },
                 alt: { type: 'STRING', description: 'Alt text for image.' },
                 objectFit: { type: 'ENUM', options: ['cover', 'contain', 'fill'], description: 'Image fit mode.' },
                 prompt: { type: 'STRING', description: 'AI-generated image prompt.' },
-
                 scrollEnabled: { type: 'BOOLEAN', description: 'Enable scrolling.' },
                 scrollSnapEnabled: { type: 'BOOLEAN', description: 'Enable snap scrolling.' },
-
-                transitionDuration: {
-                  type: 'NUMBER',
-                  units: ['ms'],
-                  defaultUnit: 'ms',
-                  description: 'Transition duration.'
-                },
+                transitionDuration: { type: 'NUMBER', description: 'Transition duration in ms' },
                 animation: { type: 'STRING', description: 'Animation name or keyframes.' },
-
-                as: { type: 'STRING', description: "Rendered element type, e.g., 'div', 'nav', 'header', 'section'." }
+                size: { type: 'NUMBER', description: 'Size of Circle' },
+                startAngle: { type: 'NUMBER', description: 'Starting angle for Circle' },
+                endAngle: { type: 'NUMBER', description: 'Ending angle for Circle' },
+                fillEnabled: { type: 'BOOLEAN', description: 'If Circle should be filled' },
+                fillColor: { type: 'STRING', description: 'Fill color of Circle' },
+                strokeEnabled: { type: 'BOOLEAN', description: 'Enable stroke for Circle' },
+                strokeColor: { type: 'STRING', description: 'Color of stroke for Circle' },
+                strokeWidth: { type: 'NUMBER', description: 'Width of stroke for Circle in px.' },
+                strokeLineCap: { type: 'ENUM', options: ['butt', 'round'], description: 'Stroke line Cap for Circle' },
+                as: {
+                  type: 'ENUM',
+                  options: ['div', 'section', 'article', 'aside', 'nav', 'header', 'footer', 'main', 'span', 'p'],
+                  description: 'Rendered element type'
+                },
+                styleCss: {
+                  type: 'STRING',
+                  description:
+                    'Additional CSS styles to apply, using advanced html. For example: background-image: url("/generated-images/image-new-uuid-1.png"); background-position: center; background-repeat: no-repeat; background-size: cover;'
+                }
               }
             },
             stateParameters: {
@@ -309,7 +360,7 @@ ${JSON.stringify(nodeGraphJson, null, 2)}
               items: { type: 'OBJECT', properties: { id: { type: 'STRING' }, type: { type: 'STRING' } } }
             }
           },
-          required: ['id', 'label', 'type', 'parameters', 'children']
+          required: ['id', 'label', 'status', 'type']
         }
       },
       null,
@@ -341,6 +392,8 @@ Rules for Parameters
 Dimensions should always be given with value and unit: { "value": 40, "unit": "px" } or { "value": 100, "unit": "%" }
 Colors: hex codes (#FFFFFF) or tokens ("Primary", "Dark")
 Text: string values with "textStyle", "fontSize", "fontFamily"
+Label: always include a "label" parameter for components that support it (Input, Checkbox, Dropdown, Radio button)
+styleCss: only use for advanced HTML/CSS, otherwise prefer structured parameters
 
 States
 hover → :hover
@@ -353,21 +406,26 @@ Design and Usability Rules
 - Always create well-designed and user-friendly layouts, not just raw components.
 - Consider spacing, alignment, padding, and hierarchy.
 - Use consistent colors, fonts, and styles to create a professional look.
-- Group related elements (e.g., input + label + button) into logical Group or Columns nodes.
-- Radio buttons must belong to a radio group
 - Use state styling (hover, pressed, focused) to improve interactivity.
 - Favor readable typography and proper contrast.
 - When in doubt, choose defaults that are simple, modern, and visually appealing.
 - Think in terms of complete UI sections (e.g., a full login form with input fields, labels, and a submit button styled consistently).
-
-Design Tokens
-- Box shadow: use modern subtle shadows for elevation
+- Prefer emoji for decorative icons instead of separate image nodes
+- Ensure good contrast for text on colored backgrounds
+- Text, Image and Circle cannot have any padding
+- Input, Checkbox, Dropdown, Radio button, Button can have icon enabled
+- Use layoutString for columns to create balanced layouts (e.g., "1 2 1" for three columns with the center one larger)
+- Use percentage widths for responsive designs where appropriate (e.g., width: {value: 100, unit: '%'} for full-width elements)
+- Use alignment (alignX, alignY) to position elements within their containers
+- Use grouping (Group, Columns) to create logical sections of the UI
+- Use flexbox properties (flexDirection, justifyContent, alignItems) to control layout within Groups and Columns
 
 Defaults
 - Always include a "label" explaining why the node exists
 - Groups with a backgroundColor must have padding >= 16
-- Prefer emoji for decorative icons instead of separate image nodes
-- Ensure good contrast for text on colored backgrounds
+- Box shadow: use modern subtle shadows for elevation
+- Radio buttons must belong to a radio group
+- Group related elements (e.g., input + label + button) into logical Group or Columns nodes.
 
 Interactivity & Animation
 - Use "stateParameters" and "stateTransitions" for hover, pressed, focused, disabled states
@@ -377,10 +435,12 @@ Interactivity & Animation
 Output Rules
 - Return only valid JSON that conforms to the provided schema, with no explanations or extra text.
 - Always add a suitable prompt with an instuction for an AI to generate an image, in the "prompt" property for any new image nodes.
-- Always insert new-uuid- prefix for new nodes in the id
+- Always insert image-new-uuid- prefix in the URL for images that should be AI-generated
+- Always insert new-uuid- prefix in the id for new nodes
+- Always include a "status" to indicate if you have added, modified or left a node unchanged.
+- Place new nodes in the correct parent either specified in the prompt by the user, or the top node.
 - Do not regenerate the whole project only the new nodes or modified nodes and the parent.
-- Do not include \`\`\`, do not add "json" labels, do not add commentary.
-- Place new nodes in the correct parent. Use the node object with this ID as the root node: {parentNode}
+- Do NOT include \`\`\`, do not add "json" labels, do not add commentary.
 
 {nodeGraphPrimer}
 {userComponentPrimers}`;

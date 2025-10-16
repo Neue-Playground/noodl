@@ -22,6 +22,7 @@ export interface NodeGraphNodeJSON {
   x: number;
   y: number;
   label?: TSFixme;
+  status?: TSFixme;
   type: string;
   variant?: TSFixme;
   version?: TSFixme;

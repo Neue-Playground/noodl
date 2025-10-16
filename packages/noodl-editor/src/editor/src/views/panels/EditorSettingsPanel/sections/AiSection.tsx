@@ -3,9 +3,8 @@ import {
   OpenAiModel,
   AiEnabled,
   AiSelectedModel,
-  OpenAiStore,
-  AiImageModel,
-  BytezAiModel
+  AiStore,
+  AiImageModel
 } from '@noodl-store/AiAssistantStore';
 import React, { useState } from 'react';
 import { platform } from '@noodl/platform';
@@ -27,24 +26,22 @@ import { ToastLayer } from '../../../ToastLayer/ToastLayer';
 
 export const AI_ASSISTANT_ENABLED_SUGGESTIONS_KEY = 'aiAssistant.enabledSuggestions';
 
-export function OpenAiSection() {
-  const [openAiApiKey, setOpenAiApiKey] = useState(OpenAiStore.getOpenAiApiKey());
-  const [openAiModel, setOpenAiModel] = useState(OpenAiStore.getOpenAiModel());
-  const [geminiApiKey, setGeminiApiKey] = useState(OpenAiStore.getGeminiApiKey());
-  const [geminiModel, setGeminiModel] = useState(OpenAiStore.getGeminiModel());
+export function AiSection() {
+  const [openAiApiKey, setOpenAiApiKey] = useState(AiStore.getOpenAiApiKey());
+  const [openAiModel, setOpenAiModel] = useState(AiStore.getOpenAiModel());
+  const [geminiApiKey, setGeminiApiKey] = useState(AiStore.getGeminiApiKey());
+  const [geminiModel, setGeminiModel] = useState(AiStore.getGeminiModel());
   // enabled state is managed in store; local state not needed
-  const [selectedAiModel, setSelectedAiModel] = useState<AiSelectedModel>(OpenAiStore.getAiSelectedModel());
-  const [imageModel, setImageModel] = useState<AiImageModel | undefined>(OpenAiStore.getImageModel());
-  const [bytezApiKey, setBytezApiKey] = useState(OpenAiStore.getBytezApiKey());
-  const [bytezModel, setBytezModel] = useState<BytezAiModel>(OpenAiStore.getBytezModel());
+  const [selectedAiModel, setSelectedAiModel] = useState<AiSelectedModel>(AiStore.getAiSelectedModel());
+  const [imageModel, setImageModel] = useState<AiImageModel | undefined>(AiStore.getImageModel());
 
   async function onVerifyOpenAiApiKey() {
     const models = await verifyOpenAiApiKey(openAiApiKey);
     if (models) {
-      OpenAiStore.setOpenAiVerified(true);
+      AiStore.setOpenAiVerified(true);
       ToastLayer.showSuccess('OpenAI API Key is valid');
     } else {
-      OpenAiStore.setOpenAiVerified(false);
+      AiStore.setOpenAiVerified(false);
       ToastLayer.showError('OpenAI API Key is invalid!');
     }
   }
@@ -52,10 +49,10 @@ export function OpenAiSection() {
   async function onVerifyGeminiApiKey() {
     const isValid = await verifyGeminiApiKey(geminiApiKey);
     if (isValid) {
-      OpenAiStore.setGeminiVerified(true);
+      AiStore.setGeminiVerified(true);
       ToastLayer.showSuccess('Gemini API Key is valid!');
     } else {
-      OpenAiStore.setGeminiVerified(false);
+      AiStore.setGeminiVerified(false);
       ToastLayer.showError('Gemini API Key is invalid!');
     }
   }
@@ -71,18 +68,17 @@ export function OpenAiSection() {
                 options: [
                   { label: 'Disabled', value: 'disabled' },
                   { label: 'OpenAI', value: 'openai' },
-                  { label: 'Gemini', value: 'gemini' },
-                  { label: 'Bytez', value: 'bytez' }
+                  { label: 'Gemini', value: 'gemini' }
                 ]
               }}
               onChange={(value: string) => {
                 const aiModel = value as AiSelectedModel;
                 setSelectedAiModel(aiModel);
-                OpenAiStore.setAiSelectedModel(aiModel);
+                AiStore.setAiSelectedModel(aiModel);
 
                 // Update the enabled state based on selection
                 const newEnabledState: AiEnabled = aiModel === 'disabled' ? 'disabled' : 'enabled';
-                OpenAiStore.setAiEnabled(newEnabledState);
+                AiStore.setAiEnabled(newEnabledState);
               }}
             />
           </PropertyPanelRow>
@@ -101,7 +97,7 @@ export function OpenAiSection() {
                   }}
                   onChange={(value: OpenAiModel) => {
                     setOpenAiModel(value);
-                    OpenAiStore.setOpenAiModel(value);
+                    AiStore.setOpenAiModel(value);
                   }}
                 />
               </PropertyPanelRow>
@@ -110,7 +106,7 @@ export function OpenAiSection() {
                   value={openAiApiKey}
                   onChange={(value) => {
                     setOpenAiApiKey(value);
-                    OpenAiStore.setOpenAiApiKey(value);
+                    AiStore.setOpenAiApiKey(value);
                   }}
                 />
               </PropertyPanelRow>
@@ -143,7 +139,7 @@ export function OpenAiSection() {
                   }}
                   onChange={(value: GeminiAiModel) => {
                     setGeminiModel(value);
-                    OpenAiStore.setGeminiModel(value);
+                    AiStore.setGeminiModel(value);
                   }}
                 />
               </PropertyPanelRow>
@@ -152,7 +148,7 @@ export function OpenAiSection() {
                   value={geminiApiKey}
                   onChange={(value) => {
                     setGeminiApiKey(value);
-                    OpenAiStore.setGeminiApiKey(value);
+                    AiStore.setGeminiApiKey(value);
                   }}
                 />
               </PropertyPanelRow>
@@ -170,38 +166,6 @@ export function OpenAiSection() {
             </CollapsableSection>
           )}
 
-          {selectedAiModel === 'bytez' && (
-            <CollapsableSection title="Bytez">
-              <PropertyPanelRow label="Chat Model" isChanged={false}>
-                <PropertyPanelSelectInput
-                  value={bytezModel}
-                  properties={{
-                    options: [
-                      {
-                        label: 'Deepseek-R1 (Qwen-1.5B distilled)',
-                        value: 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B'
-                      },
-                      { label: 'Phi-3-mini (128k instruct)', value: 'microsoft/Phi-3-mini-128k-instruct' }
-                    ]
-                  }}
-                  onChange={(value: BytezAiModel) => {
-                    setBytezModel(value);
-                    OpenAiStore.setBytezModel(value);
-                  }}
-                />
-              </PropertyPanelRow>
-              <PropertyPanelRow label="API Key" isChanged={false}>
-                <PropertyPanelPasswordInput
-                  value={bytezApiKey}
-                  onChange={(value) => {
-                    setBytezApiKey(value);
-                    OpenAiStore.setBytezApiKey(value);
-                  }}
-                />
-              </PropertyPanelRow>
-            </CollapsableSection>
-          )}
-
           <CollapsableSection title="AI Image Model">
             <PropertyPanelRow label="Image Generator" isChanged={false}>
               <PropertyPanelSelectInput
@@ -210,16 +174,12 @@ export function OpenAiSection() {
                   options: [
                     { label: 'Disabled', value: 'disabled' },
                     { label: 'Gemini Imagen', value: 'imagen-4.0-fast-generate-001' },
-                    { label: 'Gemini 2.5 Flash Image Preview', value: 'gemini-2.5-flash-image-preview' },
-                    {
-                      label: 'Playground v2.5 (Bytez, 1024px aesthetic)',
-                      value: 'playgroundai/playground-v2.5-1024px-aesthetic'
-                    }
+                    { label: 'Gemini 2.5 Flash Image Preview', value: 'gemini-2.5-flash-image-preview' }
                   ]
                 }}
                 onChange={(value: AiImageModel) => {
                   setImageModel(value);
-                  OpenAiStore.setImageModel(value);
+                  AiStore.setImageModel(value);
                 }}
               />
             </PropertyPanelRow>

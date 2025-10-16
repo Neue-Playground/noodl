@@ -4,29 +4,21 @@ import { EditorSettings } from '@noodl-utils/editorsettings';
 
 const AI_ASSISTANT_ENABLED_KEY = 'aiAssistant.enabled';
 const AI_ASSISTANT_SELECTED_MODEL_KEY = 'aiAssistant.selectedModel';
-//const AI_ASSISTANT_ENDPOINT_KEY = 'aiAssistant.endpoint';
 const OPENAI_API_KEY = 'aiAssistant.openaiApiKey';
 const OPENAI_MODEL_KEY = 'aiAssistant.openaiModel';
 const GEMINI_API_KEY = 'aiAssistant.geminiApiKey';
 const GEMINI_MODEL_KEY = 'aiAssistant.geminiModel';
 const GEMINI_VERIFIED_KEY = 'aiAssistant.geminiVerified';
 const IMAGE_MODEL_KEY = 'aiAssistant.imageModel';
-const BYTEZ_API_KEY = 'aiAssistant.bytezApiKey';
-const BYTEZ_MODEL_KEY = 'aiAssistant.bytezModel';
 const OPENAI_VERIFIED_KEY = 'aiAssistant.openaiVerified';
 
 export type AiEnabled = 'disabled' | 'enabled';
 export type OpenAiModel = 'gpt-5' | 'gpt-5-mini' | 'gpt-5-nano' | 'disabled';
 export type GeminiAiModel = 'gemini-2.5-pro' | 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.0-flash';
-export type BytezAiModel = 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B' | 'microsoft/Phi-3-mini-128k-instruct';
-export type AiSelectedModel = 'disabled' | 'openai' | 'gemini' | 'bytez';
-export type AiImageModel =
-  | 'disabled'
-  | 'gemini-2.5-flash-image-preview'
-  | 'imagen-4.0-fast-generate-001'
-  | 'playgroundai/playground-v2.5-1024px-aesthetic';
+export type AiSelectedModel = 'disabled' | 'openai' | 'gemini';
+export type AiImageModel = 'disabled' | 'gemini-2.5-flash-image-preview' | 'imagen-4.0-fast-generate-001';
 
-export const OpenAiStore = {
+export const AiStore = {
   getOpenAiApiKey() {
     return EditorSettings.instance.get(OPENAI_API_KEY);
   },
@@ -50,18 +42,6 @@ export const OpenAiStore = {
   },
   setGeminiModel(value: GeminiAiModel) {
     EditorSettings.instance.set(GEMINI_MODEL_KEY, value);
-  },
-  getBytezApiKey() {
-    return EditorSettings.instance.get(BYTEZ_API_KEY);
-  },
-  setBytezApiKey(value: string) {
-    EditorSettings.instance.set(BYTEZ_API_KEY, value);
-  },
-  getBytezModel(): BytezAiModel {
-    return EditorSettings.instance.get(BYTEZ_MODEL_KEY) || 'deepseek-ai/DeepSeek-R1-Distill-Qwen-1.5B';
-  },
-  setBytezModel(value: BytezAiModel) {
-    EditorSettings.instance.set(BYTEZ_MODEL_KEY, value);
   },
   setAiEnabled(value: AiEnabled) {
     EditorSettings.instance.set(AI_ASSISTANT_ENABLED_KEY, value);

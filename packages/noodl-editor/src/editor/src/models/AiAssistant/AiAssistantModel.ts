@@ -3,7 +3,7 @@ import { filesystem } from '@noodl/platform';
 
 import { AiCopilotContext } from '@noodl-models/AiAssistant/AiCopilotContext';
 import { aiNodeTemplates } from '@noodl-models/AiAssistant/AiTemplates';
-import { ChatHistory, ChatHistoryEvent, ChatMessage } from '@noodl-models/AiAssistant/ChatHistory';
+import { ChatHistory, ChatHistoryEvent, ChatMessage, ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate, AiNodeTemplateType } from '@noodl-models/AiAssistant/interfaces';
 import { ComponentModel } from '@noodl-models/componentmodel';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeSet } from '@noodl-models/nodegraphmodel';
@@ -14,6 +14,7 @@ import { guid } from '@noodl-utils/utils';
 import { EventDispatcher } from '../../../../shared/utils/EventDispatcher';
 import { PopupItemType } from '../../views/Clippy/ClippyCommandsMetadata';
 import { ToastLayer } from '../../views/ToastLayer/ToastLayer';
+import { Ai } from './api';
 
 export type CommandResultItem = {
   name: string;
@@ -272,6 +273,37 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
 
     // Save the chat history
     context.node.metadata.prompt = context.chatHistory.toJSON();
+  }
+
+  /**
+   * Centralized method to send a message to the AI.
+   * It constructs the message history and calls the underlying AI API.
+   */
+  public async sendMessage(context: AiCopilotContext, systemPrompt: string, userPrompt: string) {
+    context.chatHistory.add({
+      content: userPrompt,
+      type: ChatMessageType.User,
+      metadata: { user: true }
+    });
+
+    // Build conversation context with role separation
+    const conversationHistory = context.chatHistory.messages
+      .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
+      .map((msg) => ({
+        role: msg.metadata?.user ? 'user' : 'assistant',
+        content: msg.content
+      }))
+      .slice(-10);
+
+    const messages = [
+      { role: 'system', content: systemPrompt },
+      ...conversationHistory.slice(0, -1), // All but the last message which is the user prompt
+      { role: 'user', content: conversationHistory[conversationHistory.length - 1].content }
+    ];
+
+    return Ai.chat({
+      messages
+    });
   }
 
   public async createNode(templateId: string, parentModel: NodeGraphNode, pos: TSFixme) {

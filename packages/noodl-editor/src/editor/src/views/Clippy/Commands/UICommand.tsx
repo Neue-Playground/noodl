@@ -1,5 +1,5 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
+import { AiStore } from '@noodl-store/AiAssistantStore';
 
 import { AiAssistantModel } from '@noodl-models/AiAssistant';
 import { Ai } from '@noodl-models/AiAssistant/api';
@@ -31,17 +31,7 @@ export async function handleUICommand(
   options?: UICommandOptions
 ) {
   const nodeGraphModel = options?.nodeGraphModel || NodeGraphContextTmp.nodeGraph.model;
-
-  // Use selected node as parent if allowed
-  const selectedNodes = NodeGraphContextTmp.nodeGraph.getSelectedNodes();
-  const firstSelected = selectedNodes[0]?.model;
-  let parentNode: NodeGraphNode;
-  if (firstSelected?.type.allowChildrenWithCategory?.includes('Visual')) {
-    parentNode = firstSelected;
-  } else {
-    // Fallback: find a root that accepts Visual children
-    parentNode = nodeGraphModel.roots.find((root) => root.type.allowChildrenWithCategory?.includes('Visual'));
-  }
+  const parentNode = nodeGraphModel.roots.find((root) => root.type.allowChildrenWithCategory?.includes('Visual'));
 
   console.log('parentNode', parentNode);
 
@@ -67,7 +57,7 @@ export async function handleUICommand(
 
     const responseContent = await Ai.chat({
       messages,
-      provider: { model: OpenAiStore.getGeminiModel() } as any // removed responseSchema due to error in Gemini parsing for now
+      provider: { model: AiStore.getGeminiModel() } as any // removed responseSchema due to error in Gemini parsing for now
     });
 
     if (!responseContent) throw new Error('AI returned an empty response.');
@@ -97,10 +87,9 @@ export async function handleUICommand(
     statusCallback('Wiring connections...');
     connectNodes(nodeGraphModel, connections);
 */
-    handleImageNodes(patch, createdNodes);
+    await handleImageNodes(patch, createdNodes);
 
     // Finalize the chat: clear the streaming message and add the final response.
-    //AiAssistantModel.instance.setGlobalChatStreamingContent('');
     AiAssistantModel.instance.addGlobalChatMessage({
       type: ChatMessageType.Assistant,
       content: 'UI generated successfully!'
@@ -213,6 +202,12 @@ function normalizePatch(patch: NodeGraphNodeJSON[]): NodeGraphNodeJSON[] {
   return patch;
 }
 
+enum NodeStatus {
+  ADDED = 'added',
+  MODIFIED = 'modified',
+  UNCHANGED = 'unchanged'
+}
+
 function buildNodesFromPatch(
   patch: Partial<NodeGraphNodeJSON>[],
   nodeGraphModel: NodeGraphModel
@@ -237,11 +232,20 @@ function buildNodesFromPatch(
     });
   }
 
+  /**
+   * Process a node from the patch, handling it according to its status:
+   * - UNCHANGED: Skip processing entirely
+   * - MODIFIED: Update only existing nodes with new properties
+   * - ADDED: Create new nodes only if they don't exist
+   */
   function processNode(nodeJson: Partial<NodeGraphNodeJSON>): NodeGraphNode | null {
     if (!nodeJson?.id) return null;
     if (visited.has(nodeJson.id)) return null;
     visited.add(nodeJson.id);
     console.log('Processing node:', nodeJson);
+
+    // Skip unchanged nodes
+    if (nodeJson.status === NodeStatus.UNCHANGED) return null;
 
     const typeName = nodeJson.type ? transformComponentName(nodeJson.type) : undefined;
     if (!typeName) {
@@ -252,13 +256,19 @@ function buildNodesFromPatch(
     let node = nodeGraphModel.findNodeWithId(nodeJson.id);
 
     if (node) {
-      // update existing
-      setTimeout(() => {
-        if (nodeJson.label) node.setLabel(nodeJson.label);
-        applyParameters(node, nodeJson.parameters);
-      }, 0);
+      // Only update if node is marked as modified
+      if (nodeJson.status === NodeStatus.MODIFIED) {
+        setTimeout(() => {
+          if (nodeJson.label) node.setLabel(nodeJson.label);
+          applyParameters(node, nodeJson.parameters);
+        }, 0);
+      }
     } else {
-      // create new
+      // Only create if node is marked as added
+      if (nodeJson.status !== NodeStatus.ADDED) {
+        console.warn('Skipping non-added node creation:', nodeJson);
+        return null;
+      }
       const nodeData: NodeGraphNodeJSON = {
         ...nodeJson,
         type: typeName,
@@ -360,16 +370,71 @@ function connectNodes(nodeGraphModel: NodeGraphModel, connections: ConnectionDef
   }
 }
 
-function handleImageNodes(patch: NodeGraphNodeJSON[], createdNodes: Map<string, NodeGraphNode>) {
+async function handleImageNodes(patch: NodeGraphNodeJSON[], createdNodes: Map<string, NodeGraphNode>) {
+  const patchMap = new Map(patch.map((p) => [p.id, p]));
+  const generationPromises: Promise<void>[] = []; // Array to hold all individual promises
+
   createdNodes.forEach((node, id) => {
-    const originalJson = patch.find((p) => p.id === id);
-    if (node.findPortWithName('src') && originalJson?.parameters?.prompt) {
-      Ai.makeImageGenerationRequest(originalJson.parameters.prompt)
+    const originalJson = patchMap.get(id);
+    if (!originalJson || !originalJson.parameters) {
+      return; // Skip if no originalJson or parameters
+    }
+
+    // Skip if node is not added or modified
+    if (originalJson.status !== NodeStatus.ADDED && originalJson.status !== NodeStatus.MODIFIED) {
+      return;
+    }
+
+    const prompt = originalJson.parameters.prompt;
+    // Skip if no prompt is provided
+    if (!prompt) {
+      return;
+    }
+
+    AiAssistantModel.instance.addGlobalChatMessage({
+      type: ChatMessageType.Assistant,
+      content: 'Generating images...'
+    });
+
+    // Handle image generation for 'src' port
+    if (node.findPortWithName('src')) {
+      const generationPromise = Ai.makeImageGenerationRequest(prompt)
         .then((imageData) => saveImageDataToDisk(imageData))
         .then((url) => node.setParameter('src', url))
-        .catch((err) => console.error('Image generation failed:', err));
+        .catch((err) => {
+          console.error(`Image generation failed for node ${id} (prompt: "${prompt}"):`, err);
+          throw err;
+        });
+      generationPromises.push(generationPromise);
+    }
+
+    // Check styleCss for image-new-uuid patterns
+    const styleCss = originalJson.parameters.styleCss;
+    if (styleCss) {
+      if (/image-new-uuid/.test(styleCss)) {
+        const generationPromise = Ai.makeImageGenerationRequest(prompt)
+          .then((imageData) => saveImageDataToDisk(imageData))
+          .then((url) => {
+            node.setParameter('styleCss', replaceImageUuid(styleCss, url));
+          })
+          .catch((err) => {
+            console.error(`Image generation failed for node ${id} (styleCss replacement, prompt: "${prompt}"):`, err);
+            throw err;
+          });
+        generationPromises.push(generationPromise);
+      }
     }
   });
+  // Wait for all image generations to complete.
+  await Promise.allSettled(generationPromises);
+}
+
+function replaceImageUuid(styleCss: string, newUrl: string) {
+  // Extract just the filename from the new URL
+  const newFileName = newUrl.split(/[/\\]/).pop(); // handles both / and \ paths
+
+  // Replace only the filename part that starts with "image-new-uuid"
+  return styleCss.replace(/image-new-uuid[\w-]*\.\w+/g, newFileName);
 }
 
 function transformComponentName(name: string) {

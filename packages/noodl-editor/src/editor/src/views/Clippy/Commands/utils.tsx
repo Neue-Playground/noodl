@@ -1,8 +1,6 @@
 import path from 'node:path';
-import { OpenAiStore } from '@noodl-store/AiAssistantStore';
 import { filesystem } from '@noodl/platform';
 
-import { callGeminiImageApi } from '@noodl-models/AiAssistant/api';
 import { ProjectModel } from '@noodl-models/projectmodel';
 // import FileSystem from '@noodl-utils/filesystem';
 import { guid } from '@noodl-utils/utils';
@@ -21,5 +19,3 @@ export async function saveImageDataToDisk(imageData: { type: string; data: Buffe
 
   return relativeFilePath;
 }
-
-
