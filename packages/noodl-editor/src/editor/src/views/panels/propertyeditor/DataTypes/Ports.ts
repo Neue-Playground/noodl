@@ -10,6 +10,7 @@ import { getEditType } from '../utils';
 import { AlignToolsType } from './AlignTools/AlignToolsType';
 import { BasicType } from './BasicType';
 import { BooleanType } from './BooleanType';
+import { ButtonType } from './ButtonType';
 import { ColorType } from './ColorPicker/ColorType';
 import { ComponentType } from './ComponentType';
 import { CurveType } from './CurveEditor/CurveType';
@@ -240,6 +241,11 @@ export class Ports extends View {
       return NodeLibrary.nameForPortType(type) === 'slider';
     }
 
+    // Button types
+    function isOfButtonType() {
+      return NodeLibrary.nameForPortType(type) === 'button';
+    }
+
     // Color types
     function isOfColorType() {
       return NodeLibrary.nameForPortType(type) === 'color';
@@ -364,6 +370,7 @@ export class Ports extends View {
     else if (isOfSizeModeType()) return SizeModeType;
     else if (isOfEnumType()) return EnumType;
     else if (isOfSliderType()) return SliderType;
+    else if (isOfButtonType()) return ButtonType;
     else if (isOfColorType()) return ColorType;
     else if (isOfBooleanType()) return BooleanType;
     else if (isOfTextAreaType()) return TextAreaType;

@@ -2,11 +2,13 @@ const UsbDefinition = {
   name: 'USB Device',
   docs: 'https://docs.noodl.net/nodes/string-manipulation/string-format',
   category: 'String Manipulation',
+  exportDynamicPorts: true,
   initialize() {
     this._internal.reader = undefined
     this._internal.port = undefined
     this._internal.stop = true
     this._internal.dones = false
+
   },
   getInspectInfo() {
     return {
@@ -20,9 +22,16 @@ const UsbDefinition = {
       valueChangedToTrue: async function () {
         this._internal.dones = false
         this._internal.stop = false
-        console.log("Start reading")
-        if (!this._internal.reader) {
-          this._internal.port = await navigator.serial.requestPort()
+        const selectedPort = this._internal.device
+        if (!selectedPort) this.context.editorConnection.sendWarning(this.nodeScope.componentOwner.name, this.id, 'usb-device', {
+            message: 'No USB device selected'
+          });
+        if (!this._internal.reader && selectedPort) {
+          this.context.editorConnection.clearWarnings(this.nodeScope.componentOwner.name, this.id, 'usb-device');
+          const info = selectedPort.split(':').map(v => parseInt(v))
+          this._internal.port = await navigator.serial.requestPort({filters: [
+            { usbVendorId: info[0], usbProductId: info[1] }
+          ]})
           // @ts-ignore
           console.log(this._internal.port.connected)
           console.log("port.connected")
@@ -53,6 +62,14 @@ const UsbDefinition = {
         }
         console.log("Stop reading")
       }
+    },
+    refresh: {
+      displayName: 'Refresh devices',
+      type: 'button',
+      set: function () {
+        this._internal.debug = 'Refresh devices pressed'
+        this.flagOutputDirty('debug')
+      }
     }
   },
   outputs: {
@@ -82,6 +99,13 @@ const UsbDefinition = {
       type: '*',
       getter: function () {
         return this.port4;
+      }
+    },
+    debug: {
+      displayName: 'Debug',
+      type: '*',
+      getter: function () {
+        return this._internal.debug
       }
     },
     serialRead: {
@@ -172,10 +196,86 @@ const UsbDefinition = {
       } else {
         this.sendSignalOnOutput('serialRead')
       }
+    },
+    registerInputIfNeeded: function (name) {
+      if (this.hasInput(name)) {
+        return;
+      }
+
+      if (name === 'device') {
+        this.registerInput(name, {
+          set: this.setDevice.bind(this)
+        });
+      }
+    },
+    setDevice : function (value) {
+      this._internal.device = value
     }
   }
 };
 
 module.exports = {
-  node: UsbDefinition
-};
+  node: UsbDefinition,
+  setup: function (context, graphModel) {
+    if (!context.editorConnection) {
+      return;
+    }
+
+    function _managePortsForNode(node) {
+      async function updatePorts() {
+        const serialPorts = await navigator.serial.getPorts()
+        const infos = serialPorts.map(port => port.getInfo()).filter(info => info.usbVendorId && info.usbProductId)
+        // this._internal.ports = serialPorts
+        let ports = []
+        if (infos.length === 0) {
+          ports = [{
+            displayName: 'Selected Device',
+            name: 'device',
+            type: {
+              name: "enum",
+              enums: [
+                {
+                  label: `No Device Available`,
+                  value: null
+                }
+              ],
+              allowEditOnly: true
+            },
+            plug: 'input'
+          }]
+        } else {
+          ports = [{
+            displayName: 'Selected Device',
+            name: 'device',
+            type: {
+              name: "enum",
+              enums: infos.map((info, index) => {
+                return {
+                  label: `Device ${index + 1} - USB Vendor ID: ${info.usbVendorId || 'N/A'}, Product ID: ${info.usbProductId || 'N/A'}`,
+                  value: `${info.usbVendorId}:${info.usbProductId}`
+                };
+              }),
+              allowEditOnly: true
+            },
+            // default: `${infos[0].usbVendorId}:${infos[0].usbProductId}`,
+            plug: 'input'
+          }]
+        }
+        context.editorConnection.sendDynamicPorts(node.id, ports);
+      }
+      updatePorts();
+      node.on('parameterUpdated', function (event) {
+        updatePorts();
+      });
+    }
+
+    graphModel.on('editorImportComplete', () => {
+      graphModel.on('nodeAdded.USB Device', function (node) {
+        _managePortsForNode(node);
+      });
+      for (const node of graphModel.getNodesWithType('USB Device')) {
+        _managePortsForNode(node);
+      }
+    });
+  }
+}
