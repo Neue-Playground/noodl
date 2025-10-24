@@ -1,5 +1,5 @@
 import classNames from 'classnames';
-import React, { ChangeEventHandler, FocusEventHandler, MouseEventHandler } from 'react';
+import React, { ChangeEventHandler, FocusEventHandler, MouseEventHandler, useEffect } from 'react';
 
 import { InputNotification } from '@noodl-types/globalInputTypes';
 
@@ -25,6 +25,7 @@ export interface TextAreaProps extends UnsafeStyleProps {
   hasBottomSpacing?: boolean;
   isResizeDisabled?: boolean;
   isAutoFocus?: boolean;
+  scrollBottomOnChange?: boolean;
 
   onChange?: ChangeEventHandler<HTMLTextAreaElement>;
   onMouseEnter?: MouseEventHandler<HTMLDivElement>;
@@ -57,10 +58,19 @@ export function TextArea({
   onBlur,
   onEnter,
 
+  scrollBottomOnChange,
+
   UNSAFE_className,
   UNSAFE_style
 }: TextAreaProps) {
   const [newNotification, _updateNotification] = useNotificationFeedbackDisplay(notification);
+
+  useEffect(() => {
+    if (scrollBottomOnChange) {
+      const textareaElement = document.querySelector(`.${css['Input']}`) as HTMLTextAreaElement;
+      textareaElement?.scrollTo(0, textareaElement.scrollHeight);
+    }
+  }, [value, scrollBottomOnChange]);
 
   const isEmpty = !(typeof value === 'string' && value.length > 0);
 

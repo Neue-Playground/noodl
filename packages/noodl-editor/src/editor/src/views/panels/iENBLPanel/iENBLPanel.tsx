@@ -1,43 +1,62 @@
 import { useActiveEnvironment } from '@noodl-hooks/useActiveEnvironment';
 import React, { useEffect, useReducer, useState } from 'react';
 
+import { App } from '@noodl-models/app';
+import { NeueService } from '@noodl-models/NeueServices/NeueService';
 import { ProjectModel } from '@noodl-models/projectmodel';
+import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
 
 import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
+import { Select, SelectColorTheme } from '@noodl-core-ui/components/inputs/Select';
+import { TextArea } from '@noodl-core-ui/components/inputs/TextArea';
 import { Box } from '@noodl-core-ui/components/layout/Box';
 import { Container, ContainerDirection } from '@noodl-core-ui/components/layout/Container';
-import { BasePanel } from '@noodl-core-ui/components/sidebar/BasePanel';
-
-import { ComponentsPanel } from '../componentspanel';
 import { VStack } from '@noodl-core-ui/components/layout/Stack';
-import { NeueService } from '@noodl-models/NeueServices/NeueService';
-import { isComponentModel_NeueRuntime } from '@noodl-utils/NodeGraph';
-import NeueExportModal from '../../NeueConfigurationModals/NeueExportModal';
-import { App } from '@noodl-models/app';
+import { BasePanel } from '@noodl-core-ui/components/sidebar/BasePanel';
 import { CollapsableSection } from '@noodl-core-ui/components/sidebar/CollapsableSection';
 import { SectionVariant } from '@noodl-core-ui/components/sidebar/Section';
-import { TextArea } from '@noodl-core-ui/components/inputs/TextArea';
+
+import { ComponentsPanel } from '../componentspanel';
+import { USBHandler } from './usbHandler';
+import { values } from 'underscore';
+import { Label } from '@noodl-core-ui/components/typography/Label';
 
 export function iENBLPanel() {
   const environment = useActiveEnvironment(ProjectModel.instance);
-  const [, forceUpdate] = useReducer(x => x + 1, 0);
+  const [, forceUpdate] = useReducer((x) => x + 1, 0);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
 
   const [devices, setDevices] = useState([]);
+  const [mode, setMode] = useState('auto');
+  const [manualCommands, setManualCommands] = useState([]);
+  const [isWaitingForResponse, setIsWaitingForResponse] = useState(false);
 
   const [jsonData, setJsonData] = useState({});
   const [isExportModalOpen, setIsExportModalOpen] = useState(false);
 
   const [commands, setCommands] = useState([]);
 
-  const [exportModalTitle, setExportModalTitle] = useState("");
+  const [exportModalTitle, setExportModalTitle] = useState('');
+
+  const [selectedConfiguration, setSetSelectedConfiguration] = useState(null);
+  const [selectedDevice, setSetSelectedDevice] = useState(null);
+  const [serialDevices, setSetSerialDevices] = useState(null);
+  const [isLoading, setIsLoading] = useState(false);
+  const [debuggers, setDebugger] = useState('');
+  const [usbHandler] = useState(new USBHandler(navigator));
 
   useEffect(() => {
     NeueService.instance.load().then((result) => {
       fetchDevices();
     });
-  }, [setLoading]);
+    usbHandler.addEventListener('write', (data) => {
+      setDebugger((prev) => prev + `\nWrote: ${data}`);
+    });
+    usbHandler.addEventListener('read', (data) => {
+      setDebugger((prev) => prev + `\nRead: ${data}`);
+    });
+  }, []);
   // useMemo(readStream, [serial])
   const componentPanelOptions = {
     showSheetList: false,
@@ -52,22 +71,24 @@ export function iENBLPanel() {
     App.instance.logout();
   }
 
-  async function fetchDevices() {
+  function fetchDevices() {
+    console.log('Fetching devices...');
     setLoading(true);
-    try {
-      const response = await NeueService.instance.fetchDevices();
-      setDevices([...response]);
-    } catch (err) {
-      console.log(err);
-    } finally {
-      setLoading(false);
-    }
-  }
-
-  function handleCloseModal() {
-    setJsonData([]);
-    setIsExportModalOpen(false);
-    // readStream()
+    // @ts-ignore
+    navigator.serial.getPorts().then((ports) => {
+        console.log("Serial ports: ", ports)
+        setSetSerialDevices(ports);
+        const usbDevices = ports.filter((port) => port.getInfo().usbVendorId !== undefined);
+        if (usbDevices.length === 0) {
+          setError('No USB devices found. Please connect a device and try again.');
+          setSetSelectedDevice(null);
+        }
+        setDevices(usbDevices.map((port) => { return { id: `USB: pid=${port.getInfo().usbProductId} vid=${port.getInfo().usbVendorId}`, port }; }));
+    }).catch((err) => {
+        console.log("Error getting serial ports: ", err)
+    }).finally(() => {
+        setLoading(false)
+    });
   }
 
   const findAndExpandNodes = (nodes, allComponents) => {
@@ -87,13 +108,13 @@ export function iENBLPanel() {
       let expandedNode = { ...node.toJSON() };
 
       if (node.typename.includes('/#__neue__/')) {
-        const matchingComponent = allComponents.find(comp => comp.fullName === node.typename);
+        const matchingComponent = allComponents.find((comp) => comp.fullName === node.typename);
 
         if (matchingComponent) {
           const componentNodes = matchingComponent.graph?.getNodeSetWithNodes(matchingComponent.getNodes()).nodes;
 
           if (componentNodes) {
-            const shouldRecurse = componentNodes.some(childNode => childNode.typename.includes('/#__neue__/'));
+            const shouldRecurse = componentNodes.some((childNode) => childNode.typename.includes('/#__neue__/'));
 
             let expandedChildren = [];
 
@@ -101,7 +122,7 @@ export function iENBLPanel() {
               stack.push(...componentNodes);
             }
 
-            expandedChildren = componentNodes.map(childNode => childNode.toJSON());
+            expandedChildren = componentNodes.map((childNode) => childNode.toJSON());
 
             expandedNode = {
               ...node.toJSON(),
@@ -118,8 +139,16 @@ export function iENBLPanel() {
   };
 
   async function getJsonConfiguration() {
+    const usbVendorId = parseInt(selectedDevice.match(/vid=(\d+)/)?.[1] || "0", 10);
+    const usbProductId = parseInt(selectedDevice.match(/pid=(\d+)/)?.[1] || "0", 10);
+    const usbInfo = {
+      usbVendorId,
+      usbProductId
+    }
+    await usbHandler.connectToDevice(usbInfo);
+    setDebugger('Converting flow...');
     const neueRoot = ProjectModel.instance.getNeueRootComponent();
-    const allComponents = ProjectModel.instance.components.filter(comp => isComponentModel_NeueRuntime(comp));
+    const allComponents = ProjectModel.instance.components.filter((comp) => isComponentModel_NeueRuntime(comp));
 
     if (neueRoot) {
       setLoading(true);
@@ -130,18 +159,48 @@ export function iENBLPanel() {
         ...neueRoot.toJSON(),
         nodes: expandedNodes
       };
-      console.log(root)
+      console.log(root);
       setJsonData(root);
+      deployFlow(root);
     }
-    setLoading(false);
-    setExportModalTitle("Push Flow to Device")
-    setIsExportModalOpen(!isExportModalOpen);
   }
 
-  async function sendRestartCommand() {
-    setExportModalTitle("Restart device")
-    setCommands([{cmd: '07 90 00 01 00', index: 0, comment: 'Restart device'}])
-    setIsExportModalOpen(!isExportModalOpen);
+  async function deployFlow(flow: any) {
+    setLoading(true);
+    setError('');
+    setDebugger('Fetching commands from server... ');
+    const cmds = await NeueService.instance.pushFlow(selectedDevice, flow, ProjectModel.instance.firmware);
+    if (!selectedDevice) {
+      setError('No device selected. Please select a device and try again.');
+      return;
+    }
+    if (mode === 'auto') {
+      setDebugger('Sending commands automatically... ');
+      await usbHandler.sendAllCommands(cmds);
+      setLoading(false);
+    } else {
+      await usbHandler.sendCommandsManually(cmds);
+    }
+  }
+
+  async function sendNextCommand() {
+    if (usbHandler.commands.length === 0) {
+      setDebugger((prev) => prev + `\nNo commands to send...`);
+      return;
+    }
+    setIsWaitingForResponse(true);
+    const isDone = await usbHandler.sendNextCommand();
+    setIsWaitingForResponse(false);
+    if (isDone) {
+      setLoading(false);
+    }
+  }
+
+  async function resetConnection() {
+    setDebugger('');
+    usbHandler.disconnect();
+    setIsLoading(false);
+    setIsWaitingForResponse(false);
   }
 
   return (
@@ -149,13 +208,45 @@ export function iENBLPanel() {
       <Container direction={ContainerDirection.Vertical} isFill>
         <Box hasXSpacing hasYSpacing>
           <VStack>
-            <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} isDisabled={loading}/>
+            <Select
+              options={devices.map((device) => {
+                return { label: device.id, value: device.id, isDisabled: false };
+              })}
+              onChange={(value: string) => setSetSelectedDevice(value)}
+              placeholder="Select device"
+              value={selectedDevice}
+              label="Selected device"
+              hasBottomSpacing
+              onShowOptions={fetchDevices}
+              colorTheme={SelectColorTheme.DarkLighter}
+            />
+            <PrimaryButton label="Push Flow to Device" onClick={getJsonConfiguration} isLoading={loading} />
           </VStack>
         </Box>
-        <CollapsableSection title="Device Commands" variant={SectionVariant.Panel} hasTopDivider hasBottomSpacing hasGutter isClosed={true}>
-            <VStack>
-              <PrimaryButton label="Restart" onClick={sendRestartCommand} isDisabled={loading} />
-            </VStack>
+        <CollapsableSection
+          title="Device Communications"
+          variant={SectionVariant.Panel}
+          hasTopDivider
+          hasBottomSpacing
+          hasGutter
+          isClosed={true}
+        >
+          <Select
+            options={[
+              { label: 'Auto', value: 'auto', isDisabled: false },
+              { label: 'Manual', value: 'manual', isDisabled: false }
+            ]}
+            onChange={(value: string) => setMode(value)}
+            label="Communication mode"
+            value={mode}
+            colorTheme={SelectColorTheme.DarkLighter}
+            hasBottomSpacing
+            />
+          {mode === 'manual' &&
+            <PrimaryButton label="Send next command" onClick={sendNextCommand} isDisabled={isWaitingForResponse} hasBottomSpacing/>
+          }
+          <TextArea label="USB Debugger" value={debuggers} isDisabled={true} scrollBottomOnChange={true} hasBottomSpacing/>
+          <PrimaryButton label="Reset connection" onClick={resetConnection} hasBottomSpacing/>
         </CollapsableSection>
         <div style={{ flex: '1', overflow: 'hidden' }}>
           <ComponentsPanel options={componentPanelOptions} />
@@ -166,11 +257,17 @@ export function iENBLPanel() {
             <PrimaryButton label="Logout" onClick={logoutClick} />
           </VStack>
         </Box>
-
       </Container>
-      <NeueExportModal title={exportModalTitle} commands={commands} setCommands={setCommands} onClose={handleCloseModal} isVisible={isExportModalOpen} jsonData={jsonData} devices={devices} firmware={ProjectModel.instance.firmware} />
-
+      {/* <NeueExportModal
+        title={exportModalTitle}
+        commands={commands}
+        setCommands={setCommands}
+        onClose={handleCloseModal}
+        isVisible={isExportModalOpen}
+        jsonData={jsonData}
+        devices={devices}
+        firmware={ProjectModel.instance.firmware}
+      /> */}
     </BasePanel>
-
   );
 }

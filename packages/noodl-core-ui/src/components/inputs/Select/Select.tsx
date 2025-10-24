@@ -43,6 +43,7 @@ export interface SelectProps extends UnsafeStyleProps {
   isDisabled?: boolean;
 
   onChange?: (value: SelectOption['value']) => void;
+  onShowOptions?: () => void;
 
   testId?: string;
 }
@@ -61,6 +62,7 @@ export function Select({
   isDisabled,
 
   onChange,
+  onShowOptions,
 
   testId,
 
@@ -96,7 +98,10 @@ export function Select({
         data-test={testId}
         style={UNSAFE_style}
       >
-        <div className={css['DisplayContainer']} onClick={() => setShowOptions(!showOptions)}>
+        <div className={css['DisplayContainer']} onClick={() => {
+          setShowOptions(!showOptions)
+          if (onShowOptions) onShowOptions();
+          }}>
           <div className={classNames([css['DisplayText'], css[size], !selectedOption?.label && css['is-placeholder']])}>
             {selectedOption?.label || placeholder}
           </div>
