@@ -1,20 +1,21 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { filesystem } from '@noodl/platform';
 
-import { AiCopilotContext } from '@noodl-models/AiAssistant/AiCopilotContext';
 import { aiNodeTemplates } from '@noodl-models/AiAssistant/AiTemplates';
 import { ChatHistory, ChatHistoryEvent, ChatMessage, ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate, AiNodeTemplateType } from '@noodl-models/AiAssistant/interfaces';
 import { ComponentModel } from '@noodl-models/componentmodel';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeSet } from '@noodl-models/nodegraphmodel';
 import { ProjectModel } from '@noodl-models/projectmodel';
+import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { Model } from '@noodl-utils/model';
 import { guid } from '@noodl-utils/utils';
 
 import { EventDispatcher } from '../../../../shared/utils/EventDispatcher';
 import { PopupItemType } from '../../views/Clippy/ClippyCommandsMetadata';
 import { ToastLayer } from '../../views/ToastLayer/ToastLayer';
-import { Ai } from './api';
+import { chat as cloudChat, getConversation as cloudGetConversation } from './cloud/CloudAiClient';
+import { conversationStore } from './conversationStore';
 
 export type CommandResultItem = {
   name: string;
@@ -146,7 +147,7 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
     })
   );
 
-  private _contexts: Record<string, AiCopilotContext> = {};
+  private _contexts: Record<string, any> = {};
 
   public activities: AiActivityItem[] = [];
 
@@ -156,15 +157,16 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
   constructor() {
     super();
 
-    const _self = this;
     EventDispatcher.instance.on(
       ['Model.nodeRemoved'],
-      function ({ args }: { args: { model: NodeGraphNode }; model: NodeGraphModel }) {
+      ({ args }: { args: { model: NodeGraphNode }; model: NodeGraphModel }) => {
         const nodeId = args.model.id;
-        if (_self._contexts[nodeId]) {
-          _self._contexts[nodeId].abortController.abort('node deleted');
-          delete _self._contexts[nodeId];
+        if (this._contexts[nodeId]) {
+          this._contexts[nodeId].abortController.abort('node deleted');
+          delete this._contexts[nodeId];
         }
+        // Remove persisted conversation mapping for deleted node
+        conversationStore.unlinkConversationForNode(nodeId);
       },
       this
     );
@@ -256,13 +258,41 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
       throw 'Template not found';
     }
 
+    const req = Function('return require')() as any;
+    const { AiCopilotContext } = req('@noodl-models/AiAssistant/AiCopilotContext');
     const context = new AiCopilotContext(template, chatHistory, node);
+    // If a server conversation exists, hydrate messages from server as session-local cache
+    try {
+      const convId = conversationStore.getConversationIdForNode(node.id);
+      if (convId && context.chatHistory.messages.length === 0) {
+        const serverConversation = await cloudGetConversation(convId);
+        if (serverConversation?.messages?.length) {
+          for (const m of serverConversation.messages as any[]) {
+            const role = m.role || m.type;
+            let content = m.content;
+            if (!content && Array.isArray(m.parts)) {
+              content = m.parts.map((p: any) => p?.text || '').join('');
+            }
+            if (typeof content !== 'string') {
+              content = JSON.stringify(content ?? '');
+            }
+            context.chatHistory.add({
+              content,
+              type: role === 'assistant' ? ChatMessageType.Assistant : ChatMessageType.User,
+              metadata: {}
+            });
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Failed to fetch conversation history; continuing with local history.', err);
+    }
     this._contexts[node.id] = context;
 
     return context;
   }
 
-  public async send(context: AiCopilotContext) {
+  public async send(context: any) {
     await context.template.template.onMessage(
       // Send it as an object so the methods are bound to this class.
       context.toObject(),
@@ -279,31 +309,27 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
    * Centralized method to send a message to the AI.
    * It constructs the message history and calls the underlying AI API.
    */
-  public async sendMessage(context: AiCopilotContext, systemPrompt: string, userPrompt: string) {
+  public async sendMessage(context: any, systemPrompt: string, userPrompt: string) {
     context.chatHistory.add({
       content: userPrompt,
       type: ChatMessageType.User,
       metadata: { user: true }
     });
 
-    // Build conversation context with role separation
-    const conversationHistory = context.chatHistory.messages
-      .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
-      .map((msg) => ({
-        role: msg.metadata?.user ? 'user' : 'assistant',
-        content: msg.content
-      }))
-      .slice(-10);
+    // Cloud: delegate prompts to server via templateId; include minimal context if desired
+    const userInfo = LocalUserIdentity.getUserInfo();
+    const userId = userInfo?.id || 'local';
+    const templateId = context.template?.templateId || context.template?.id || 'chat';
 
-    const messages = [
-      { role: 'system', content: systemPrompt },
-      ...conversationHistory.slice(0, -1), // All but the last message which is the user prompt
-      { role: 'user', content: conversationHistory[conversationHistory.length - 1].content }
-    ];
-
-    return Ai.chat({
-      messages
+    const result = await cloudChat({
+      userId,
+      templateId,
+      userPrompt,
+      conversationId: undefined,
+      context: undefined
     });
+
+    return result;
   }
 
   public async createNode(templateId: string, parentModel: NodeGraphNode, pos: TSFixme) {

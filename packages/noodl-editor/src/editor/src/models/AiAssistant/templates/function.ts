@@ -2,7 +2,9 @@ import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
 
 import { ToastLayer } from '../../../views/ToastLayer/ToastLayer';
-import { Ai } from '../api';
+import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
+import { chatStream as cloudChatStream } from '../cloud/CloudAiClient';
+import { conversationStore } from '../conversationStore';
 
 export const template: AiNodeTemplate = {
   type: 'pink',
@@ -16,37 +18,30 @@ export const template: AiNodeTemplate = {
       const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
       const prompt = lastUserMsg ? lastUserMsg.content : '';
 
-      // Build conversation context with role separation
-      const conversationHistory = context.chatHistory.messages
-        .filter((msg) => msg.metadata?.user || msg.type === ChatMessageType.Assistant)
-        .map((msg) => ({
-          role: msg.metadata?.user ? 'user' : 'assistant',
-          content: msg.content
-        }))
-        .slice(-10);
+			// Create a placeholder assistant message to stream into
+			context.chatHistory.add({
+				content: '',
+				type: ChatMessageType.Assistant,
+				metadata: { streaming: true }
+			});
 
-      const systemPrompt = FUNCTION_CODE_CONTEXT;
-
-      // Split the AI prompt more explicitly by roles instead of embedding everything into one system message
-      const messages = [
-        {
-          role: 'system',
-          content: `${systemPrompt}\n\nYou are to write code following these rules and user requests.`
-        },
-        ...conversationHistory,
-        {
-          role: 'user',
-          content: `Current request:\n${prompt}\n\nRespond only with valid JavaScript code.`
-        }
-      ];
-
-      // Generate code
-      const response = await Ai.chatStream({
-        messages,
-        onStream(fullText) {
-          console.log('AI response:', fullText);
-        }
-      });
+			// Generate code via cloud template 'function'
+			const userInfo = LocalUserIdentity.getUserInfo();
+			const userId = userInfo?.id || 'local';
+			const existingConversationId = conversationStore.getConversationIdForNode(context.node.id) || undefined;
+			const { fullText: response, conversation } = await cloudChatStream({
+				userId,
+				templateId: 'function',
+				userPrompt: `Current request:\n${prompt}\n\nRespond only with valid JavaScript code.`,
+				conversationId: existingConversationId,
+				signal: context.abortController.signal,
+				onStream(fullText) {
+					context.chatHistory.updateLast({ content: fullText, metadata: { streaming: true } });
+				}
+			});
+			if (!existingConversationId && conversation?.conversationId) {
+				conversationStore.linkConversationToNode(context.node.id, conversation.conversationId);
+			}
 
       let javascriptCode = '';
       const codeBlockMatch = response.match(/```(?:javascript|js)?\s*([\s\S]*?)\s*```/);
@@ -58,22 +53,25 @@ export const template: AiNodeTemplate = {
 
       if (!javascriptCode) throw new Error('No function code generated');
 
-      context.node.setParameter('functionScript', javascriptCode);
+			context.node.setParameter('functionScript', javascriptCode);
+			// Mark streaming complete on the assistant message
+			context.chatHistory.updateLast({ metadata: { streaming: false } });
 
       // Generate explanation and label in separate roles
       const explanationPrompt = FUNCTION_CODE_EXPLAIN(false).replace('%{code}%', javascriptCode);
 
-      const explanationMessages = [
-        { role: 'system', content: 'You are analyzing a Noodl JavaScript function.' },
-        { role: 'user', content: explanationPrompt }
-      ];
-
-      const explanationResponse = await Ai.chatStream({
-        messages: explanationMessages,
-        onStream(fullText) {
-          console.log('Explanation response:', fullText);
-        }
-      });
+			const nextConversationId =
+				existingConversationId || conversation?.conversationId || conversationStore.getConversationIdForNode(context.node.id) || undefined;
+			const { fullText: explanationResponse } = await cloudChatStream({
+				userId,
+				templateId: 'function',
+				userPrompt: explanationPrompt,
+				conversationId: nextConversationId,
+				signal: context.abortController.signal,
+				onStream(fullText) {
+					console.log('Explanation response:', fullText);
+				}
+			});
 
       const labelMatch = explanationResponse.match(/<label>(.*?)<\/label>/);
       const explainMatch = explanationResponse.match(/<explain>([\s\S]*?)<\/explain>/);

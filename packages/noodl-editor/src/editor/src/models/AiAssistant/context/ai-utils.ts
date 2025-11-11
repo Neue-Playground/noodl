@@ -1,4 +1,7 @@
+import * as jwt from 'jsonwebtoken';
 import { PromiseUtils, RandomUtils } from '@noodl/platform';
+
+import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 
 // NOTE: Would be nice to have a text buffer class where we can write text blocks,
 //       perhaps with streaming and then fake stream out the text as it becomes ready.
@@ -13,54 +16,36 @@ export namespace AiUtils {
   }
 
   /**
-   * Alias for fakeTokenStream, just with a smaller delay.
+   * Generates a JWT token for authorization with Cloud Run services.
+   * The token includes the current user's ID and a session ID, signed with JWT_SECRET.
    *
-   * @param inputString
-   * @param callback
-   * @param options
-   * @returns
+   * @param options Optional configuration
+   * @param options.sessionId Optional session ID. If not provided, a new one will be generated.
+   * @param options.jwtSecret Optional JWT secret. If not provided, will use process.env.JWT_SECRET or a default.
+   * @param options.expiresIn Token expiration time (default: '1h')
+   * @returns The JWT token string
    */
-  export function fakeTokenStreamFast(
-    inputString: string,
-    callback: (delta: string, fullText: string) => void,
-    options?: {
-      delay?: [number, number];
-      signal?: AbortSignal;
-    }
-  ) {
-    return fakeTokenStream(inputString, callback, { delay: [10, 25], ...(options || {}) });
-  }
+  export function generateAuthToken(options?: { sessionId?: string; jwtSecret?: string; expiresIn?: string }): string {
+    const userInfo = LocalUserIdentity.getUserInfo();
+    const userId = userInfo.id || 'local';
+    const sessionId = options?.sessionId || generateSnowflakeId();
+    const jwtSecret =
+      options?.jwtSecret ||
+      (typeof process !== 'undefined' && process.env?.JWT_SECRET) ||
+      'g5KD0pQxC74a1T8fR2V89A3YxLq2C1Sh';
+    const expiresIn = options?.expiresIn || '1h';
 
-  export async function fakeTokenStream(
-    inputString: string,
-    callback: (delta: string, fullText: string) => void,
-    options?: {
-      delay?: [number, number];
-      signal?: AbortSignal;
-    }
-  ) {
-    // Split the input string into smaller chunks (tokens) of 2 to 3 characters
-    const tokens = [];
-    let tokenLength: number;
-    for (let i = 0; i < inputString.length; i += tokenLength) {
-      tokenLength = Math.floor(Math.random() * 2 + 2);
-      tokens.push(inputString.slice(i, i + tokenLength));
-    }
-
-    const delayMin = options?.delay?.length === 2 ? Number(options.delay[0]) : 50;
-    const delayMax = options?.delay?.length === 2 ? Number(options.delay[1]) : 100;
-
-    let fullText = '';
-
-    // Iterate through the tokens and call the callback function with each token
-    for (let i = 0; i < tokens.length; i++) {
-      if (options?.signal?.aborted) {
-        return;
+    const token = jwt.sign(
+      {
+        user_id: userId,
+        session_id: sessionId
+      },
+      jwtSecret,
+      {
+        expiresIn: expiresIn
       }
+    );
 
-      fullText += tokens[i];
-      callback(tokens[i], fullText);
-      await PromiseUtils.sleep(RandomUtils.range(delayMin, delayMax));
-    }
+    return token;
   }
 }

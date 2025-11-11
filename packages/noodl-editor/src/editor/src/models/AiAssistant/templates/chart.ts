@@ -1,8 +1,10 @@
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
-import { extractCodeBlock, wrapInput, wrapOutput } from '@noodl-models/AiAssistant/templates/helper';
 import { ConnectionInspector } from '@noodl-utils/connectionInspector';
+import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 
-import { Ai } from '../api';
+import { chatStream as cloudChatStream } from '../cloud/CloudAiClient';
+import { conversationStore } from '../conversationStore';
+import { extractCodeBlock } from './helper';
 
 export const template: AiNodeTemplate = {
   type: 'blue',
@@ -24,11 +26,6 @@ export const template: AiNodeTemplate = {
       name: 'Generating code...'
     });
 
-    const history = chatHistory.messages.map((x) => ({
-      role: String(x.type),
-      content: x.content
-    }));
-
     const data = await ConnectionInspector.instance.getConnectionValue(node, 'input', 'data');
     console.log('fullData', data);
 
@@ -37,111 +34,49 @@ export const template: AiNodeTemplate = {
     console.log('data', shortDataJson);
 
     const currentScript = node.getParameter('functionScript');
-    const messages = currentScript
-      ? [
-          {
-            role: 'system',
-            content: CONTEXT_EDIT.replace('%{code}%', currentScript).replace('%{data}%', shortDataJson)
-          },
-          history.at(-1)
-        ]
-      : [{ role: 'system', content: CONTEXT.replace('%{data}%', shortDataJson) }, ...history];
+    // Build minimal prompt and context for cloud agent
+    const lastUserMsg = [...chatHistory.messages].reverse().find((m) => m.metadata?.user);
+    const userPrompt = lastUserMsg ? lastUserMsg.content : '';
+    const userInfo = LocalUserIdentity.getUserInfo();
+    const userId = userInfo?.id || 'local';
 
-    const fullCodeText = await Ai.chatStream({
-      messages,
+    // Create a placeholder assistant message to stream into
+    chatHistory.add({
+      content: '',
+      type: 1, // ChatMessageType.Assistant
+      metadata: { streaming: true }
+    });
+
+    const existingConversationId = conversationStore.getConversationIdForNode(node.id) || undefined;
+    const { fullText: fullCodeText, conversation } = await cloudChatStream({
+      userId,
+      templateId: 'chart',
+      userPrompt,
+      conversationId: existingConversationId,
+      context: {
+        data: shortData,
+        currentScript
+      },
       onStream(fullText) {
-        console.log('code:', fullText);
+        chatHistory.updateLast({ content: fullText, metadata: { streaming: true } });
       }
     });
+
+    if (!existingConversationId && conversation?.conversationId) {
+      conversationStore.linkConversationToNode(node.id, conversation.conversationId);
+    }
 
     const codeText = extractCodeBlock(fullCodeText);
     if (codeText) {
       node.setParameter('functionScript', codeText);
     }
 
+    // Mark streaming complete on the assistant message
+    chatHistory.updateLast({ metadata: { streaming: false } });
+
     chatHistory.removeActivity(activityCodeGenId);
     chatHistory.removeActivity(activityId);
   }
 };
 
-const CONTEXT = `###Instructions###
-- You will be creating javascript config objects for the chartjs library.
-- You ONLY need to provide the config object.
-- An input in the javascript code must follow the format "Inputs.InputName".
-- An input in the javascript code is only read, never written to.
-- Don't use features that require external libraries, like date adapters.
-
-### Examples ###
-A chart showing number of votes for different colors:
-\`\`\`
-if (!Inputs.data) return;
-
-config  = {
-  type: 'bar',
-  data: {
-    labels: ['Red', 'Blue', 'Yellow', 'Green', 'Purple', 'Orange'],
-    datasets: [{
-      label: '# of Votes',
-      data: [12, 19, 3, 5, 2, 3],
-      borderWidth: 1
-    }]
-  },
-  options: {
-    scales: {
-      y: {
-        beginAtZero: true
-      }
-    }
-  }
-}
-\`\`\`
-
-Here is my input data:
-\`\`\`
-Inputs.data = %{data}%
-\`\`\`
-
-###Task###
-ONLY respond with javascript code following the instructions and starting and ending with \`\`\`
-`;
-
-const CONTEXT_EDIT = `###Instructions###
-- You will be creating javascript config objects for the chartjs library.
-- You ONLY need to provide the config object.
-- An input in the javascript code must follow the format "Inputs.InputName".
-- An input in the javascript code is only read, never written to.
-- Don't use features that require external libraries, like date adapters.
-
-Here is my input data:
-\`\`\`
-Inputs.data = %{data}%
-\`\`\`
-
-We are starting from this code and will only modify it:
-\`\`\`
-%{code}%
-\`\`\`
-
-###Task###
-ONLY respond with javascript code following the instructions and starting and ending with \`\`\`
-`;
-
-const CONTEXT_EXPLAIN = `###Context###
-- This is a Chart node in Noodl using Chart.js.
-- We are currently inside a Component with this node created, the node have the function inside.
-
-###Instructions###
-Analyse the function and create an explanation related to the code.
-
-###Explanation###
-Explain with 2-5 sentences what the function does.
-- Always include the property names of the Inputs and Outputs objects.
-- Always format the property names of the Inputs like this: <Input>input name</Input>
-- Always format the property names of the Outputs like this: <Output>output name</Output>
-
-###Label###
-Create a label that summarises what the function does.
-
-###Example###
-<label>Show a bar chart of cars</label>
-<explain></explain>`;
+// Prompts moved to cloud: chart template resolved by passing templateId='chart'
