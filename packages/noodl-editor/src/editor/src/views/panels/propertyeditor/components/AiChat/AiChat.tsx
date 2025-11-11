@@ -259,10 +259,40 @@ export function AiMessage({ context, message, index, onUpdated }: AiMessageProps
   const isLast = context.chatHistory.messages.length - 1 === index;
   const isFunctionNode = context.template.nodeName === 'JavaScriptFunction';
   const showAffix = isLast && context.chatHistory.activities.length === 0 && isFunctionNode;
+  const isStreaming = !!(message.metadata && (message.metadata as any).streaming);
 
   const username = useMemo(() => {
     return (message.metadata?.user as any)?.name || LocalUserIdentity.getUserInfo().name;
   }, [message]);
+
+  const affixContent = (
+    <>
+      {isStreaming && (
+        <Box hasTopSpacing>
+          <Center>
+            <ActivityIndicator />
+            <Label variant={TextType.Shy} size={LabelSize.Small} UNSAFE_style={{ marginLeft: 8 }}>
+              Streaming...
+            </Label>
+            <PrimaryButton
+              size={PrimaryButtonSize.Small}
+              variant={PrimaryButtonVariant.MutedOnLowBg}
+              label="Stop"
+              UNSAFE_style={{ marginLeft: 8 }}
+              onClick={(e: React.MouseEvent) => {
+                e.stopPropagation();
+                // Abort any in-flight template stream
+                if (context?.abortController) {
+                  context.abortController.abort('user-stop');
+                }
+              }}
+            />
+          </Center>
+        </Box>
+      )}
+      {!isStreaming && showAffix && <AiMessageFunctionNodeAffix context={context} onUpdated={onUpdated} />}
+    </>
+  );
 
   return (
     <AiChatMessage
@@ -279,7 +309,7 @@ export function AiMessage({ context, message, index, onUpdated }: AiMessageProps
             }
       }
       content={message.content}
-      affix={showAffix && <AiMessageFunctionNodeAffix context={context} onUpdated={onUpdated} />}
+      affix={isStreaming || showAffix ? affixContent : null}
     />
   );
 }

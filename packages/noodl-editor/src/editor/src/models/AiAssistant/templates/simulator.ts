@@ -1,8 +1,10 @@
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
+import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 
 import { ToastLayer } from '../../../views/ToastLayer/ToastLayer';
-import { Ai } from '../api';
+import { chatStream as cloudChatStream } from '../cloud/CloudAiClient';
+import { conversationStore } from '../conversationStore';
 
 export const template: AiNodeTemplate = {
   type: 'pink',
@@ -44,18 +46,30 @@ ${systemPrompt}`
 
       console.log('Context prompt:', contextPrompt);
 
-      // First OpenAI call to generate JavaScript code
-      const response = await Ai.chatStream({
-        messages: [
-          {
-            role: 'system',
-            content: contextPrompt
-          }
-        ],
+      // Create a placeholder assistant message to stream into
+      context.chatHistory.add({
+        content: '',
+        type: ChatMessageType.Assistant,
+        metadata: { streaming: true }
+      });
+
+      // First cloud call to generate JavaScript code using templateId 'simulator'
+      const userInfo = LocalUserIdentity.getUserInfo();
+      const userId = userInfo?.id || 'local';
+      const existingConversationId = conversationStore.getConversationIdForNode(context.node.id) || undefined;
+      const { fullText: response, conversation } = await cloudChatStream({
+        userId,
+        templateId: 'simulator',
+        userPrompt: contextPrompt,
+        conversationId: existingConversationId,
+        signal: context.abortController.signal,
         onStream(fullText) {
-          console.log('AI response:', fullText);
+          context.chatHistory.updateLast({ content: fullText, metadata: { streaming: true } });
         }
       });
+      if (!existingConversationId && conversation?.conversationId) {
+        conversationStore.linkConversationToNode(context.node.id, conversation.conversationId);
+      }
 
       // Extract JavaScript code block
       let javascriptCode = '';
@@ -76,8 +90,10 @@ ${systemPrompt}`
 
       // Set the code parameter for the Script node
       context.node.setParameter('code', javascriptCode);
+      // Mark streaming complete on the assistant message
+      context.chatHistory.updateLast({ metadata: { streaming: false } });
 
-      // Second OpenAI call to generate explanation
+      // Second cloud call to generate explanation (using same template)
       const explanationPrompt = `Analyze this JavaScript code for a virtual IoT device simulator and provide:
 
 1. A concise label (2-5 words) describing what the simulator does
@@ -92,13 +108,17 @@ Format your response as:
 <label>Your Label Here</label>
 <explain>Your explanation here</explain>`;
 
-      const explanationResponse = await Ai.chatStream({
-        messages: [
-          {
-            role: 'system',
-            content: explanationPrompt
-          }
-        ],
+      const nextConversationId =
+        existingConversationId ||
+        conversation?.conversationId ||
+        conversationStore.getConversationIdForNode(context.node.id) ||
+        undefined;
+      const { fullText: explanationResponse } = await cloudChatStream({
+        userId,
+        templateId: 'simulator',
+        userPrompt: explanationPrompt,
+        conversationId: nextConversationId,
+        signal: context.abortController.signal,
         onStream(fullText) {
           console.log('Explanation response:', fullText);
         }

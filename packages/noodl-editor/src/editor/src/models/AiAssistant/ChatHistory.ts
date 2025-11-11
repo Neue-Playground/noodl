@@ -57,6 +57,11 @@ export class ChatHistory extends Model<ChatHistoryEvent, ChatHistoryEvents> {
     return this._metadata;
   }
 
+  set metadata(value: Record<string, unknown>) {
+    this._metadata = value || {};
+    this.notifyListeners(ChatHistoryEvent.MetadataChanged);
+  }
+
   get activities() {
     return this._activities;
   }
@@ -120,6 +125,33 @@ export class ChatHistory extends Model<ChatHistoryEvent, ChatHistoryEvents> {
     return message.snowflakeId;
   }
 
+  /**
+   * Convenience: append an empty assistant message and mark it as streaming.
+   * Returns the new message id so callers can track it if needed.
+   */
+  addAssistantStreaming(): string {
+    return this.add({
+      content: '',
+      type: ChatMessageType.Assistant,
+      metadata: { streaming: true }
+    });
+  }
+
+  /**
+   * Convenience: update the last message with new streaming content.
+   * Preserves streaming=true unless explicitly disabled by endAssistantStreaming().
+   */
+  updateAssistantStreaming(content: string) {
+    this.updateLast({ content, metadata: { streaming: true } });
+  }
+
+  /**
+   * Convenience: mark the last message streaming=false.
+   */
+  endAssistantStreaming() {
+    this.updateLast({ metadata: { streaming: false } });
+  }
+
   updateLast(data?: Partial<Pick<ChatMessage, 'content' | 'metadata'>>) {
     if (data.content) {
       this.messages[this.messages.length - 1].content = data.content;
@@ -132,6 +164,28 @@ export class ChatHistory extends Model<ChatHistoryEvent, ChatHistoryEvents> {
     }
 
     this.notifyListeners(ChatHistoryEvent.MessagesChanged);
+  }
+
+  /**
+   * Replace current messages with normalized server history (session-local view).
+   */
+  hydrateFromServer(messages: Array<{ role: 'user' | 'assistant'; content: string }>) {
+    this._messages.length = 0;
+    for (const m of messages) {
+      this.add({
+        content: m.content,
+        type: m.role === 'assistant' ? ChatMessageType.Assistant : ChatMessageType.User,
+        metadata: {}
+      });
+    }
+  }
+
+  /**
+   * Merge provided metadata keys into current metadata and notify.
+   */
+  mergeMetadata(metadata: Record<string, unknown>) {
+    this._metadata = { ...(this._metadata || {}), ...(metadata || {}) };
+    this.notifyListeners(ChatHistoryEvent.MetadataChanged);
   }
 
   clear(): void {

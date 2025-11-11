@@ -20,18 +20,23 @@ export type GeminiAiModel = 'gemini-2.5-pro' | 'gemini-2.5-flash' | 'gemini-2.5-
 export type AiSelectedModel = 'disabled' | 'openai' | 'gemini';
 export type AiImageModel = 'disabled' | 'gemini-2.5-flash-image-preview' | 'imagen-4.0-fast-generate-001';
 
-interface AiMessage {
-  role: 'user' | 'assistant';
-  content: string;
-}
-
 export class AiRemoteStore {
   private chatConversationId: string;
   private conversationsByNode: Map<string, string>; // nodeId -> conversationId
+  private static CONVERSATIONS_KEY = 'aiAssistant.conversationsByNode';
+  private static CHAT_CONVERSATION_ID_KEY = 'aiAssistant.chatConversationId';
 
   constructor() {
-    this.chatConversationId = uuidv4(); // persistent in-memory, replace w/ localStorage if needed
-    this.conversationsByNode = new Map();
+    // Load persisted chatConversationId or create
+    this.chatConversationId =
+      (EditorSettings.instance.get(AiRemoteStore.CHAT_CONVERSATION_ID_KEY) as string) || uuidv4();
+    if (!EditorSettings.instance.get(AiRemoteStore.CHAT_CONVERSATION_ID_KEY)) {
+      EditorSettings.instance.set(AiRemoteStore.CHAT_CONVERSATION_ID_KEY, this.chatConversationId);
+    }
+
+    // Load persisted node->conversation mappings
+    const saved = (EditorSettings.instance.get(AiRemoteStore.CONVERSATIONS_KEY) as Record<string, string>) || {};
+    this.conversationsByNode = new Map(Object.entries(saved));
   }
 
   getChatConversationId() {
@@ -42,23 +47,29 @@ export class AiRemoteStore {
     return this.conversationsByNode.get(nodeId) || null;
   }
 
-  async ensureConversationForNode(nodeId: string): Promise<string> {
-    const conversationId = this.conversationsByNode.get(nodeId);
-    if (conversationId) return conversationId;
-
-    const newConversationId = await this.createConversation();
-    this.conversationsByNode.set(nodeId, newConversationId);
-    return newConversationId;
-  }
-
   // Optional: explicit node remapping if user moves UI elements
   linkConversationToNode(nodeId: string, conversationId: string) {
     this.conversationsByNode.set(nodeId, conversationId);
+    this.persist();
+  }
+
+  unlinkConversationForNode(nodeId: string) {
+    if (this.conversationsByNode.has(nodeId)) {
+      this.conversationsByNode.delete(nodeId);
+      this.persist();
+    }
   }
 
   // Optional: clear local state (does not delete anything server-side)
   reset() {
     this.conversationsByNode.clear();
+    this.persist();
+  }
+
+  private persist() {
+    const obj: Record<string, string> = {};
+    for (const [k, v] of this.conversationsByNode.entries()) obj[k] = v;
+    EditorSettings.instance.set(AiRemoteStore.CONVERSATIONS_KEY, obj);
   }
 }
 
