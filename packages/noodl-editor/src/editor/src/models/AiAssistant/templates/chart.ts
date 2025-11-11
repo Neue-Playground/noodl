@@ -1,5 +1,4 @@
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
-import { extractCodeBlock, wrapInput, wrapOutput } from '@noodl-models/AiAssistant/templates/helper';
 import { ConnectionInspector } from '@noodl-utils/connectionInspector';
 
 import { Ai } from '../api';

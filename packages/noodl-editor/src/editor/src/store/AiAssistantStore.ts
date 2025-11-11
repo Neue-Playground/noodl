@@ -1,5 +1,7 @@
 // import Store from 'electron-store';
 
+import { v4 as uuidv4 } from 'uuid';
+
 import { EditorSettings } from '@noodl-utils/editorsettings';
 
 const AI_ASSISTANT_ENABLED_KEY = 'aiAssistant.enabled';
@@ -17,6 +19,48 @@ export type OpenAiModel = 'gpt-5' | 'gpt-5-mini' | 'gpt-5-nano' | 'disabled';
 export type GeminiAiModel = 'gemini-2.5-pro' | 'gemini-2.5-flash' | 'gemini-2.5-flash-lite' | 'gemini-2.0-flash';
 export type AiSelectedModel = 'disabled' | 'openai' | 'gemini';
 export type AiImageModel = 'disabled' | 'gemini-2.5-flash-image-preview' | 'imagen-4.0-fast-generate-001';
+
+interface AiMessage {
+  role: 'user' | 'assistant';
+  content: string;
+}
+
+export class AiRemoteStore {
+  private chatConversationId: string;
+  private conversationsByNode: Map<string, string>; // nodeId -> conversationId
+
+  constructor() {
+    this.chatConversationId = uuidv4(); // persistent in-memory, replace w/ localStorage if needed
+    this.conversationsByNode = new Map();
+  }
+
+  getChatConversationId() {
+    return this.chatConversationId;
+  }
+
+  getConversationIdForNode(nodeId: string) {
+    return this.conversationsByNode.get(nodeId) || null;
+  }
+
+  async ensureConversationForNode(nodeId: string): Promise<string> {
+    const conversationId = this.conversationsByNode.get(nodeId);
+    if (conversationId) return conversationId;
+
+    const newConversationId = await this.createConversation();
+    this.conversationsByNode.set(nodeId, newConversationId);
+    return newConversationId;
+  }
+
+  // Optional: explicit node remapping if user moves UI elements
+  linkConversationToNode(nodeId: string, conversationId: string) {
+    this.conversationsByNode.set(nodeId, conversationId);
+  }
+
+  // Optional: clear local state (does not delete anything server-side)
+  reset() {
+    this.conversationsByNode.clear();
+  }
+}
 
 export const AiStore = {
   getOpenAiApiKey() {
