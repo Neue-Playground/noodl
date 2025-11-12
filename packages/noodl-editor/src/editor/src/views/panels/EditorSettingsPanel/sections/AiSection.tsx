@@ -9,7 +9,7 @@ import {
 import React, { useState } from 'react';
 import { platform } from '@noodl/platform';
 
-import { verifyOpenAiApiKey, verifyGeminiApiKey } from '@noodl-models/AiAssistant/api';
+// Verification of API keys is handled on the server; do not import client-side verifiers.
 
 import { PrimaryButton, PrimaryButtonSize, PrimaryButtonVariant } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { Box } from '@noodl-core-ui/components/layout/Box';
@@ -36,24 +36,24 @@ export function AiSection() {
   const [imageModel, setImageModel] = useState<AiImageModel | undefined>(AiStore.getImageModel());
 
   async function onVerifyOpenAiApiKey() {
-    const models = await verifyOpenAiApiKey(openAiApiKey);
-    if (models) {
+    // Server handles key validation; mark as verified locally if a key exists.
+    if (openAiApiKey) {
       AiStore.setOpenAiVerified(true);
-      ToastLayer.showSuccess('OpenAI API Key is valid');
+      ToastLayer.showSuccess('OpenAI API Key presence noted (server validates keys)');
     } else {
       AiStore.setOpenAiVerified(false);
-      ToastLayer.showError('OpenAI API Key is invalid!');
+      ToastLayer.showError('No OpenAI API Key provided');
     }
   }
 
   async function onVerifyGeminiApiKey() {
-    const isValid = await verifyGeminiApiKey(geminiApiKey);
-    if (isValid) {
+    // Server handles key validation; mark as verified locally if a key exists.
+    if (geminiApiKey) {
       AiStore.setGeminiVerified(true);
-      ToastLayer.showSuccess('Gemini API Key is valid!');
+      ToastLayer.showSuccess('Gemini API Key presence noted (server validates keys)');
     } else {
       AiStore.setGeminiVerified(false);
-      ToastLayer.showError('Gemini API Key is invalid!');
+      ToastLayer.showError('No Gemini API Key provided');
     }
   }
 

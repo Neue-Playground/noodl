@@ -81,13 +81,13 @@ async function handleGeneralChatCommand(prompt: string, statusCallback: (string)
     }
   });
 
-  const response = await Ai.chat({
-    messages: AiAssistantModel.instance.globalChatHistory.messages.map((m) => ({ role: m.type, content: m.content }))
-  });
+  // Send only the new user prompt to the server. Global chat history is kept locally
+  // and should not be sent to the cloud — the server maintains its own conversation state.
+  const response = await Ai.chat({ userPrompt: prompt });
 
   AiAssistantModel.instance.addGlobalChatMessage({
     type: ChatMessageType.Assistant,
-    content: response
+    content: typeof response === 'string' ? response : JSON.stringify(response)
   });
 
   statusCallback('AI chat opened. Use the chat panel to continue the conversation.');

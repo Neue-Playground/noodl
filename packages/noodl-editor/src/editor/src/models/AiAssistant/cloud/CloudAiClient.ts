@@ -4,7 +4,7 @@ import type { Conversation } from '../interfaces';
 const apiBase = (path: string) => `/api/v1${path}`;
 
 function authHeaders(extra?: Record<string, string>) {
-	const token = AiUtils.AiUtils.generateAuthToken();
+	const token = AiUtils.generateAuthToken();
 	return {
 		'Content-Type': 'application/json',
 		Authorization: `Bearer ${token}`,

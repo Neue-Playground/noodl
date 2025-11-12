@@ -6,10 +6,7 @@ import React, { useCallback, useEffect, useRef, useState } from 'react';
 
 import { FeedbackType } from '@noodl-constants/FeedbackType';
 import { AiAssistantModel } from '@noodl-models/AiAssistant';
-import { verifyOpenAiApiKey, verifyGeminiApiKey } from '@noodl-models/AiAssistant/api';
-import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { SidebarModel } from '@noodl-models/sidebar';
-import { EditorSettings } from '@noodl-utils/editorsettings';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { tracker } from '@noodl-utils/tracker';
 
@@ -64,29 +61,15 @@ export default function Clippy() {
 
   // Update commandFilter to route commands based on selected AI model
   const commandFilter = (x) => {
-    const aiModel = AiStore.getAiSelectedModel();
-
-    // If AI is disabled, no commands are available
-    if (aiModel === 'disabled') {
-      return false;
-    }
-
     // Check if the command is available for the current frontend/backend context
     const isContextValid = (x.availableOnFrontend && isFrontend) || (x.availableOnBackend && !isFrontend);
     if (!isContextValid) {
       return false;
     }
 
-    // Route commands based on selected AI model
-    if (aiModel === 'openai') {
-      // OpenAI commands require OpenAI verification
-      return isOpenAiVerified;
-    } else if (aiModel === 'gemini') {
-      // Gemini commands require Gemini verification
-      return isGeminiVerified;
-    }
+    // TODO: Check if AI is available for the user on the server
 
-    return false;
+    return true;
   };
 
   const promptToNode = promptToNodeCommands.filter(commandFilter);
@@ -97,71 +80,6 @@ export default function Clippy() {
   }, [promptToNode, copilotNodes]);
 
   const user = LocalUserIdentity.getUserInfo();
-
-  // Update effect to check both keys and selected AI model
-  useEffect(() => {
-    setHasOpenAiKey(!!AiStore.getOpenAiApiKey());
-    setHasGeminiKey(!!AiStore.getGeminiApiKey());
-    setSelectedAiModel(AiStore.getAiSelectedModel());
-
-    if (!hasOpenAiKey && !hasGeminiKey) {
-      setIsOpenAiVerified(false);
-      setIsGeminiVerified(false);
-    }
-
-    async function doIt() {
-      if (hasOpenAiKey && !isOpenAiVerified) {
-        const models = await verifyOpenAiApiKey(AiStore.getOpenAiApiKey());
-        if (models) {
-          setIsOpenAiVerified(true);
-        }
-      }
-
-      if (hasGeminiKey && !isGeminiVerified) {
-        const models = await verifyGeminiApiKey(AiStore.getGeminiApiKey());
-        if (models) {
-          setIsGeminiVerified(true);
-        }
-      }
-    }
-
-    doIt();
-
-    // Update command enabled state based on selected AI model and verification status
-    const aiModel = AiStore.getAiSelectedModel();
-    if (aiModel === 'disabled') {
-      setIsCommandEnabled(false);
-    } else if (aiModel === 'openai') {
-      setIsCommandEnabled(isOpenAiVerified);
-    } else if (aiModel === 'gemini') {
-      setIsCommandEnabled(isGeminiVerified);
-    }
-  }, [isInputOpen, selectedAiModel]);
-
-  // Listen for AI model selection changes
-  useEffect(() => {
-    const handleSettingsChange = () => {
-      const newSelectedModel = AiStore.getAiSelectedModel();
-      setSelectedAiModel(newSelectedModel);
-
-      // Update command enabled state
-      if (newSelectedModel === 'disabled') {
-        setIsCommandEnabled(false);
-      } else if (newSelectedModel === 'openai') {
-        setIsCommandEnabled(isOpenAiVerified);
-      } else if (newSelectedModel === 'gemini') {
-        setIsCommandEnabled(isGeminiVerified);
-      }
-    };
-
-    // Listen for editor settings changes
-    const group = {};
-    EditorSettings.instance.on('updated', handleSettingsChange, group);
-
-    return () => {
-      EditorSettings.instance.off(group);
-    };
-  }, [isOpenAiVerified, isGeminiVerified]);
 
   //check for clicks outside clippy, which should close it if it's open and not thinking
   useEffect(() => {
@@ -289,7 +207,6 @@ export default function Clippy() {
 
   const initialPlaceholder = isInputOpen ? 'Select (or type) a command below' : 'Ask AI';
   const isPromptInWrongOrder = Boolean(!selectedOption) && Boolean(secondInputValue);
-  const versionLabel = selectedAiModel === 'gemini' ? AiStore.getGeminiModel() : AiStore.getOpenAiModel();
 
   return (
     <Portal portalRoot={portalRoot}>
@@ -472,7 +389,7 @@ export default function Clippy() {
 
               {Boolean(copilotNodes.length) && (
                 <>
-                  <SectionTitle title="Copilot nodes" />
+                  <SectionTitle title="AI nodes" />
                   {copilotNodes.map((item, i) => (
                     <PromptTagSuggestion
                       title={item.title}
@@ -594,14 +511,6 @@ export default function Clippy() {
                 />
               ))}
             </>
-          )}
-
-          {versionLabel && (
-            <div className={css.GptVersionDisplay}>
-              <Label size={LabelSize.Small} variant={TextType.Shy}>
-                {versionLabel}
-              </Label>
-            </div>
           )}
         </div>
         <div className={css.CurrentActivities}>

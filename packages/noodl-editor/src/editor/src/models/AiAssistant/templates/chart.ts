@@ -1,5 +1,6 @@
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
 import { ConnectionInspector } from '@noodl-utils/connectionInspector';
+import { ChatMessageType } from '../ChatHistory';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 
 import { chatStream as cloudChatStream } from '../cloud/CloudAiClient';
@@ -43,7 +44,7 @@ export const template: AiNodeTemplate = {
     // Create a placeholder assistant message to stream into
     chatHistory.add({
       content: '',
-      type: 1, // ChatMessageType.Assistant
+      type: ChatMessageType.Assistant,
       metadata: { streaming: true }
     });
 
