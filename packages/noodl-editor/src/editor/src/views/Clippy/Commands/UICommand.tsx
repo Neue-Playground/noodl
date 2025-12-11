@@ -2,21 +2,14 @@ import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphC
 import { AiStore } from '@noodl-store/AiAssistantStore';
 
 import { AiAssistantModel } from '@noodl-models/AiAssistant';
-import { Ai } from '@noodl-models/AiAssistant/api';
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeJSON } from '@noodl-models/nodegraphmodel';
 import { ProjectModel } from '@noodl-models/projectmodel';
 import { UndoActionGroup, UndoQueue } from '@noodl-models/undo-queue-model';
 import { guid } from '@noodl-utils/utils';
 
-import { generateUiPrimer } from './ui-primer';
+import { chat, generateImage } from '../../../models/AiAssistant/cloud/CloudAiClient';
 import { saveImageDataToDisk } from './utils';
-
-type UICommandOptions = {
-  allowImageNode?: boolean;
-  allowImageGeneration?: boolean;
-  nodeGraphModel?: NodeGraphModel;
-};
 
 type ConnectionDef = {
   fromId: string;
@@ -28,48 +21,50 @@ type ConnectionDef = {
 export async function handleUICommand(
   prompt: string,
   statusCallback: (status: string) => void,
-  options?: UICommandOptions
+  nodeGraphModel?: NodeGraphModel
 ) {
-  const nodeGraphModel = options?.nodeGraphModel || NodeGraphContextTmp.nodeGraph.model;
-  const parentNode = nodeGraphModel.roots.find((root) => root.type.allowChildrenWithCategory?.includes('Visual'));
+  const graph = nodeGraphModel || NodeGraphContextTmp.nodeGraph.model;
+  const parentNode = graph.roots.find((root) => root.type.allowChildrenWithCategory?.includes('Visual'));
 
-  console.log('parentNode', parentNode);
+  console.log('parentNode', parentNode.toJSON());
+
+  const undoGroup = new UndoActionGroup({ label: `AI UI: ${prompt}` });
 
   try {
     statusCallback('Collecting context...');
-    const { userComponents, uiPrimer } = collectUserContext();
 
-    const messages = [
-      {
-        role: 'system',
-        content: generateUiPrimer({
-          ...options,
-          userComponents,
-          parentNode: parentNode?.id,
-          uiPrimer,
-          nodeGraphModel
-        })
-      },
-      { role: 'user', content: prompt }
-    ];
+    // TODO: Check if user components exist and should be added in a specific way, otherwise remove these lines
+    // const { userComponents, uiPrimer } = collectUserContext();
 
     AiAssistantModel.instance.addGlobalChatMessage({ type: ChatMessageType.User, content: prompt });
 
-    const responseContent = await Ai.chat({
-      messages,
-      provider: { model: AiStore.getGeminiModel() } as any // removed responseSchema due to error in Gemini parsing for now
+    AiAssistantModel.instance.addGlobalChatMessage({
+      type: ChatMessageType.Assistant,
+      content: 'Waiting on AI...'
     });
 
+    const chatRes = await chat({
+      templateId: 'ui-generation',
+      userPrompt: prompt,
+      model: AiStore.getGeminiModel(),
+      context: parentNode?.toJSON()
+    });
+
+    const responseContent =
+      chatRes?.data?.responseMessage?.parts?.[0]?.text ?? chatRes?.responseMessage?.parts?.[0]?.text ?? null;
     if (!responseContent) throw new Error('AI returned an empty response.');
 
     AiAssistantModel.instance.addGlobalChatMessage({
       type: ChatMessageType.Assistant,
       content: 'Parsing AI response...'
     });
+
+    console.log('response', responseContent);
     const patch = parseAiPatch(responseContent);
 
-    const createdNodes = buildNodesFromPatch(patch, nodeGraphModel);
-    applyHierarchy(patch, createdNodes, nodeGraphModel);
+    console.log('parsed patch', patch);
+    const createdNodes = buildNodesFromPatch(patch, graph, undoGroup);
+    applyHierarchy(patch, createdNodes, graph, undoGroup);
 
     // If the AI created new root-level nodes, attach them to the determined parent node
     // if they haven't been attached somewhere else already.
@@ -77,7 +72,7 @@ export async function handleUICommand(
       for (const nodeJson of patch) {
         const node = createdNodes.get(nodeJson.id);
         // If the node was created, doesn't have a parent, and is not already a child of the target parent, add it.
-        if (node && !node.parent && !nodeGraphModel.findNodeWithId(node.id)) {
+        if (node && !node.parent && !graph.findNodeWithId(node.id)) {
           parentNode.addChild(node, { disableSelect: true });
         }
       }
@@ -85,7 +80,7 @@ export async function handleUICommand(
 
     /* Removed connection handling for now
     statusCallback('Wiring connections...');
-    connectNodes(nodeGraphModel, connections);
+    connectNodes(graph, connections);
 */
     await handleImageNodes(patch, createdNodes);
 
@@ -94,6 +89,10 @@ export async function handleUICommand(
       type: ChatMessageType.Assistant,
       content: 'UI generated successfully!'
     });
+
+    if (!undoGroup.isEmpty()) {
+      UndoQueue.instance.push(undoGroup);
+    }
   } catch (error: any) {
     const errorMessage = `Error: Failed to generate UI. ${error.message || 'An unknown error occurred.'}`;
     statusCallback(errorMessage);
@@ -133,72 +132,68 @@ function collectUserContext() {
 }
 
 function parseAiPatch(content: string): NodeGraphNodeJSON[] {
-  function cleanJsonResponse(str) {
+  function clean(str: string) {
     return str
-      .replace(/^```json\s*/, '') // remove leading ```json
-      .replace(/^```\s*/, '') // remove leading ```
-      .replace(/\s*```$/, '') // remove trailing ```
+      .replace(/^```json/i, '')
+      .replace(/```$/i, '')
       .trim();
   }
 
-  const raw = content; // whatever comes back
-  const cleaned = cleanJsonResponse(raw);
+  if (!content) throw new Error('Empty AI response.');
 
-  let parsed: NodeGraphNodeJSON[];
+  const cleaned = clean(content);
+
+  let parsed: any;
   try {
-    parsed = JSON.parse(cleaned) as NodeGraphNodeJSON[];
+    parsed = JSON.parse(cleaned);
   } catch (err) {
-    throw new Error('Invalid JSON returned by AI.');
+    console.error('Invalid JSON:', cleaned);
+    throw new Error('AI returned invalid JSON.');
   }
 
-  // TODO: validate with schema (e.g. AJV)
-  return normalizePatch(parsed);
+  if (!parsed || !Array.isArray(parsed.nodes)) {
+    throw new Error('AI returned unsupported format. Expected { nodes: [...] }.');
+  }
+
+  // Validate structure
+  for (const n of parsed.nodes) {
+    if (!n.id || typeof n !== 'object') {
+      throw new Error('AI returned a node missing id.');
+    }
+  }
+
+  return normalizePatch(parsed.nodes as NodeGraphNodeJSON[]);
 }
 
 function normalizePatch(patch: NodeGraphNodeJSON[]): NodeGraphNodeJSON[] {
   const idMap: Record<string, string> = {};
 
-  // First pass: collect all placeholder IDs and map them to new GUIDs
-  function collectIds(nodes: NodeGraphNodeJSON[]) {
-    if (!nodes) return;
-    for (const node of nodes) {
-      if (node.id?.startsWith('new-uuid-')) {
-        idMap[node.id] = guid();
+  for (const n of patch) {
+    if (n.id.startsWith('new-uuid-')) {
+      idMap[n.id] = guid();
+    }
+    if (Array.isArray(n.children)) {
+      for (const c of n.children) {
+        if (c.id && c.id.startsWith('new-uuid-')) {
+          idMap[c.id] = guid();
+        }
       }
-      collectIds(node.children);
     }
   }
-  collectIds(patch);
 
   if (Object.keys(idMap).length === 0) return patch;
 
-  // Second pass: traverse the whole patch and replace any string that is a placeholder ID
-  function replaceIn(obj: any) {
-    if (!obj) return;
-    if (Array.isArray(obj)) {
-      for (let i = 0; i < obj.length; i++) {
-        const value = obj[i];
-        if (typeof value === 'string' && idMap[value]) {
-          obj[i] = idMap[value];
-        } else {
-          replaceIn(value);
-        }
-      }
-    } else if (obj && typeof obj === 'object') {
-      for (const key in obj) {
-        if (Object.prototype.hasOwnProperty.call(obj, key)) {
-          const value = obj[key];
-          if (typeof value === 'string' && idMap[value]) {
-            obj[key] = idMap[value];
-          } else {
-            replaceIn(value);
-          }
-        }
+  // Replace IDs
+  for (const n of patch) {
+    if (idMap[n.id]) n.id = idMap[n.id];
+
+    if (Array.isArray(n.children)) {
+      for (const c of n.children) {
+        if (idMap[c.id]) c.id = idMap[c.id];
       }
     }
   }
 
-  replaceIn(patch);
   return patch;
 }
 
@@ -209,144 +204,116 @@ enum NodeStatus {
 }
 
 function buildNodesFromPatch(
-  patch: Partial<NodeGraphNodeJSON>[],
-  nodeGraphModel: NodeGraphModel
+  patch: NodeGraphNodeJSON[],
+  nodeGraphModel: NodeGraphModel,
+  undoGroup: UndoActionGroup
 ): Map<string, NodeGraphNode> {
-  const createdNodes = new Map<string, NodeGraphNode>();
-  const visited = new Set<string>();
+  if (!Array.isArray(patch)) {
+    throw new Error('AI patch must be an array of nodes.');
+  }
 
-  function applyParameters(node: NodeGraphNode, params?: Record<string, any>, state?: string) {
+  const created = new Map<string, NodeGraphNode>();
+
+  const index = new Map<string, NodeGraphNodeJSON>();
+  for (const n of patch) index.set(n.id, n);
+
+  function applyParams(node: NodeGraphNode, params?: any, state?: string) {
     if (!params) return;
-    for (const key in params) {
-      node.setParameter(key, params[key], state ? { state } : undefined);
+    for (const k in params) {
+      node.setParameter(k, params[k], state ? { state } : undefined);
     }
   }
 
-  function applyStateTransitions(node: NodeGraphNode, transitions?: Record<string, Record<string, any>>) {
+  function applyTransitions(node: NodeGraphNode, transitions?: Record<string, any>) {
     if (!transitions) return;
-
-    Object.entries(transitions).forEach(([stateName, transitionParams]) => {
-      Object.entries(transitionParams).forEach(([parameterName, curve]) => {
-        node.setStateTransition(stateName, parameterName, curve);
-      });
-    });
+    for (const state in transitions) {
+      for (const param in transitions[state]) {
+        node.setStateTransition(state, param, transitions[state][param]);
+      }
+    }
   }
 
-  /**
-   * Process a node from the patch, handling it according to its status:
-   * - UNCHANGED: Skip processing entirely
-   * - MODIFIED: Update only existing nodes with new properties
-   * - ADDED: Create new nodes only if they don't exist
-   */
-  function processNode(nodeJson: Partial<NodeGraphNodeJSON>): NodeGraphNode | null {
-    if (!nodeJson?.id) return null;
-    if (visited.has(nodeJson.id)) return null;
-    visited.add(nodeJson.id);
-    console.log('Processing node:', nodeJson);
+  for (const json of patch) {
+    const status = (json.status ?? '').toLowerCase();
 
-    // Skip unchanged nodes
-    if (nodeJson.status === NodeStatus.UNCHANGED) return null;
+    // Always resolve type
+    const typeName = transformComponentName(json.type);
+    if (!typeName) continue;
 
-    const typeName = nodeJson.type ? transformComponentName(nodeJson.type) : undefined;
-    if (!typeName) {
-      console.warn('Skipping node with no type:', nodeJson);
-      return null;
-    }
+    let node = nodeGraphModel.findNodeWithId(json.id);
 
-    let node = nodeGraphModel.findNodeWithId(nodeJson.id);
-
-    if (node) {
-      // Only update if node is marked as modified
-      if (nodeJson.status === NodeStatus.MODIFIED) {
-        setTimeout(() => {
-          if (nodeJson.label) node.setLabel(nodeJson.label);
-          applyParameters(node, nodeJson.parameters);
-        }, 0);
-      }
-    } else {
-      // Only create if node is marked as added
-      if (nodeJson.status !== NodeStatus.ADDED) {
-        console.warn('Skipping non-added node creation:', nodeJson);
-        return null;
-      }
-      const nodeData: NodeGraphNodeJSON = {
-        ...nodeJson,
+    if (!node && status === NodeStatus.ADDED) {
+      const data: NodeGraphNodeJSON = {
+        ...json,
         type: typeName,
-        children: [], // attach later
-        x: nodeJson.x ?? 0,
-        y: nodeJson.y ?? 0
-      } as NodeGraphNodeJSON;
+        children: [],
+        x: json.x ?? 0,
+        y: json.y ?? 0
+      };
 
-      setDefaultValues(nodeData);
-      node = NodeGraphNode.fromJSON(nodeData);
+      setDefaultValues(data);
+      node = NodeGraphNode.fromJSON(data);
 
       Object.defineProperty(node, 'owner', {
         value: nodeGraphModel,
         writable: true,
-        configurable: true,
-        enumerable: false
+        configurable: true
       });
+
+      const nref = node;
+      undoGroup.push({
+        undo: () => {
+          if (!nref.parent) nodeGraphModel.removeNode(nref);
+        }
+      });
+    } else if (node && status === NodeStatus.MODIFIED) {
+      applyParams(node, json.parameters);
     }
 
-    applyStateTransitions(node, nodeJson.stateTransitions);
-    if (nodeJson.stateParameters) {
-      for (const stateName in nodeJson.stateParameters) {
-        applyParameters(node, nodeJson.stateParameters[stateName], stateName);
+    if (!node) continue;
+
+    applyTransitions(node, json.stateTransitions);
+
+    if (json.stateParameters) {
+      for (const state in json.stateParameters) {
+        applyParams(node, json.stateParameters[state], state);
       }
     }
 
-    createdNodes.set(node.id, node);
-
-    if (Array.isArray(nodeJson.children)) {
-      for (const childJson of nodeJson.children) {
-        processNode(childJson);
-      }
-    }
-
-    return node;
+    created.set(json.id, node);
   }
 
-  for (const nodeJson of patch) {
-    processNode(nodeJson);
-  }
-
-  return createdNodes;
+  return created;
 }
 
 function applyHierarchy(
   patch: NodeGraphNodeJSON[],
-  createdNodes: Map<string, NodeGraphNode>,
-  nodeGraphModel: NodeGraphModel
+  created: Map<string, NodeGraphNode>,
+  graph: NodeGraphModel,
+  undoGroup: UndoActionGroup
 ) {
-  const visited = new Set<string>();
+  const index = new Map<string, NodeGraphNodeJSON>();
+  for (const n of patch) index.set(n.id, n);
 
-  function linkChildren(nodeJson: NodeGraphNodeJSON, parentNode?: NodeGraphNode) {
-    if (!nodeJson?.id || visited.has(nodeJson.id)) return;
-    visited.add(nodeJson.id);
+  for (const parentJson of patch) {
+    const parentNode = created.get(parentJson.id) || graph.findNodeWithId(parentJson.id);
 
-    // Prefer created node, fall back to existing model node
-    const node = createdNodes.get(nodeJson.id) || nodeGraphModel.findNodeWithId(nodeJson.id);
-    if (!node) {
-      console.warn('Could not find or create node with id:', nodeJson.id);
-      return;
-    }
+    if (!parentNode) continue;
 
-    if (parentNode) {
-      // Only add if not already attached
-      if (!parentNode.children.includes(node)) {
-        parentNode.addChild(node, { disableSelect: true });
+    if (Array.isArray(parentJson.children)) {
+      for (const childRef of parentJson.children) {
+        const childNode = created.get(childRef.id) || graph.findNodeWithId(childRef.id);
+
+        if (!childNode) continue;
+
+        if (childNode.parent !== parentNode) {
+          parentNode.addChild(childNode, {
+            disableSelect: true,
+            undo: undoGroup
+          });
+        }
       }
     }
-
-    if (Array.isArray(nodeJson.children)) {
-      for (const childJson of nodeJson.children) {
-        linkChildren(childJson, node);
-      }
-    }
-  }
-
-  for (const nodeJson of patch) {
-    linkChildren(nodeJson, undefined);
   }
 }
 
@@ -385,9 +352,9 @@ async function handleImageNodes(patch: NodeGraphNodeJSON[], createdNodes: Map<st
       return;
     }
 
-    const prompt = originalJson.parameters.prompt;
+    const userPrompt = originalJson.parameters.prompt;
     // Skip if no prompt is provided
-    if (!prompt) {
+    if (!userPrompt) {
       return;
     }
 
@@ -398,11 +365,11 @@ async function handleImageNodes(patch: NodeGraphNodeJSON[], createdNodes: Map<st
 
     // Handle image generation for 'src' port
     if (node.findPortWithName('src')) {
-      const generationPromise = Ai.makeImageGenerationRequest(prompt)
+      const generationPromise = generateImage({ userPrompt })
         .then((imageData) => saveImageDataToDisk(imageData))
         .then((url) => node.setParameter('src', url))
         .catch((err) => {
-          console.error(`Image generation failed for node ${id} (prompt: "${prompt}"):`, err);
+          console.error(`Image generation failed for node ${id} (prompt: "${userPrompt}"):`, err);
           throw err;
         });
       generationPromises.push(generationPromise);
@@ -412,13 +379,16 @@ async function handleImageNodes(patch: NodeGraphNodeJSON[], createdNodes: Map<st
     const styleCss = originalJson.parameters.styleCss;
     if (styleCss) {
       if (/image-new-uuid/.test(styleCss)) {
-        const generationPromise = Ai.makeImageGenerationRequest(prompt)
+        const generationPromise = generateImage({ userPrompt })
           .then((imageData) => saveImageDataToDisk(imageData))
           .then((url) => {
             node.setParameter('styleCss', replaceImageUuid(styleCss, url));
           })
           .catch((err) => {
-            console.error(`Image generation failed for node ${id} (styleCss replacement, prompt: "${prompt}"):`, err);
+            console.error(
+              `Image generation failed for node ${id} (styleCss replacement, prompt: "${userPrompt}"):`,
+              err
+            );
             throw err;
           });
         generationPromises.push(generationPromise);

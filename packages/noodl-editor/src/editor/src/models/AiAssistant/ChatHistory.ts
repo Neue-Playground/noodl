@@ -1,5 +1,4 @@
 import { AiAssistantModel } from '@noodl-models/AiAssistant/AiAssistantModel';
-import { AiUtils } from '@noodl-models/AiAssistant/context/ai-utils';
 import { Model } from '@noodl-utils/model';
 
 export enum ChatMessageType {
@@ -115,7 +114,7 @@ export class ChatHistory extends Model<ChatHistoryEvent, ChatHistoryEvents> {
       throw new Error();
     }
 
-    message.snowflakeId = AiUtils.generateSnowflakeId();
+    message.snowflakeId = this.generateSnowflakeId();
     if (!message.type) message.type = ChatMessageType.User;
     if (!message.metadata) message.metadata = {};
 
@@ -123,6 +122,12 @@ export class ChatHistory extends Model<ChatHistoryEvent, ChatHistoryEvents> {
     this.notifyListeners(ChatHistoryEvent.MessagesChanged);
 
     return message.snowflakeId;
+  }
+
+  generateSnowflakeId() {
+    const timestamp = Date.now().toString(16).padStart(12, '0');
+    const randomString = Math.random().toString(36).substring(2, 8);
+    return `${timestamp}-${randomString}`;
   }
 
   /**

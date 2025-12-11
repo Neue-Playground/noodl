@@ -1,12 +1,14 @@
+import React, { RefObject, useEffect, useState } from 'react';
+
+import { exportTemplateToCloud } from '@noodl-utils/exporter/cloudSyncFunctions';
+
 import { PrimaryButton } from '@noodl-core-ui/components/inputs/PrimaryButton';
 import { TextInput, TextInputVariant } from '@noodl-core-ui/components/inputs/TextInput';
 import { BaseDialog } from '@noodl-core-ui/components/layout/BaseDialog';
-import { exportTemplateToCloud } from '@noodl-utils/exporter/cloudSyncFunctions';
-import React, { RefObject, useEffect, useState } from 'react';
 
 type ModalProps = {
-  isVisible: boolean,
-  onClose: () => void,
+  isVisible: boolean;
+  onClose: () => void;
   toastActivity: any;
   triggerRef: RefObject<HTMLElement>;
 };
@@ -68,19 +70,13 @@ export default function NeueSaveTemplateToCloud(props: ModalProps) {
   };
 
   return (
-    <BaseDialog
-      triggerRef={props.triggerRef}
-      isVisible={props.isVisible}
-      onClose={props.onClose}
-      isLockingScroll
-    >
+    <BaseDialog triggerRef={props.triggerRef} isVisible={props.isVisible} onClose={props.onClose} isLockingScroll>
       <div style={{ width: 400 }}>
         <div
           style={{
             backgroundColor: '#444444',
             position: 'relative',
             maxHeight: `calc(90vh - 40px)`,
-            // @ts-expect-error https://github.com/frenic/csstype/issues/62
             overflowY: 'overlay',
             overflowX: 'hidden',
             padding: '32px'
@@ -89,47 +85,46 @@ export default function NeueSaveTemplateToCloud(props: ModalProps) {
           <TextInput
             value={description}
             variant={TextInputVariant.InModal}
-            label='Template description'
+            label="Template description"
             onChange={(ev) => setDescription(ev.currentTarget.value)}
             hasBottomSpacing={true}
           />
           <TextInput
-            type='file'
+            type="file"
             value={null}
             variant={TextInputVariant.InModal}
-            label='Template image'
+            label="Template image"
             onChange={handleImageUpload}
             hasBottomSpacing={true}
-            acceptedFileTypes='.png, .jpg, .jpeg'
+            acceptedFileTypes=".png, .jpg, .jpeg"
           />
 
           {error && <div style={{ color: 'red' }}>{error}</div>}
 
-          <PrimaryButton label="Save template" onClick={async () => {
-            setIsLoading(true);
-            try {
-              const response = await exportTemplateToCloud(description, imageURI);
-              if (response) {
-                props.toastActivity.showSuccess('Template successfully saved');
+          <PrimaryButton
+            label="Save template"
+            onClick={async () => {
+              setIsLoading(true);
+              try {
+                const response = await exportTemplateToCloud(description, imageURI);
+                if (response) {
+                  props.toastActivity.showSuccess('Template successfully saved');
 
-                props.onClose();
+                  props.onClose();
+                } else {
+                  setIsLoading(false);
+                }
+              } catch (error) {
+                setError('Failed to save the template: ' + error);
+                props.toastActivity.showError('ERROR while saving the temlate');
               }
-              else {
-                setIsLoading(false);
-
-              }
-            } catch (error) {
-              setError('Failed to save the template: ' + error);
-              props.toastActivity.showError('ERROR while saving the temlate');
-            }
-            setIsLoading(false);
-
-          }}
+              setIsLoading(false);
+            }}
             isLoading={isLoading}
-            isDisabled={isLoading} />
+            isDisabled={isLoading}
+          />
         </div>
       </div>
-
     </BaseDialog>
   );
 }

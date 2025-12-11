@@ -3,6 +3,9 @@ export type NeueSession = {
   refreshToken: string;
   token: string;
   tokenUpdatedAt: number;
+  tokenExpiresAt: number;
+  aiTokenExpiresAt?: number;
+  aiToken?: string;
 };
 
 export type NeueDevice = {

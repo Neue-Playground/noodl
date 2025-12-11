@@ -1,8 +1,8 @@
 import { AiNodeTemplate } from '@noodl-models/AiAssistant/interfaces';
 import { ConnectionInspector } from '@noodl-utils/connectionInspector';
-import { ChatMessageType } from '../ChatHistory';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 
+import { ChatMessageType } from '../ChatHistory';
 import { chatStream as cloudChatStream } from '../cloud/CloudAiClient';
 import { conversationStore } from '../conversationStore';
 import { extractCodeBlock } from './helper';
@@ -36,8 +36,13 @@ export const template: AiNodeTemplate = {
 
     const currentScript = node.getParameter('functionScript');
     // Build minimal prompt and context for cloud agent
-    const lastUserMsg = [...chatHistory.messages].reverse().find((m) => m.metadata?.user);
+    const lastUserMsg = [...chatHistory.messages].reverse().find((m) => m.type === 'user' || m.metadata?.user);
     const userPrompt = lastUserMsg ? lastUserMsg.content : '';
+
+    if (!userPrompt) {
+      throw new Error('No user prompt provided to chart generator');
+    }
+
     const userInfo = LocalUserIdentity.getUserInfo();
     const userId = userInfo?.id || 'local';
 

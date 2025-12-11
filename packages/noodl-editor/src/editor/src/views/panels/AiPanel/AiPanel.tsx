@@ -3,7 +3,6 @@ import { AiStore } from '@noodl-store/AiAssistantStore';
 import React, { useState } from 'react';
 
 import { AiAssistantEvent, AiAssistantModel } from '@noodl-models/AiAssistant/AiAssistantModel';
-import { handleUICommand } from '../../Clippy/Commands/UICommand';
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { tracker } from '@noodl-utils/tracker';
@@ -15,7 +14,8 @@ import { TextArea } from '@noodl-core-ui/components/inputs/TextArea';
 import { Center } from '@noodl-core-ui/components/layout/Center';
 import { VStack } from '@noodl-core-ui/components/layout/Stack';
 import { Text, TextType } from '@noodl-core-ui/components/typography/Text';
-import { handleSuggestionCommand } from '../../Clippy/Commands/SuggestCommand';
+
+import { handleUICommand } from '../../Clippy/Commands/UICommand';
 
 export function AiPanel() {
   useModernModel(AiAssistantModel.instance, [
@@ -25,7 +25,6 @@ export function AiPanel() {
 
   const [message, setMessage] = useState('');
   const [isLoading, setIsLoading] = useState(false);
-  const [suggestions, setSuggestions] = useState<any[]>([]);
   const messages = AiAssistantModel.instance.globalChatHistory.messages;
   const streamingContent = AiAssistantModel.instance.globalChatStreamingContent;
 
@@ -61,27 +60,6 @@ export function AiPanel() {
         type: ChatMessageType.Assistant,
         content: `Error: ${error.message}`
       });
-    } finally {
-      setIsLoading(false);
-    }
-
-  };
-
-  const handleSuggestion = async () => {
-    if (!message.trim() || isLoading) return;
-
-    const userMessage = message.trim();
-    setMessage('');
-    setIsLoading(true);
-
-    try {
-      const suggestion = await handleSuggestionCommand(userMessage, (status) => {
-        // You can handle status updates here if needed
-        console.log(status);
-      });
-      setSuggestions(suggestion);
-    } catch (error) {
-      console.error('Error getting suggestion:', error);
     } finally {
       setIsLoading(false);
     }
@@ -126,13 +104,6 @@ export function AiPanel() {
                     isDisabled={!message.trim() || isLoading}
                     onClick={handleSendMessage}
                   />
-                  <PrimaryButton
-                    label={isLoading ? 'Getting Suggestions...' : 'Suggest'}
-                    size={PrimaryButtonSize.Small}
-                    isGrowing
-                    isDisabled={isLoading}
-                    onClick={handleSuggestion}
-                  />
                 </VStack>
               </>
             )
@@ -162,15 +133,6 @@ export function AiPanel() {
               content={streamingContent}
             />
           )}
-          {suggestions.map((suggestion, index) => (
-            <AiChatMessage
-              key={index}
-              user={{
-                role: 'assistant'
-              }}
-              content={`Suggestion: ${suggestion.name} - ${suggestion.description}`}
-            />
-          ))}
         </AiChatBox>
       </div>
     </div>

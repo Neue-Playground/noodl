@@ -1,8 +1,9 @@
-export type AiNodeTemplateType = 'pink' | 'purple' | 'green' | 'grey' | 'blue';
-export type MessageType = 'text' | 'json' | 'code' | 'image';
 import { AiTemplate } from '@noodl-models/AiAssistant/AiAssistantModel';
 import { ChatHistory, ChatMessage } from '@noodl-models/AiAssistant/ChatHistory';
 import { NodeGraphNode } from '@noodl-models/nodegraphmodel';
+
+export type AiNodeTemplateType = 'pink' | 'purple' | 'green' | 'grey' | 'blue';
+export type MessageType = 'text' | 'json' | 'code' | 'image';
 
 export interface AiMessage {
   messageId: string;
@@ -23,8 +24,8 @@ export interface Conversation {
 // --- Cloud chat API types ---
 // Request payload for a non-streaming chat call
 export interface ChatRequest {
-  userId?: string;
-  templateId?: string;
+  userId: string;
+  templateId: string;
   conversationId?: string;
   userPrompt: string;
   provider?: unknown;
@@ -62,7 +63,6 @@ export interface ChatStreamResult {
 export type ChatFunction = (body: ChatRequest) => Promise<ChatResponse>;
 export type ChatStreamFunction = (params: ChatStreamParams) => Promise<ChatStreamResult>;
 
-
 export interface NodeAiMeta {
   conversationId: string;
   nodeId: string;
@@ -83,5 +83,7 @@ export interface IAiCopilotContext {
   abortController?: AbortController;
   // Helpers exposed to templates to perform chat calls scoped to this context.
   chatStream?: (params: ChatStreamParams) => Promise<ChatStreamResult>;
-  chatStreamXml?: (params: ChatStreamParams & { onTagOpen?: (tagName: string, attributes?: Record<string, string>) => void }) => Promise<ChatStreamResult>;
+  chatStreamXml?: (
+    params: ChatStreamParams & { onTagOpen?: (tagName: string, attributes?: Record<string, string>) => void }
+  ) => Promise<ChatStreamResult>;
 }

@@ -1,6 +1,8 @@
-import { Slot } from '@noodl-core-ui/types/global';
 import classNames from 'classnames';
 import React, { CSSProperties, useLayoutEffect, useRef, useState } from 'react';
+
+import { Slot } from '@noodl-core-ui/types/global';
+
 import css from './PopupSection.module.scss';
 
 /**
@@ -78,7 +80,6 @@ export function PopupSection({
           style={{
             ...contentContainerStyle,
             height: shouldScroll ? maxContentHeight : undefined,
-            // @ts-expect-error
             overflowY: shouldScroll ? 'overlay' : undefined
           }}
         >

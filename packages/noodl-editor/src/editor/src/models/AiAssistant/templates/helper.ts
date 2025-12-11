@@ -28,6 +28,25 @@ export function extractCodeBlock(text: string) {
   return text;
 }
 
+export function parseAIResponse(text: string) {
+  const labelMatch = text.match(/<label>([\s\S]*?)<\/label>/i);
+  if (!labelMatch) throw new Error('Missing <label> field');
+  const label = labelMatch[1].trim();
+  if (!label.length) throw new Error('Label is empty');
+
+  const explainMatch = text.match(/<explain>([\s\S]*?)<\/explain>/i);
+  if (!explainMatch) throw new Error('Missing <explain> field');
+  const explain = explainMatch[1].trim();
+  if (!explain.length) throw new Error('Explanation is empty');
+
+  const codeMatch = text.match(/```(?:javascript|js)\s*([\s\S]*?)\s*```/i);
+  if (!codeMatch) throw new Error('Missing JavaScript code fence');
+  const code = codeMatch[1].trim();
+  if (!code.length) throw new Error('Code block is empty');
+
+  return { label, explain, code };
+}
+
 export function extractCodeBlockWithText(text: string, replaceCodeBlock = '{current-code}') {
   const codeBlockRegex = /```[\s\S]*?```/g;
   const codeContentRegex = /```.*\n([\s\S]*?)```/;

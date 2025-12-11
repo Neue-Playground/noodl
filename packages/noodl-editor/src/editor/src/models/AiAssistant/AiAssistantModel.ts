@@ -1,13 +1,13 @@
 import { NodeGraphContextTmp } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { filesystem } from '@noodl/platform';
 
+import { AiCopilotContext } from '@noodl-models/AiAssistant/AiCopilotContext';
 import { aiNodeTemplates } from '@noodl-models/AiAssistant/AiTemplates';
 import { ChatHistory, ChatHistoryEvent, ChatMessage, ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
 import { AiNodeTemplate, AiNodeTemplateType } from '@noodl-models/AiAssistant/interfaces';
 import { ComponentModel } from '@noodl-models/componentmodel';
 import { NodeGraphModel, NodeGraphNode, NodeGraphNodeSet } from '@noodl-models/nodegraphmodel';
 import { ProjectModel } from '@noodl-models/projectmodel';
-import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 import { Model } from '@noodl-utils/model';
 import { guid } from '@noodl-utils/utils';
 
@@ -259,7 +259,6 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
     }
 
     const req = Function('return require')() as any;
-    const { AiCopilotContext } = req('@noodl-models/AiAssistant/AiCopilotContext');
     const context = new AiCopilotContext(template, chatHistory, node);
     // If a server conversation exists, hydrate messages from server as session-local cache
     try {
@@ -317,12 +316,9 @@ export class AiAssistantModel extends Model<AiAssistantEvent, AiAssistantEvents>
     });
 
     // Cloud: delegate prompts to server via templateId; include minimal context if desired
-    const userInfo = LocalUserIdentity.getUserInfo();
-    const userId = userInfo?.id || 'local';
     const templateId = context.template?.templateId || context.template?.id || 'chat';
 
     const result = await cloudChat({
-      userId,
       templateId,
       userPrompt,
       conversationId: undefined,

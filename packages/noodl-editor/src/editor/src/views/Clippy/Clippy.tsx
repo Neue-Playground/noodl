@@ -1,6 +1,5 @@
 import { useNodeGraphContext } from '@noodl-contexts/NodeGraphContext/NodeGraphContext';
 import { useModernModel } from '@noodl-hooks/useModel';
-import { AiStore } from '@noodl-store/AiAssistantStore';
 import classNames from 'classnames';
 import React, { useCallback, useEffect, useRef, useState } from 'react';
 
@@ -48,32 +47,24 @@ export default function Clippy() {
   const ref = useRef<HTMLDivElement>();
   const aiAssistantModel = useModernModel(AiAssistantModel.instance);
   const nodeGraphContext = useNodeGraphContext();
-
-  // States for AI versions
-  const [isOpenAiVerified, setIsOpenAiVerified] = useState(false);
-  const [isGeminiVerified, setIsGeminiVerified] = useState(true);
-  const [hasOpenAiKey, setHasOpenAiKey] = useState(!!AiStore.getOpenAiApiKey());
-  const [hasGeminiKey, setHasGeminiKey] = useState(!!AiStore.getGeminiApiKey());
   const [isCommandsEnabled, setIsCommandEnabled] = useState(true);
-  const [selectedAiModel, setSelectedAiModel] = useState(AiStore.getAiSelectedModel());
-
   const isFrontend = nodeGraphContext.active === 'frontend';
 
   // Update commandFilter to route commands based on selected AI model
   const commandFilter = (x) => {
     // Check if the command is available for the current frontend/backend context
     const isContextValid = (x.availableOnFrontend && isFrontend) || (x.availableOnBackend && !isFrontend);
-    if (!isContextValid) {
-      return false;
-    }
-
-    // TODO: Check if AI is available for the user on the server
-
-    return true;
+    return isContextValid;
   };
 
   const promptToNode = promptToNodeCommands.filter(commandFilter);
   const copilotNodes = copilotNodeCommands.filter(commandFilter);
+
+  // TODO: Check if AI is available for the user on the server, either through login or just a health check
+  // For now, we assume AI is always available
+  useEffect(() => {
+    setIsCommandEnabled(true);
+  }, []);
 
   const ALL_OPTIONS = React.useMemo(() => {
     return [...promptToNode, ...copilotNodes];
@@ -189,7 +180,7 @@ export default function Clippy() {
       });
 
       setAIThinkingStatus('Give me a second...');
-      const res = await handleCommand(command, prompt, { nodeGraph: nodeGraphContext.nodeGraph }, (status) =>
+      const res = await handleCommand(command, prompt, nodeGraphContext.nodeGraph, (status) =>
         setAIThinkingStatus(status)
       );
       if (res) {

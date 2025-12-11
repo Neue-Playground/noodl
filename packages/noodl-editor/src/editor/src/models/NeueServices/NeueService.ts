@@ -1,7 +1,14 @@
-import { AuthenticationDetails, CognitoUser, CognitoUserPool } from 'amazon-cognito-identity-js';
+import {
+  AuthenticationDetails,
+  CognitoUser,
+  CognitoUserPool,
+  CognitoRefreshToken,
+  CognitoUserSession
+} from 'amazon-cognito-identity-js';
 import { JSONStorage } from '@noodl/platform';
 
 import { api, cognito } from '@noodl-constants/NeueBackend';
+import { CloudAiClient } from '@noodl-models/AiAssistant/cloud/CloudAiClient';
 import { ProjectItem } from '@noodl-utils/LocalProjectsModel';
 import { Model } from '@noodl-utils/model';
 
@@ -16,41 +23,159 @@ export class NeueService extends Model {
     super();
   }
 
-  public login(email: string, password: string) {
-    return new Promise<any>((resolve, reject) => {
-      const authDetails = new AuthenticationDetails({
-        Username: email,
-        Password: password
-      });
-      const userPool = new CognitoUserPool({
-        UserPoolId: cognito.userPoolId,
-        ClientId: cognito.clientId
-      });
-      const cognitoUser = new CognitoUser({
-        Username: email,
-        Pool: userPool
-      });
-      this.asyncAuthenticateUser(cognitoUser, authDetails)
-        .then((result) => {
-          const accessToken = result.getIdToken().getJwtToken();
-          this.session = {
-            email,
-            refreshToken: result.getRefreshToken().getToken(),
-            token: accessToken,
-            tokenUpdatedAt: Date.now()
-          };
-          JSONStorage.set('neueSession', this.session);
-          resolve(this.session);
-        })
-        .catch((err) => {
-          reject(err);
-        });
+  public async login(email: string, password: string) {
+    const authDetails = new AuthenticationDetails({
+      Username: email,
+      Password: password
     });
+
+    const userPool = new CognitoUserPool({
+      UserPoolId: cognito.userPoolId,
+      ClientId: cognito.clientId
+    });
+
+    const cognitoUser = new CognitoUser({
+      Username: email,
+      Pool: userPool
+    });
+
+    // Step 1. Authenticate against Cognito
+    const session = await this.authenticate(cognitoUser, authDetails);
+
+    const idToken = session.getIdToken();
+    const refreshToken = session.getRefreshToken();
+
+    const tokens = {
+      email,
+      token: idToken.getJwtToken(),
+      refreshToken: refreshToken.getToken(),
+      tokenExpiresAt: idToken.getExpiration() * 1000, // decode real expiry
+      refreshTokenExpiresAt: refreshToken.getExpiration?.() ?? null,
+      tokenUpdatedAt: Date.now()
+    };
+
+    this.session = tokens;
+    try {
+      JSONStorage.set('neueSession', this.session);
+    } catch (err) {
+      console.warn('Failed to persist session to storage:', err);
+    }
+
+    // Step 2. Exchange Cognito token for internal AI token
+    await CloudAiClient.exchangeTokenForAi(tokens.token);
+
+    return this.session;
   }
 
-  private asyncAuthenticateUser(cognitoUser, cognitoAuthenticationDetails) {
-    return new Promise<any>(function (resolve, reject) {
-      cognitoUser.authenticateUser(cognitoAuthenticationDetails, {
+  private requireSession(): NeueSession {
+    if (!this.session) {
+      throw new Error('No active session. User must be logged in.');
+    }
+    return this.session;
+  }
+
+  private async refreshCognitoToken(): Promise<void> {
+    const session = this.requireSession();
+
+    const pool = new CognitoUserPool({
+      UserPoolId: cognito.userPoolId,
+      ClientId: cognito.clientId
+    });
+
+    const user = new CognitoUser({
+      Username: session.email,
+      Pool: pool
+    });
+
+    const refreshToken = new CognitoRefreshToken({
+      RefreshToken: session.refreshToken
+    });
+
+    const refreshed = await new Promise<CognitoUserSession>((resolve, reject) => {
+      user.refreshSession(refreshToken, (err, newSession) => {
+        if (err) reject(err);
+        else resolve(newSession);
+      });
+    });
+
+    const idToken = refreshed.getIdToken();
+    const refreshTok = refreshed.getRefreshToken();
+
+    this.session = {
+      ...session,
+      token: idToken.getJwtToken(),
+      refreshToken: refreshTok.getToken(),
+      tokenExpiresAt: idToken.getExpiration() * 1000,
+      tokenUpdatedAt: Date.now()
+    };
+
+    try {
+      JSONStorage.set('neueSession', this.session);
+    } catch (err) {
+      console.warn('Failed to persist refreshed token to storage:', err);
+    }
+  }
+
+  public async getValidAiToken(): Promise<string> {
+    if (!this.session) {
+      const ok = await this.load();
+      if (!ok) throw new Error('Not authenticated');
+    }
+
+    const session = this.requireSession();
+    const now = Date.now();
+
+    // 1. Refresh Cognito ID token if needed
+    if (session.tokenExpiresAt && now >= session.tokenExpiresAt - 15000) {
+      await this.refreshCognitoToken();
+    }
+
+    const updated = this.requireSession();
+    const aiToken = updated.aiToken;
+    const aiExpires = updated.aiTokenExpiresAt;
+
+    const expired = !aiToken || !aiExpires || aiExpires <= now;
+
+    // 2. Refresh AI token if needed
+    if (expired) {
+      const newToken = await CloudAiClient.exchangeTokenForAi(updated.token);
+      const decoded = this.decodeJwt(newToken);
+      const expiresAt = decoded.exp * 1000;
+
+      this.session = {
+        ...updated,
+        aiToken: newToken,
+        aiTokenExpiresAt: expiresAt
+      };
+
+      try {
+        JSONStorage.set('neueSession', this.session);
+      } catch (err) {
+        console.warn('Failed to persist AI token to storage:', err);
+      }
+
+      return newToken;
+    }
+
+    return aiToken;
+  }
+
+  private decodeJwt(token: string): any | null {
+    try {
+      const [, payload] = token.split('.');
+      if (!payload) return null;
+
+      const decoded = JSON.parse(atob(payload.replace(/-/g, '+').replace(/_/g, '/')));
+      return decoded;
+    } catch (err) {
+      console.error('Failed to decode JWT:', err);
+      return null;
+    }
+  }
+
+  private authenticate(cognitoUser: CognitoUser, authDetails: AuthenticationDetails): Promise<any> {
+    return new Promise((resolve, reject) => {
+      cognitoUser.authenticateUser(authDetails, {
         onSuccess: resolve,
         onFailure: reject,
         newPasswordRequired: resolve
@@ -62,8 +187,23 @@ export class NeueService extends Model {
     return this.session !== undefined;
   }
 
+  public getCurrentNeueSession() {
+    return this.session;
+  }
+
   public logout() {
     this.notifyListeners('signedIn', false);
+    // Clear AI JWT and Cognito tokens
+    if (this.session) {
+      this.session.aiToken = undefined;
+      this.session.token = '';
+      this.session.refreshToken = '';
+      try {
+        JSONStorage.set('neueSession', this.session);
+      } catch (err) {
+        console.warn('Failed to clear session from storage:', err);
+      }
+    }
     return this.reset();
   }
 
@@ -96,9 +236,14 @@ export class NeueService extends Model {
                   email: data.email,
                   refreshToken: data.refreshToken,
                   token: session.getIdToken().getJwtToken(),
-                  tokenUpdatedAt: Date.now()
+                  tokenUpdatedAt: Date.now(),
+                  tokenExpiresAt: session.getIdToken().getExpiration() * 1000
                 };
-                JSONStorage.set('neueSession', this.session);
+                try {
+                  JSONStorage.set('neueSession', this.session);
+                } catch (err) {
+                  console.warn('Failed to persist loaded session to storage:', err);
+                }
                 resolve(true);
               }
             });

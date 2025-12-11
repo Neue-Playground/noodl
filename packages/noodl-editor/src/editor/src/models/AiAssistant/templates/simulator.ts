@@ -19,8 +19,14 @@ export const template: AiNodeTemplate = {
       name: 'Processing'
     });
     try {
-      const lastUserMsg = [...context.chatHistory.messages].reverse().find((m) => m.metadata?.user);
+      const lastUserMsg = [...context.chatHistory.messages]
+        .reverse()
+        .find((m) => m.type === 'user' || m.metadata?.user);
       const prompt = lastUserMsg ? lastUserMsg.content : '';
+
+      if (!prompt) {
+        throw new Error('No user prompt provided to simulator generator');
+      }
 
       // Prepare the conversation history for context
       const conversationHistory = context.chatHistory.messages

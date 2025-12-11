@@ -19,17 +19,18 @@ function DeployPopupChild() {
           backgroundColor: '#444444',
           position: 'relative',
           maxHeight: `calc(90vh - 40px)`,
-          // @ts-expect-error https://github.com/frenic/csstype/issues/62
           overflowY: 'overlay',
           overflowX: 'hidden'
         }}
       >
         <PopupSection title="Deploy options" />
 
-        <Tabs tabs={[
-          { label: 'Self Hosting', content: <DeployToFolderTab />, testId: 'self-hosting-tab-button' },
-          { label: 'Neue Sandbox', content: <DeployToSandboxTab />, testId: 'self-hosting-tab-button' }
-        ]} />
+        <Tabs
+          tabs={[
+            { label: 'Self Hosting', content: <DeployToFolderTab />, testId: 'self-hosting-tab-button' },
+            { label: 'Neue Sandbox', content: <DeployToSandboxTab />, testId: 'self-hosting-tab-button' }
+          ]}
+        />
 
         {hasActivity && <ActivityIndicator isOverlay />}
       </div>

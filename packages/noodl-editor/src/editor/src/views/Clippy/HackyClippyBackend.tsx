@@ -1,12 +1,10 @@
 import { AiAssistantModel } from '@noodl-models/AiAssistant';
-import { Ai } from '@noodl-models/AiAssistant/api';
 import { ChatMessageType } from '@noodl-models/AiAssistant/ChatHistory';
-import { LocalUserIdentity } from '@noodl-utils/LocalUserIdentity';
 
+import { CloudAiClient } from '../../models/AiAssistant/cloud/CloudAiClient';
 import { NodeGraphEditor } from '../nodegrapheditor';
 import { copilotNodeCommands, copilotNodeInstaPromptable } from './ClippyCommandsMetadata';
 import { handleImageCommand } from './Commands/ImageCommand';
-import { handleSuggestionCommand } from './Commands/SuggestCommand';
 import { handleUICommand } from './Commands/UICommand';
 
 export type CommandResultItem = {
@@ -15,30 +13,22 @@ export type CommandResultItem = {
   prompt: string;
 };
 
-export interface CommandHandlerOptions {
-  nodeGraph: NodeGraphEditor;
-}
-
 export async function handleCommand(
   command: string,
   prompt: string,
-  options: CommandHandlerOptions,
+  nodeGraph: NodeGraphEditor,
   statusCallback: (string) => void
 ): Promise<CommandResultItem[] | void> {
   console.log(command, prompt);
-  console.log(options.nodeGraph);
+  console.log(nodeGraph);
   if (command === '/ui') {
-    return await handleUICommand(prompt, statusCallback, {
-      allowImageGeneration: true, //TODO: check if AI image generation is enabled
-      allowImageNode: true,
-      nodeGraphModel: options.nodeGraph.model
-    });
+    return await handleUICommand(prompt, statusCallback, nodeGraph.model);
   } else if (copilotNodeInstaPromptable.includes(command)) {
     const item = copilotNodeCommands.find((x) => x.title.toLowerCase() === command);
     if (!item) throw new Error('Invalid command');
     const templateId = item.templateId;
 
-    const panAndScale = options.nodeGraph.getPanAndScale();
+    const panAndScale = nodeGraph.getPanAndScale();
 
     const x = Math.round(Math.random() * 100 + 50);
     const y = Math.round(Math.random() * 100 + 50);
@@ -51,9 +41,8 @@ export async function handleCommand(
     const context = await AiAssistantModel.instance.createNode(templateId, null, scaledPos);
     context.chatHistory.add({
       content: prompt,
-      metadata: {
-        user: LocalUserIdentity.getUserInfo()
-      }
+      type: ChatMessageType.User,
+      metadata: { user: true }
     });
 
     statusCallback('Processing...');
@@ -62,9 +51,7 @@ export async function handleCommand(
     return;
   } else if (command === '/image') {
     return await handleImageCommand(prompt, statusCallback);
-  } else if (command === '/suggest') {
-    return await handleSuggestionCommand(prompt, statusCallback);
-  } else if (command === '/chat' || command === '/ask') {
+  } else if (command === '/chat') {
     return await handleGeneralChatCommand(prompt, statusCallback);
   }
 }
@@ -75,15 +62,15 @@ async function handleGeneralChatCommand(prompt: string, statusCallback: (string)
   // Add user message to global chat
   AiAssistantModel.instance.addGlobalChatMessage({
     type: ChatMessageType.User,
-    content: prompt,
-    metadata: {
-      user: LocalUserIdentity.getUserInfo()
-    }
+    content: prompt
   });
 
   // Send only the new user prompt to the server. Global chat history is kept locally
   // and should not be sent to the cloud — the server maintains its own conversation state.
-  const response = await Ai.chat({ userPrompt: prompt });
+  const response = await CloudAiClient.chat({
+    userPrompt: prompt,
+    templateId: 'chat'
+  });
 
   AiAssistantModel.instance.addGlobalChatMessage({
     type: ChatMessageType.Assistant,
