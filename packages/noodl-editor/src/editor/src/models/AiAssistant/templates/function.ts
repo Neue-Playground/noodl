@@ -80,17 +80,10 @@ export const template: AiNodeTemplate = {
 
       // Remove markdown code fence from collectedCode if present
       let finalCode = collectedCode.trim();
-      if (finalCode.startsWith('```javascript')) {
-        finalCode = finalCode.substring(12);
-      } else if (finalCode.startsWith('```js')) {
-        finalCode = finalCode.substring(5);
-      } else if (finalCode.startsWith('```')) {
-        finalCode = finalCode.substring(3);
-      }
-      if (finalCode.endsWith('```')) {
-        finalCode = finalCode.substring(0, finalCode.length - 3);
-      }
+      finalCode = finalCode.replace(/^```[a-zA-Z]*\n/, '');
+      finalCode = finalCode.replace(/```$/, '');
       finalCode = finalCode.trim();
+
       if (!finalCode) throw new Error('No function code generated');
 
       // Validate code
@@ -100,10 +93,11 @@ export const template: AiNodeTemplate = {
         throw new Error('Generated JavaScript contains syntax errors');
       }
 
+      context.node.setLabel(label || 'Generated Function');
       context.node.setParameter('functionScript', finalCode);
 
-      if (!existingConversationId && conversation?.conversationId) {
-        conversationStore.linkConversationToNode(context.node.id, conversation.conversationId);
+      if (!existingConversationId && conversation) {
+        conversationStore.linkConversationToNode(context.node.id, conversation);
       }
 
       context.chatHistory.updateAssistantStreaming(`**${label}**\n\n${explain}`);

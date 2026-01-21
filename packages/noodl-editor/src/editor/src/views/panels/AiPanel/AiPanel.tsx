@@ -35,15 +35,6 @@ export function AiPanel() {
     setMessage('');
     setIsLoading(true);
 
-    // Add user message to global chat
-    AiAssistantModel.instance.addGlobalChatMessage({
-      type: ChatMessageType.User,
-      content: userMessage,
-      metadata: {
-        user: LocalUserIdentity.getUserInfo()
-      }
-    });
-
     // Track the message
     tracker.track('AI Panel Chat Message', {
       prompt: userMessage,

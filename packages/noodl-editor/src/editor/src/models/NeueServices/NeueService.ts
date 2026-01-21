@@ -24,6 +24,8 @@ export class NeueService extends Model {
   }
 
   public async login(email: string, password: string) {
+    console.log('Login started for:', email);
+
     const authDetails = new AuthenticationDetails({
       Username: email,
       Password: password
@@ -39,32 +41,53 @@ export class NeueService extends Model {
       Pool: userPool
     });
 
-    // Step 1. Authenticate against Cognito
-    const session = await this.authenticate(cognitoUser, authDetails);
-
-    const idToken = session.getIdToken();
-    const refreshToken = session.getRefreshToken();
-
-    const tokens = {
-      email,
-      token: idToken.getJwtToken(),
-      refreshToken: refreshToken.getToken(),
-      tokenExpiresAt: idToken.getExpiration() * 1000, // decode real expiry
-      refreshTokenExpiresAt: refreshToken.getExpiration?.() ?? null,
-      tokenUpdatedAt: Date.now()
-    };
-
-    this.session = tokens;
     try {
-      JSONStorage.set('neueSession', this.session);
-    } catch (err) {
-      console.warn('Failed to persist session to storage:', err);
+      // Step 1. Authenticate against Cognito
+      // If the code stops here (no log after), your 'authenticate' wrapper
+      // isn't handling a specific Cognito challenge (like NewPasswordRequired).
+      const session = await this.authenticate(cognitoUser, authDetails);
+      console.log('Cognito authentication successful');
+
+      const idToken = session.getIdToken();
+      const refreshToken = session.getRefreshToken();
+
+      // Note: refreshToken usually does not have .getExpiration() in standard AWS SDK
+      // The ?. protects it, but it likely returns null.
+      const tokens = {
+        email,
+        token: idToken.getJwtToken(),
+        refreshToken: refreshToken.getToken(),
+        tokenExpiresAt: idToken.getExpiration() * 1000,
+        refreshTokenExpiresAt: refreshToken.getExpiration?.() ?? null,
+        tokenUpdatedAt: Date.now()
+      };
+
+      this.session = tokens;
+
+      // Persist session immediately
+      try {
+        JSONStorage.set('neueSession', this.session);
+      } catch (err) {
+        console.warn('Failed to persist session to storage:', err);
+      }
+
+      // Step 2. Exchange Cognito token for internal AI token
+      // We wrap this in a separate try/catch so login succeeds even if AI fails
+      try {
+        console.log('Attempting AI Token exchange...');
+        await CloudAiClient.exchangeTokenForAi(tokens.token);
+        console.log('AI Token exchange successful');
+      } catch (aiError) {
+        console.error('AI Token exchange failed, but proceeding with login:', aiError);
+        // Optional: decide if you want to throw here to block login
+        // throw aiError;
+      }
+
+      return this.session;
+    } catch (error) {
+      console.error('Fatal Login Error:', error);
+      throw error;
     }
-
-    // Step 2. Exchange Cognito token for internal AI token
-    await CloudAiClient.exchangeTokenForAi(tokens.token);
-
-    return this.session;
   }
 
   private requireSession(): NeueSession {

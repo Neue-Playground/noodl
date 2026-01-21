@@ -64,7 +64,7 @@ export class AiRemoteStore {
 
 export const AiStore = {
   getGeminiModel(): GeminiAiModel {
-    return EditorSettings.instance.get(GEMINI_MODEL_KEY) || 'gemini-2.5-flash';
+    return EditorSettings.instance.get(GEMINI_MODEL_KEY) || 'gemini-3-flash-preview';
   },
   setGeminiModel(value: GeminiAiModel) {
     EditorSettings.instance.set(GEMINI_MODEL_KEY, value);

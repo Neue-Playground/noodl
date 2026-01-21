@@ -68,8 +68,8 @@ export const template: AiNodeTemplate = {
       }
     });
 
-    if (!existingConversationId && conversation?.conversationId) {
-      conversationStore.linkConversationToNode(node.id, conversation.conversationId);
+    if (!existingConversationId && conversation) {
+      conversationStore.linkConversationToNode(node.id, conversation);
     }
 
     const codeText = extractCodeBlock(fullCodeText);

@@ -11,5 +11,5 @@ export const cognito = {
 
 export const api = {
   invokeUrl: 'https://shthy94udd.execute-api.eu-west-1.amazonaws.com/noodl-dev1',
-  aiUrl: 'https://playground-agent-478116.web.app'
+  aiUrl: 'https://playground-agent-service.web.app'
 };

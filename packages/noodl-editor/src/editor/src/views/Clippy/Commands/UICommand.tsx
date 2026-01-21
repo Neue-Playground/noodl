@@ -31,8 +31,6 @@ export async function handleUICommand(
   const undoGroup = new UndoActionGroup({ label: `AI UI: ${prompt}` });
 
   try {
-    statusCallback('Collecting context...');
-
     // TODO: Check if user components exist and should be added in a specific way, otherwise remove these lines
     // const { userComponents, uiPrimer } = collectUserContext();
 
@@ -169,12 +167,12 @@ function normalizePatch(patch: NodeGraphNodeJSON[]): NodeGraphNodeJSON[] {
   const idMap: Record<string, string> = {};
 
   for (const n of patch) {
-    if (n.id.startsWith('new-uuid-')) {
+    if (n.id.startsWith('new-')) {
       idMap[n.id] = guid();
     }
     if (Array.isArray(n.children)) {
       for (const c of n.children) {
-        if (c.id && c.id.startsWith('new-uuid-')) {
+        if (c.id && c.id.startsWith('new-')) {
           idMap[c.id] = guid();
         }
       }
@@ -214,9 +212,10 @@ function buildNodesFromPatch(
 
   const created = new Map<string, NodeGraphNode>();
 
-  const index = new Map<string, NodeGraphNodeJSON>();
-  for (const n of patch) index.set(n.id, n);
+  // 1. Flatten the incoming nested patch so we iterate over every node in the tree
+  const allNodesJson = flattenNodePatch(patch);
 
+  // Helper: Apply parameters to a node
   function applyParams(node: NodeGraphNode, params?: any, state?: string) {
     if (!params) return;
     for (const k in params) {
@@ -224,6 +223,7 @@ function buildNodesFromPatch(
     }
   }
 
+  // Helper: Apply state transitions
   function applyTransitions(node: NodeGraphNode, transitions?: Record<string, any>) {
     if (!transitions) return;
     for (const state in transitions) {
@@ -233,45 +233,55 @@ function buildNodesFromPatch(
     }
   }
 
-  for (const json of patch) {
+  // 2. Iterate over the flattened list of all nodes
+  for (const json of allNodesJson) {
     const status = (json.status ?? '').toLowerCase();
 
-    // Always resolve type
+    // Resolve component name (e.g., "Group" -> "net.noodl.visual.group")
     const typeName = transformComponentName(json.type);
     if (!typeName) continue;
 
     let node = nodeGraphModel.findNodeWithId(json.id);
 
-    if (!node && status === NodeStatus.ADDED) {
+    // Node Creation Logic
+    if (!node && status === 'added') {
       const data: NodeGraphNodeJSON = {
         ...json,
         type: typeName,
-        children: [],
+        children: [], // Hierarchy is established in the applyHierarchy function
         x: json.x ?? 0,
         y: json.y ?? 0
       };
 
-      setDefaultValues(data);
+      if (typeof setDefaultValues === 'function') {
+        setDefaultValues(data);
+      }
+
       node = NodeGraphNode.fromJSON(data);
 
+      // Set internal owner reference
       Object.defineProperty(node, 'owner', {
         value: nodeGraphModel,
         writable: true,
         configurable: true
       });
 
+      // Handle Undo/Redo for creation
       const nref = node;
       undoGroup.push({
         undo: () => {
           if (!nref.parent) nodeGraphModel.removeNode(nref);
         }
       });
-    } else if (node && status === NodeStatus.MODIFIED) {
+    }
+    // Update Logic for existing nodes
+    else if (node && (status === 'modified' || status === 'unchanged')) {
       applyParams(node, json.parameters);
     }
 
     if (!node) continue;
 
+    // Apply Transitions and State Parameters
     applyTransitions(node, json.stateTransitions);
 
     if (json.stateParameters) {
@@ -280,10 +290,33 @@ function buildNodesFromPatch(
       }
     }
 
+    // Add to the map so applyHierarchy can find it
     created.set(json.id, node);
   }
 
   return created;
+}
+
+/**
+ * Helper function to flatten the nested JSON structure into a single-level array
+ * so that every node (regardless of depth) is processed.
+ */
+function flattenNodePatch(patch: NodeGraphNodeJSON[]): NodeGraphNodeJSON[] {
+  const flat: NodeGraphNodeJSON[] = [];
+
+  function recurse(nodes: NodeGraphNodeJSON[]) {
+    for (const node of nodes) {
+      flat.push(node);
+      if (Array.isArray(node.children) && node.children.length > 0) {
+        // If the children are full objects (not just IDs), recurse into them
+        // We cast to any because the interface might expect IDs, but the JSON contains objects
+        recurse(node.children as any as NodeGraphNodeJSON[]);
+      }
+    }
+  }
+
+  recurse(patch);
+  return flat;
 }
 
 function applyHierarchy(
@@ -292,19 +325,23 @@ function applyHierarchy(
   graph: NodeGraphModel,
   undoGroup: UndoActionGroup
 ) {
-  const index = new Map<string, NodeGraphNodeJSON>();
-  for (const n of patch) index.set(n.id, n);
+  // Flatten the patch so we can find the children of nested nodes
+  const allNodesJson = flattenNodePatch(patch);
 
-  for (const parentJson of patch) {
+  for (const parentJson of allNodesJson) {
     const parentNode = created.get(parentJson.id) || graph.findNodeWithId(parentJson.id);
 
     if (!parentNode) continue;
 
     if (Array.isArray(parentJson.children)) {
       for (const childRef of parentJson.children) {
+        // Resolve the child node
         const childNode = created.get(childRef.id) || graph.findNodeWithId(childRef.id);
 
-        if (!childNode) continue;
+        if (!childNode) {
+          console.warn(`Child ${childRef.id} not found for parent ${parentJson.id}`);
+          continue;
+        }
 
         if (childNode.parent !== parentNode) {
           parentNode.addChild(childNode, {
@@ -375,10 +412,10 @@ async function handleImageNodes(patch: NodeGraphNodeJSON[], createdNodes: Map<st
       generationPromises.push(generationPromise);
     }
 
-    // Check styleCss for image-new-uuid patterns
+    // Check styleCss for new- patterns
     const styleCss = originalJson.parameters.styleCss;
     if (styleCss) {
-      if (/image-new-uuid/.test(styleCss)) {
+      if (/new-/.test(styleCss)) {
         const generationPromise = generateImage({ userPrompt })
           .then((imageData) => saveImageDataToDisk(imageData))
           .then((url) => {
@@ -403,8 +440,8 @@ function replaceImageUuid(styleCss: string, newUrl: string) {
   // Extract just the filename from the new URL
   const newFileName = newUrl.split(/[/\\]/).pop(); // handles both / and \ paths
 
-  // Replace only the filename part that starts with "image-new-uuid"
-  return styleCss.replace(/image-new-uuid[\w-]*\.\w+/g, newFileName);
+  // Replace only the filename part that starts with "new-"
+  return styleCss.replace(/new-[\w-]*\.\w+/g, newFileName);
 }
 
 function transformComponentName(name: string) {
